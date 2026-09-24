@@ -14,7 +14,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Landing en vivo:** https://bastet.uno/
 - **Panel admin:** https://bastet.uno/admin/
 - **Sitio viejo (histórico, repo viejo):** https://leilasuhana15.github.io/maat/ — ya no recibe actualizaciones.
-- **Pendiente:** en Supabase (Authentication → URL Configuration) cambiar el **Site URL** a `https://bastet.uno/admin/` y agregar el Redirect URL `https://bastet.uno/**`. Si no, las invitaciones y los links de acceso al panel siguen mandando a github.io.
+- ✅ **Supabase Auth apunta a bastet.uno** (2026-09-23): Site URL = `https://bastet.uno/admin/`, Redirect URL `https://bastet.uno/**`; la de github.io se quitó. Verificado llamando a `/auth/v1/verify` con token inválido: un `redirect_to` a bastet.uno se respeta, y uno no permitido (example.com, github.io) cae al Site URL `bastet.uno/admin/`.
 - **Deploy anterior:** GitHub Pages, rama `main`, carpeta raíz. Se redespliega automáticamente en cada push (tarda ~30-90s en build + hasta ~10 min en propagar por el CDN de Fastly en todos los edges — si ves contenido viejo justo después de pushear, es caché, no un bug; confirma con `curl` directo en vez de solo el navegador).
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
