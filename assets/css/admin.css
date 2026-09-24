@@ -347,3 +347,14 @@ input, textarea, select { font-family: inherit; }
 .auth-banner a { color: var(--color-primary); font-weight: 700; }
 .btn-trash { background: transparent; color: #b3402f; border: 1px solid rgba(179,64,47,0.35); display: inline-flex; align-items: center; justify-content: center; }
 .btn-trash:not(:disabled):hover { background: rgba(179,64,47,0.08); }
+
+/* ── Ojito para mostrar/ocultar contraseña (assets/js/password-toggle.js) ── */
+.pw-wrap { position: relative; display: block; width: 100%; }
+.pw-wrap input { width: 100%; padding-right: 44px !important; }
+.pw-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: none; border-radius: 8px; cursor: pointer;
+  color: var(--color-primary); opacity: 0.6;
+}
+.pw-toggle:hover, .pw-toggle:focus-visible { opacity: 1; background: rgba(44,64,45,0.08); }

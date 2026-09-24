@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Ojito para ver la contraseña (2026-09-24)**: `assets/js/password-toggle.js` (nuevo, cargado en `index.html` y `admin/index.html` antes de `main.js`/`admin.js`) envuelve cada `input[type=password]` en `.pw-wrap` con un botón `.pw-toggle` que alterna mostrar/ocultar; vuelve a ocultarse al enviar el formulario. Cubre login del panel, crear contraseña nueva, "Mi cuenta" y el modal "Acceso agentes". Estilos en `style.css` y `admin.css`.
+
 - ✅ **Eliminar usuarios desde el panel (2026-09-24)**: ícono de basurero en cada fila de **Usuarios** (menos la propia). Llama a la RPC `public.admin_delete_user(target uuid)` (en `supabase/schema.sql`): `security definer`, solo admin activo, no permite borrarse a sí mismo; `execute` revocado a `anon`. Borra de `auth.users` → el `profile` cae en cascada y sus propiedades quedan `owner_id = null` ("Sin asignar", siguen publicadas). El confirm avisa cuántas propiedades tiene. ✅ SQL corrido en producción y verificado (llamada anónima a la RPC → 42501 "permission denied").
 
 - ✅ **Mensaje de "Recuperar contraseña" neutro (2026-09-24, decisión de la dueña)**: ya no afirma "Te enviamos un correo"; dice "Si <correo> tiene una cuenta de agente en Bastet, te llegará un correo…" + enlace "Solicita tu cuenta de agente aquí" (`../#solicitar-cuenta`, que abre el modal del landing en la pestaña "Quiero una cuenta"). **No** se muestra "no tienes cuenta" a propósito: revelaría qué correos están registrados (enumeración de cuentas). La dueña lo aprobó así; no cambiarlo sin volver a consultarle.
