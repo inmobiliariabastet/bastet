@@ -23,7 +23,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - ✅ **Botones del hero + Acceso agentes + Solicitudes (2026-09-24)**:
   - Hero: "Solicitar evaluación" se reemplazó por dos botones — **Vender mi inmueble** (WhatsApp con el mensaje genérico de evaluación, `data-whatsapp-generic`) y **Buscar un inmueble** (ancla a `#propiedades`, estilo `.cta-button--outline`). El botón de Honorarios sigue siendo "Solicitar evaluación".
   - Menú principal (desktop y móvil): el CTA pasó a **Acceso agentes** (`data-agent-access`), que abre un modal (`#agent-modal-backdrop`) con dos pestañas: **Ya tengo cuenta** (login con `signInWithPassword` desde el landing; la sesión queda en localStorage del mismo origen y redirige a `admin/`, que valida rol/`is_active` como siempre; si ya hay sesión, el botón va directo a `admin/`) y **Quiero una cuenta** (formulario: nombre completo, WhatsApp, correo, ciudad, experiencia, inmobiliaria/empresa, mensaje → `insert` en `agent_requests`). "¿Olvidaste tu contraseña?" enlaza a `admin/#forgot`, que abre directo la pantalla de recuperar contraseña.
-  - Tabla nueva **`agent_requests`** en `supabase/schema.sql` (status `pending`/`approved`/`rejected`): RLS permite a anónimos solo *insertar* como `pending`; leer/editar/borrar solo admin.
+  - Tabla nueva **`agent_requests`** en `supabase/schema.sql` (status `pending`/`approved`/`rejected`): RLS permite a anónimos solo *insertar* como `pending`; leer/editar/borrar solo admin. ✅ Corrida en producción (2026-09-24) y verificada por API: lectura anónima → `[]`, insert anónimo con `status: approved` → 42501 (RLS), insert `pending` pasa RLS.
   - Panel: pestaña nueva **Solicitudes** (solo admin, con contador de pendientes) con filtros Pendientes/Aprobadas/Rechazadas. Cada tarjeta muestra los datos + link a WhatsApp/correo, y botones **Aprobar y enviar invitación** (llama a la Edge Function `invite-admin` con el correo → entra como Agente, y marca `approved`), Rechazar, Volver a pendiente y Eliminar.
 
 - ✅ **Hero actualizado (2026-09-24)**: título = "Marketplace Inmobiliario / Venda o encuentre su inmueble en menos de 30 días."; subtexto = "Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente."
@@ -146,8 +146,6 @@ Después de cada commit + push a `main`:
 4. **Actualizar la sección "Estado actual" de este archivo** con lo que cambió.
 
 ## Próximos pasos sugeridos
-
-⚠️ **PENDIENTE: correr el bloque `agent_requests` de `supabase/schema.sql` en el SQL Editor** (hasta entonces el formulario "Quiero una cuenta" muestra error y la pestaña Solicitudes dice "table not found").
 
 1. Decidir si se incorpora el tagline oficial del brand book ("Propiedades que se cuidan como se cuida un hogar") al copy visible del hero/landing.
 2. Cargar datos reales de perfil (nombre, foto, redes) para los agentes/admin existentes desde "Mi cuenta", y asignar `owner_id` a las propiedades viejas que quedaron "Sin asignar" (creadas antes del sistema de roles) si se quiere que muestren un agente en el carrusel.
