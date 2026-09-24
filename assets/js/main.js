@@ -29,6 +29,103 @@ window.addEventListener('scroll', () => {
   navbar.classList.toggle('is-scrolled', window.scrollY > 40);
 }, { passive: true });
 
+/* ── Acceso agentes: iniciar sesión (y saltar al panel) o solicitar una cuenta ── */
+const agentModalBackdrop = document.getElementById('agent-modal-backdrop');
+const agentLoginForm = document.getElementById('agent-login-form');
+const agentRequestForm = document.getElementById('agent-request-form');
+const agentRequestSuccess = document.getElementById('agent-request-success');
+
+BOLIVIA_CITIES.forEach((city) => {
+  const opt = document.createElement('option');
+  opt.value = city;
+  opt.textContent = city;
+  document.getElementById('req-city').appendChild(opt);
+});
+
+function setAgentTab(tab) {
+  document.querySelectorAll('.agent-tab').forEach((b) => b.classList.toggle('is-active', b.dataset.agentTab === tab));
+  // Tras enviar una solicitud, la pestaña muestra el mensaje de éxito en vez del formulario.
+  const sent = agentRequestSuccess.dataset.sent === '1';
+  agentLoginForm.classList.toggle('hidden', tab !== 'login');
+  agentRequestForm.classList.toggle('hidden', tab !== 'request' || sent);
+  agentRequestSuccess.classList.toggle('hidden', tab !== 'request' || !sent);
+}
+
+async function openAgentModal() {
+  setMenuOpen(false);
+  // Si ya hay una sesión activa en este navegador, ir directo al panel.
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) { window.location.href = 'admin/'; return; }
+  setAgentTab('login');
+  agentModalBackdrop.classList.remove('hidden');
+  document.getElementById('agent-login-email').focus();
+}
+
+function closeAgentModal() {
+  agentModalBackdrop.classList.add('hidden');
+}
+
+document.querySelectorAll('[data-agent-access]').forEach((btn) => btn.addEventListener('click', openAgentModal));
+document.querySelectorAll('.agent-tab').forEach((btn) => btn.addEventListener('click', () => setAgentTab(btn.dataset.agentTab)));
+document.getElementById('agent-modal-close').addEventListener('click', closeAgentModal);
+agentModalBackdrop.addEventListener('click', (e) => { if (e.target === agentModalBackdrop) closeAgentModal(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !agentModalBackdrop.classList.contains('hidden')) closeAgentModal();
+});
+
+function showAgentError(id, message) {
+  const el = document.getElementById(id);
+  el.textContent = message;
+  el.classList.toggle('hidden', !message);
+}
+
+agentLoginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showAgentError('agent-login-error', '');
+  const btn = document.getElementById('agent-login-submit');
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: document.getElementById('agent-login-email').value.trim(),
+    password: document.getElementById('agent-login-password').value,
+  });
+  if (error) {
+    btn.disabled = false;
+    showAgentError('agent-login-error', /invalid login credentials/i.test(error.message)
+      ? 'Correo o contraseña incorrectos.'
+      : /email not confirmed/i.test(error.message)
+        ? 'Debes confirmar tu correo antes de iniciar sesión.'
+        : 'No se pudo iniciar sesión: ' + error.message);
+    return;
+  }
+  // La sesión queda guardada en este navegador; el panel la retoma (y valida rol/estado).
+  window.location.href = 'admin/';
+});
+
+agentRequestForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showAgentError('agent-request-error', '');
+  const value = (id) => document.getElementById(id).value.trim();
+  const btn = document.getElementById('agent-request-submit');
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('agent_requests').insert({
+    full_name: value('req-name'),
+    whatsapp: value('req-whatsapp'),
+    email: value('req-email'),
+    city: value('req-city') || null,
+    experience: value('req-experience') || null,
+    company: value('req-company') || null,
+    message: value('req-message') || null,
+  });
+  btn.disabled = false;
+  if (error) {
+    showAgentError('agent-request-error', 'No pudimos enviar tu solicitud. Revisa los datos o escríbenos por WhatsApp al +591 77666205.');
+    return;
+  }
+  agentRequestForm.reset();
+  agentRequestSuccess.dataset.sent = '1';
+  setAgentTab('request');
+});
+
 /* ── Reveal on scroll ── */
 const revealObserver = ('IntersectionObserver' in window)
   ? new IntersectionObserver((entries) => {

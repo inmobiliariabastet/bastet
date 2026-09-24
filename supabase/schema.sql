@@ -515,3 +515,51 @@ insert into public.testimonials (id, name, role_label, quote, photo_url, sort_or
   ('a1b2c3d4-0001-4000-8000-000000000009', 'Familia Choque Ibáñez', 'Vendieron su departamento en Potosí', 'Un equipo que realmente escucha. Adaptaron el proceso a nuestro ritmo sin nunca perder seriedad ni orden.', 'assets/img/testimonials/testi-03.jpg', 8),
   ('a1b2c3d4-0001-4000-8000-000000000010', 'Valeria Ontiveros', 'Compró su primer departamento en La Paz', 'Era mi primera compra y tenía muchas dudas. Me guiaron con una paciencia y una claridad que no esperaba encontrar.', 'assets/img/testimonials/testi-07.jpg', 9)
 on conflict (id) do nothing;
+
+-- ── Tabla agent_requests (solicitudes de cuenta de agentes desde el landing) ──
+-- Un visitante anónimo llena el formulario "Solicitar cuenta" del botón
+-- "Acceso agentes"; la solicitud llega aquí como 'pending' y un admin la
+-- revisa en la pestaña "Solicitudes" del panel. El acceso se da manualmente
+-- (invitando el correo desde "Usuarios"), no automáticamente.
+create table if not exists public.agent_requests (
+  id           uuid primary key default gen_random_uuid(),
+  full_name    text not null check (char_length(full_name) between 3 and 120),
+  email        text not null check (char_length(email) between 5 and 160 and email like '%@%'),
+  whatsapp     text not null check (char_length(whatsapp) between 7 and 30),
+  city         text check (char_length(city) <= 60),
+  company      text check (char_length(company) <= 120),
+  experience   text check (char_length(experience) <= 40),
+  message      text check (char_length(message) <= 1000),
+  status       text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists agent_requests_created_at_idx on public.agent_requests (created_at);
+
+alter table public.agent_requests enable row level security;
+
+-- Cualquiera puede enviar una solicitud, pero solo como 'pending'; no puede leer ninguna.
+drop policy if exists "anyone can submit agent request" on public.agent_requests;
+create policy "anyone can submit agent request"
+  on public.agent_requests for insert
+  to anon, authenticated
+  with check (status = 'pending');
+
+drop policy if exists "admin can read agent requests" on public.agent_requests;
+create policy "admin can read agent requests"
+  on public.agent_requests for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "admin can update agent requests" on public.agent_requests;
+create policy "admin can update agent requests"
+  on public.agent_requests for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "admin can delete agent requests" on public.agent_requests;
+create policy "admin can delete agent requests"
+  on public.agent_requests for delete
+  to authenticated
+  using (public.is_admin());

@@ -35,7 +35,7 @@
       <a href="#garantias" class="navbar-link">Garantías</a>
       <a href="#pricing" class="navbar-link">Honorarios</a>
       <a href="#footer" class="navbar-link">Contacto</a>
-      <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button"><span>Solicitar evaluación</span></a>
+      <button type="button" data-agent-access class="cta-button"><span>Acceso agentes</span></button>
     </div>
   </div>
 
@@ -45,7 +45,7 @@
     <a href="#garantias" class="navbar-mobile-link">Garantías</a>
     <a href="#pricing" class="navbar-mobile-link">Honorarios</a>
     <a href="#footer" class="navbar-mobile-link">Contacto</a>
-    <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button" style="width:100%;margin-top:12px;"><span>Solicitar evaluación</span></a>
+    <button type="button" data-agent-access class="cta-button" style="width:100%;margin-top:12px;"><span>Acceso agentes</span></button>
   </div>
 </nav>
 
@@ -59,7 +59,8 @@
       <h1 class="hero-title">Marketplace Inmobiliario<br>Venda o encuentre su inmueble en menos de 30 días.</h1>
       <p class="hero-subtext">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
       <div class="hero-cta-wrap">
-        <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button cta-button--block"><span>Solicitar evaluación</span></a>
+        <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button"><span>Vender mi inmueble</span></a>
+        <a href="#propiedades" class="cta-button cta-button--outline"><span>Buscar un inmueble</span></a>
       </div>
     </div>
   </div>
@@ -157,6 +158,59 @@
     <p class="footer-copy">© 2026 Bastet Propiedades. Todos los Derechos Reservados.</p>
   </div>
 </footer>
+
+<div class="property-modal-backdrop hidden" id="agent-modal-backdrop">
+  <div class="property-modal agent-modal" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title">
+    <button type="button" class="property-modal-close" id="agent-modal-close" aria-label="Cerrar">✕</button>
+    <div class="agent-modal-body">
+      <h2 class="agent-modal-title" id="agent-modal-title">Acceso agentes</h2>
+      <div class="agent-tabs" role="tablist">
+        <button type="button" class="agent-tab is-active" data-agent-tab="login">Ya tengo cuenta</button>
+        <button type="button" class="agent-tab" data-agent-tab="request">Quiero una cuenta</button>
+      </div>
+
+      <form id="agent-login-form" class="agent-form" data-agent-panel="login">
+        <p class="agent-form-hint">Ingresa con el correo y la contraseña de tu cuenta Bastet para gestionar tus propiedades.</p>
+        <label class="agent-field"><span>Correo</span><input type="email" id="agent-login-email" required autocomplete="username"></label>
+        <label class="agent-field"><span>Contraseña</span><input type="password" id="agent-login-password" required autocomplete="current-password"></label>
+        <p class="agent-form-error hidden" id="agent-login-error"></p>
+        <button type="submit" class="cta-button" id="agent-login-submit"><span>Ingresar</span></button>
+        <a class="agent-form-link" href="admin/#forgot">¿Olvidaste tu contraseña?</a>
+      </form>
+
+      <form id="agent-request-form" class="agent-form hidden" data-agent-panel="request">
+        <p class="agent-form-hint">Déjanos tus datos y nos pondremos en contacto contigo para habilitar tu cuenta de agente en Bastet.</p>
+        <label class="agent-field"><span>Nombre completo *</span><input type="text" id="req-name" required minlength="3" maxlength="120" autocomplete="name"></label>
+        <div class="agent-field-row">
+          <label class="agent-field"><span>WhatsApp *</span><input type="tel" id="req-whatsapp" required minlength="7" maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>
+          <label class="agent-field"><span>Correo electrónico *</span><input type="email" id="req-email" required maxlength="160" autocomplete="email"></label>
+        </div>
+        <div class="agent-field-row">
+          <label class="agent-field"><span>Ciudad</span><select id="req-city"><option value="">Selecciona…</option></select></label>
+          <label class="agent-field"><span>Experiencia</span>
+            <select id="req-experience">
+              <option value="">Selecciona…</option>
+              <option>Recién empiezo</option>
+              <option>Menos de 1 año</option>
+              <option>1 a 3 años</option>
+              <option>3 a 5 años</option>
+              <option>Más de 5 años</option>
+            </select>
+          </label>
+        </div>
+        <label class="agent-field"><span>Inmobiliaria o empresa (si trabajas con una)</span><input type="text" id="req-company" maxlength="120" placeholder="Independiente"></label>
+        <label class="agent-field"><span>Cuéntanos sobre ti</span><textarea id="req-message" rows="3" maxlength="1000" placeholder="Zonas en las que trabajas, tipo de inmuebles, cuántas propiedades manejas…"></textarea></label>
+        <p class="agent-form-error hidden" id="agent-request-error"></p>
+        <button type="submit" class="cta-button" id="agent-request-submit"><span>Enviar solicitud</span></button>
+      </form>
+
+      <div class="agent-success hidden" id="agent-request-success">
+        <p class="agent-success-title">¡Solicitud enviada!</p>
+        <p class="agent-form-hint">Gracias. Revisaremos tus datos y te contactaremos por WhatsApp o correo para darte acceso.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/js/supabase-config.js"></script>

@@ -119,6 +119,7 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="partners">Marcas</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="testimonials">Testimonios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="admins">Usuarios</button>
+      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="requests">Solicitudes <span class="tab-count hidden" id="requests-count"></span></button>
       <button type="button" class="admin-tab" data-tab="account">Mi cuenta</button>
     </div>
 
@@ -229,6 +230,21 @@
       <h2 class="admin-subheading">Usuarios con acceso</h2>
       <p class="admin-toolbar-hint">Los agentes invitados aparecen aquí con rol "agent". Desactiva a alguien para quitarle acceso de inmediato (no borra sus propiedades).</p>
       <div id="user-list" class="user-list"></div>
+    </div>
+
+    <div id="tab-panel-requests" class="tab-panel hidden">
+      <div class="admin-toolbar">
+        <div>
+          <h1>Solicitudes de nuevos agentes</h1>
+          <p class="admin-toolbar-hint">Personas que pidieron una cuenta desde el botón "Acceso agentes" del landing. Contáctalas y, si las apruebas, se les envía una invitación por correo para crear su contraseña (entran con rol Agente).</p>
+        </div>
+      </div>
+      <div class="request-filters" id="request-filters">
+        <button type="button" class="request-filter is-active" data-status="pending">Pendientes</button>
+        <button type="button" class="request-filter" data-status="approved">Aprobadas</button>
+        <button type="button" class="request-filter" data-status="rejected">Rechazadas</button>
+      </div>
+      <div id="request-list" class="request-list"></div>
     </div>
 
     <div id="tab-panel-account" class="tab-panel hidden">

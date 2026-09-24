@@ -314,3 +314,33 @@ input, textarea, select { font-family: inherit; }
 /* ── Checkbox (Destacado) ── */
 .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--color-dark-text); cursor: pointer; }
 .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-accent); cursor: pointer; }
+
+/* ── Solicitudes de nuevos agentes ── */
+.tab-count {
+  display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 4px; border-radius: 100px;
+  background: var(--color-accent); color: var(--color-primary); font-size: 11px; font-weight: 700; line-height: 16px; text-align: center;
+}
+.request-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.request-filter {
+  border: 1px solid rgba(44,64,45,0.2); background: #fff; color: var(--color-primary);
+  padding: 7px 14px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.request-filter.is-active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.request-list { display: flex; flex-direction: column; gap: 12px; }
+.request-card {
+  background: #fff; border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid rgba(44,64,45,0.08);
+}
+.request-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.request-name { font-size: 16px; font-weight: 700; color: var(--color-dark-text); margin: 0; }
+.request-date { font-size: 12px; color: var(--color-dark-text); opacity: 0.55; }
+.request-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 20px; }
+.request-grid > div { min-width: 0; }
+.request-label { display: block; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--color-primary); opacity: 0.6; margin-bottom: 2px; }
+.request-value { font-size: 14px; color: var(--color-dark-text); overflow-wrap: anywhere; }
+.request-value a { color: var(--color-primary); font-weight: 600; }
+.request-message { font-size: 14px; line-height: 1.55; color: var(--color-dark-text); background: rgba(44,64,45,0.05); border-radius: 6px; padding: 10px 12px; margin: 0; white-space: pre-wrap; }
+.request-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.request-feedback { font-size: 13px; margin: 0; }
+.request-feedback.is-error { color: #b3402f; }
+.request-feedback.is-ok { color: var(--color-primary); }

@@ -79,6 +79,7 @@ document.getElementById('go-to-forgot').addEventListener('click', (e) => {
 });
 document.getElementById('go-to-login-from-forgot').addEventListener('click', (e) => {
   e.preventDefault();
+  startOnForgot = false;
   showView('login');
 });
 
@@ -132,6 +133,10 @@ resetForm.addEventListener('submit', async (e) => {
   handleSession(session);
 });
 
+// El landing enlaza a admin/#forgot desde "¿Olvidaste tu contraseña?": sin sesión, se abre esa pantalla en vez del login.
+let startOnForgot = window.location.hash === '#forgot';
+if (startOnForgot) history.replaceState(null, '', window.location.pathname);
+
 async function init() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   handleSession(session);
@@ -152,9 +157,10 @@ async function handleSession(session) {
   currentSession = session;
   if (!session) {
     currentProfile = null;
-    showView('login');
+    showView(startOnForgot ? 'forgot' : 'login');
     return;
   }
+  startOnForgot = false;
 
   const { data: profile, error } = await supabaseClient
     .from('profiles')
@@ -183,7 +189,10 @@ async function handleSession(session) {
   applyRoleUI();
   populateProfileForm();
   showView('dashboard');
-  if (!wasSignedIn) loadProperties();
+  if (!wasSignedIn) {
+    loadProperties();
+    if (profile.role === 'admin') refreshPendingRequestsCount();
+  }
 }
 
 function applyRoleUI() {
@@ -695,6 +704,7 @@ document.querySelectorAll('.admin-tab').forEach((btn) => {
     if (btn.dataset.tab === 'partners') loadPartners();
     if (btn.dataset.tab === 'testimonials') loadTestimonials();
     if (btn.dataset.tab === 'admins') loadUsers();
+    if (btn.dataset.tab === 'requests') loadRequests();
     if (btn.dataset.tab === 'analytics') loadAnalytics();
   });
 });
@@ -1192,6 +1202,124 @@ async function changeUserRole(user, selectEl) {
   selectEl.disabled = false;
   if (error) { alert('Error: ' + error.message); selectEl.value = user.role; return; }
   loadUsers();
+}
+
+/* ── Solicitudes de nuevos agentes (llegan desde "Acceso agentes" en el landing) ── */
+const requestListEl = document.getElementById('request-list');
+let requestStatusFilter = 'pending';
+
+const REQUEST_STATUS_LABELS = { pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada' };
+
+document.querySelectorAll('.request-filter').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    requestStatusFilter = btn.dataset.status;
+    document.querySelectorAll('.request-filter').forEach((b) => b.classList.toggle('is-active', b === btn));
+    loadRequests();
+  });
+});
+
+async function refreshPendingRequestsCount() {
+  const { count, error } = await supabaseClient
+    .from('agent_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending');
+  const badge = document.getElementById('requests-count');
+  const n = error ? 0 : (count || 0);
+  badge.textContent = n;
+  badge.classList.toggle('hidden', n === 0);
+}
+
+async function loadRequests() {
+  requestListEl.innerHTML = '<p class="property-empty">Cargando…</p>';
+  const { data, error } = await supabaseClient
+    .from('agent_requests')
+    .select('*')
+    .eq('status', requestStatusFilter)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    requestListEl.innerHTML = '<p class="property-empty">Error al cargar solicitudes: ' + escapeHtml(error.message) + '</p>';
+    return;
+  }
+  renderRequestList(data || []);
+  refreshPendingRequestsCount();
+}
+
+function renderRequestList(requests) {
+  if (!requests.length) {
+    const emptyText = { pending: 'No hay solicitudes pendientes.', approved: 'Todavía no aprobaste ninguna solicitud.', rejected: 'No hay solicitudes rechazadas.' };
+    requestListEl.innerHTML = '<p class="property-empty">' + emptyText[requestStatusFilter] + '</p>';
+    return;
+  }
+  requestListEl.innerHTML = '';
+  requests.forEach((r) => {
+    const card = document.createElement('div');
+    card.className = 'request-card';
+    const waMessage = 'Hola ' + r.full_name.split(' ')[0] + ', te escribimos de Bastet por tu solicitud de cuenta de agente.';
+    const waLink = 'https://api.whatsapp.com/send?phone=' + r.whatsapp.replace(/[^0-9]/g, '') + '&text=' + encodeURIComponent(waMessage);
+    const field = (label, html) => html ? '<div><span class="request-label">' + label + '</span><span class="request-value">' + html + '</span></div>' : '';
+
+    card.innerHTML =
+      '<div class="request-head">' +
+        '<p class="request-name">' + escapeHtml(r.full_name) + '</p>' +
+        '<span class="request-date">' + new Date(r.created_at).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + REQUEST_STATUS_LABELS[r.status] + '</span>' +
+      '</div>' +
+      '<div class="request-grid">' +
+        field('WhatsApp', '<a href="' + waLink + '" target="_blank" rel="noopener">' + escapeHtml(r.whatsapp) + '</a>') +
+        field('Correo', '<a href="mailto:' + encodeURIComponent(r.email) + '">' + escapeHtml(r.email) + '</a>') +
+        field('Ciudad', escapeHtml(r.city || '')) +
+        field('Experiencia', escapeHtml(r.experience || '')) +
+        field('Inmobiliaria / empresa', escapeHtml(r.company || '')) +
+      '</div>' +
+      (r.message ? '<p class="request-message">' + escapeHtml(r.message) + '</p>' : '') +
+      '<div class="request-actions">' +
+        (r.status !== 'approved' ? '<button type="button" class="btn btn-accent btn-sm" data-action="approve">Aprobar y enviar invitación</button>' : '') +
+        (r.status === 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="reject">Rechazar</button>' : '') +
+        (r.status !== 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="pending">Volver a pendiente</button>' : '') +
+        '<button type="button" class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>' +
+      '</div>' +
+      '<p class="request-feedback hidden"></p>';
+
+    const feedback = card.querySelector('.request-feedback');
+    const showFeedback = (msg) => {
+      feedback.textContent = msg;
+      feedback.className = 'request-feedback is-error';
+    };
+    const bind = (action, fn) => {
+      const btn = card.querySelector('[data-action="' + action + '"]');
+      if (btn) btn.addEventListener('click', () => fn(btn));
+    };
+
+    bind('approve', async (btn) => {
+      if (!confirm('¿Aprobar a ' + r.full_name + '? Se enviará una invitación a ' + r.email + ' para crear su contraseña (entrará como Agente).')) return;
+      btn.disabled = true;
+      const { data, error } = await supabaseClient.functions.invoke('invite-admin', { body: { email: r.email } });
+      if (error || (data && data.error)) {
+        btn.disabled = false;
+        showFeedback('No se pudo enviar la invitación: ' + (data && data.error ? data.error : error.message));
+        return;
+      }
+      await setRequestStatus(r, 'approved');
+    });
+    bind('reject', () => {
+      if (confirm('¿Rechazar la solicitud de ' + r.full_name + '?')) setRequestStatus(r, 'rejected');
+    });
+    bind('pending', () => setRequestStatus(r, 'pending'));
+    bind('delete', async () => {
+      if (!confirm('¿Eliminar definitivamente la solicitud de ' + r.full_name + '?')) return;
+      const { error } = await supabaseClient.from('agent_requests').delete().eq('id', r.id);
+      if (error) { showFeedback('Error: ' + error.message); return; }
+      loadRequests();
+    });
+
+    requestListEl.appendChild(card);
+  });
+}
+
+async function setRequestStatus(request, status) {
+  const { error } = await supabaseClient.from('agent_requests').update({ status }).eq('id', request.id);
+  if (error) { alert('Error: ' + error.message); return; }
+  loadRequests();
 }
 
 /* ── Administradores: ver las propiedades publicadas por un usuario ── */
