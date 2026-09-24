@@ -10,10 +10,11 @@
 
 Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boliviana ("Propiedades · Inmobiliarias", con raíz en asesoría legal inmobiliaria). Landing público + panel de administración de propiedades sobre Supabase.
 
-- **Repo (principal desde 2026-09-23):** https://github.com/inmobiliariabastet/bastet — remote `origin`, cuenta de GitHub `inmobiliariabastet`. Se va a conectar al hosting de **Hostinger**. El repo viejo `leilasuhana15/maat` quedó como remote `maat-old`, solo como respaldo; ya no se le sube nada.
-- **Landing en vivo (histórico, repo viejo):** https://leilasuhana15.github.io/maat/ — ya no recibe actualizaciones.
-- **Panel admin (histórico):** https://leilasuhana15.github.io/maat/admin/
-- **Pendiente al pasar a Hostinger:** en Supabase (Authentication → URL Configuration) cambiar el **Site URL** y los **Redirect URLs** al dominio nuevo (`https://<dominio>/admin/`, `https://<dominio>/**`). Si no, las invitaciones y los links de acceso al panel siguen mandando a github.io.
+- **Repo (principal desde 2026-09-23):** https://github.com/inmobiliariabastet/bastet — remote `origin`, cuenta de GitHub `inmobiliariabastet`. Conectado a **Hostinger** (deploy estático desde `main`, integración GitHub de hPanel). El repo viejo `leilasuhana15/maat` quedó como remote `maat-old`, solo como respaldo; ya no se le sube nada.
+- **Landing en vivo:** https://bastet.uno/
+- **Panel admin:** https://bastet.uno/admin/
+- **Sitio viejo (histórico, repo viejo):** https://leilasuhana15.github.io/maat/ — ya no recibe actualizaciones.
+- **Pendiente:** en Supabase (Authentication → URL Configuration) cambiar el **Site URL** a `https://bastet.uno/admin/` y agregar el Redirect URL `https://bastet.uno/**`. Si no, las invitaciones y los links de acceso al panel siguen mandando a github.io.
 - **Deploy anterior:** GitHub Pages, rama `main`, carpeta raíz. Se redespliega automáticamente en cada push (tarda ~30-90s en build + hasta ~10 min en propagar por el CDN de Fastly en todos los edges — si ves contenido viejo justo después de pushear, es caché, no un bug; confirma con `curl` directo en vez de solo el navegador).
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
