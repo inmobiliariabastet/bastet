@@ -10,16 +10,17 @@
 
 Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boliviana ("Propiedades · Inmobiliarias", con raíz en asesoría legal inmobiliaria). Landing público + panel de administración de propiedades sobre Supabase.
 
-- **Repo:** https://github.com/leilasuhana15/maat
-- **Landing en vivo:** https://leilasuhana15.github.io/maat/
-- **Panel admin:** https://leilasuhana15.github.io/maat/admin/
-- **Deploy:** GitHub Pages, rama `main`, carpeta raíz. Se redespliega automáticamente en cada push (tarda ~30-90s en build + hasta ~10 min en propagar por el CDN de Fastly en todos los edges — si ves contenido viejo justo después de pushear, es caché, no un bug; confirma con `curl` directo en vez de solo el navegador).
+- **Repo (principal desde 2026-09-23):** https://github.com/inmobiliariabastet/bastet — remote `origin`, cuenta de GitHub `inmobiliariabastet`. Se va a conectar al hosting de **Hostinger**. El repo viejo `leilasuhana15/maat` quedó como remote `maat-old`, solo como respaldo; ya no se le sube nada.
+- **Landing en vivo (histórico, repo viejo):** https://leilasuhana15.github.io/maat/ — ya no recibe actualizaciones.
+- **Panel admin (histórico):** https://leilasuhana15.github.io/maat/admin/
+- **Pendiente al pasar a Hostinger:** en Supabase (Authentication → URL Configuration) cambiar el **Site URL** y los **Redirect URLs** al dominio nuevo (`https://<dominio>/admin/`, `https://<dominio>/**`). Si no, las invitaciones y los links de acceso al panel siguen mandando a github.io.
+- **Deploy anterior:** GitHub Pages, rama `main`, carpeta raíz. Se redespliega automáticamente en cada push (tarda ~30-90s en build + hasta ~10 min en propagar por el CDN de Fastly en todos los edges — si ves contenido viejo justo después de pushear, es caché, no un bug; confirma con `curl` directo en vez de solo el navegador).
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Estado actual (última actualización: este commit)
 
 - ✅ Landing y panel admin construidos y desplegados en GitHub Pages.
-- ✅ Repo conectado a `https://github.com/leilasuhana15/maat.git`, rama `main`.
+- ✅ Repo conectado a `https://github.com/inmobiliariabastet/bastet.git` (`origin`), rama `main`. Antes estaba en `leilasuhana15/maat` (ahora `maat-old`).
 - ✅ Proyecto Supabase creado, esquema (`supabase/schema.sql`) ejecutado: tabla `properties` + RLS confirmadas por API (`GET /rest/v1/properties` → 200).
 - ✅ Bucket de Storage `property-photos` creado y con política de lectura pública confirmada (`POST /storage/v1/object/list/property-photos` → 200).
 - ✅ Credenciales reales de Supabase conectadas en `assets/js/supabase-config.js` y desplegadas.
