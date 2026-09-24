@@ -51,21 +51,26 @@ function setAgentTab(tab) {
   agentRequestSuccess.classList.toggle('hidden', tab !== 'request' || !sent);
 }
 
-async function openAgentModal() {
+async function openAgentModal(tab = 'login') {
   setMenuOpen(false);
   // Si ya hay una sesión activa en este navegador, ir directo al panel.
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) { window.location.href = 'admin/'; return; }
-  setAgentTab('login');
+  setAgentTab(tab);
   agentModalBackdrop.classList.remove('hidden');
-  document.getElementById('agent-login-email').focus();
+  document.getElementById(tab === 'request' ? 'req-name' : 'agent-login-email').focus();
 }
 
 function closeAgentModal() {
   agentModalBackdrop.classList.add('hidden');
 }
 
-document.querySelectorAll('[data-agent-access]').forEach((btn) => btn.addEventListener('click', openAgentModal));
+document.querySelectorAll('[data-agent-access]').forEach((btn) => btn.addEventListener('click', () => openAgentModal()));
+// El panel enlaza a /#solicitar-cuenta ("¿No tienes una cuenta?") para abrir directo el formulario.
+if (window.location.hash === '#solicitar-cuenta') {
+  history.replaceState(null, '', window.location.pathname);
+  openAgentModal('request');
+}
 document.querySelectorAll('.agent-tab').forEach((btn) => btn.addEventListener('click', () => setAgentTab(btn.dataset.agentTab)));
 document.getElementById('agent-modal-close').addEventListener('click', closeAgentModal);
 agentModalBackdrop.addEventListener('click', (e) => { if (e.target === agentModalBackdrop) closeAgentModal(); });

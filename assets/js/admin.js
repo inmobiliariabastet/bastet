@@ -102,7 +102,11 @@ forgotForm.addEventListener('submit', async (e) => {
     forgotError.classList.remove('hidden');
     return;
   }
-  forgotSuccess.textContent = 'Te enviamos un correo a ' + email + ' con un enlace para crear una nueva contraseña.';
+  // Supabase responde igual exista o no la cuenta (a propósito, para no revelar qué
+  // correos están registrados), así que el mensaje no puede afirmar que se envió.
+  forgotSuccess.innerHTML =
+    'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
+    '<br><br>¿No tienes una cuenta registrada? <a href="../#solicitar-cuenta">Solicita tu cuenta de agente aquí</a>.';
   forgotSuccess.classList.remove('hidden');
   forgotForm.reset();
 });

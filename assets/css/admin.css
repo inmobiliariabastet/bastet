@@ -344,3 +344,4 @@ input, textarea, select { font-family: inherit; }
 .request-feedback { font-size: 13px; margin: 0; }
 .request-feedback.is-error { color: #b3402f; }
 .request-feedback.is-ok { color: var(--color-primary); }
+.auth-banner a { color: var(--color-primary); font-weight: 700; }
