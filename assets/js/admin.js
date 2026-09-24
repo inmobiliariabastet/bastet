@@ -1107,6 +1107,28 @@ testimonialAddForm.addEventListener('submit', async (e) => {
 });
 
 /* ── Administradores: invitar nuevos usuarios (vía Edge Function, ver supabase/functions/invite-admin) ── */
+// Llama a invite-admin y devuelve null si salió bien, o el motivo del error en español.
+// Con un status no-2xx, supabase-js solo da un mensaje genérico; el detalle real
+// ({ error }) viene en el cuerpo de la respuesta (error.context).
+async function inviteByEmail(email) {
+  const { data, error } = await supabaseClient.functions.invoke('invite-admin', { body: { email } });
+  if (!error && !(data && data.error)) return null;
+  let message = data && data.error;
+  if (!message && error && error.context && typeof error.context.json === 'function') {
+    try { message = (await error.context.json()).error; } catch (_) { /* cuerpo no-JSON */ }
+  }
+  message = message || (error && error.message) || 'Error desconocido';
+  if (/already been registered|already registered|already exists/i.test(message)) {
+    return 'ese correo ya tiene una cuenta. Si quieres reenviarle la invitación, bórralo primero en Usuarios (basurero) y vuelve a intentarlo.';
+  }
+  if (/sending|smtp|mail/i.test(message)) {
+    return 'Supabase no pudo enviar el correo (' + message + '). Revisa la configuración SMTP y Authentication → Logs.';
+  }
+  if (/rate limit/i.test(message)) {
+    return 'se alcanzó el límite de correos por hora de Supabase. Espera un rato o sube el límite en Authentication → Rate Limits.';
+  }
+  return message;
+}
 document.getElementById('invite-admin-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById('invite-admin-error');
@@ -1118,12 +1140,12 @@ document.getElementById('invite-admin-form').addEventListener('submit', async (e
   const btn = document.getElementById('invite-admin-submit');
   btn.disabled = true;
 
-  const { data, error } = await supabaseClient.functions.invoke('invite-admin', { body: { email } });
+  const inviteError = await inviteByEmail(email);
 
   btn.disabled = false;
 
-  if (error || (data && data.error)) {
-    errorEl.textContent = 'Error al invitar: ' + (data && data.error ? data.error : error.message);
+  if (inviteError) {
+    errorEl.textContent = 'Error al invitar: ' + inviteError;
     errorEl.classList.remove('hidden');
     return;
   }
@@ -1316,10 +1338,10 @@ function renderRequestList(requests) {
     bind('approve', async (btn) => {
       if (!confirm('¿Aprobar a ' + r.full_name + '? Se enviará una invitación a ' + r.email + ' para crear su contraseña (entrará como Agente).')) return;
       btn.disabled = true;
-      const { data, error } = await supabaseClient.functions.invoke('invite-admin', { body: { email: r.email } });
-      if (error || (data && data.error)) {
+      const inviteError = await inviteByEmail(r.email);
+      if (inviteError) {
         btn.disabled = false;
-        showFeedback('No se pudo enviar la invitación: ' + (data && data.error ? data.error : error.message));
+        showFeedback('No se pudo enviar la invitación: ' + inviteError);
         return;
       }
       await setRequestStatus(r, 'approved');
