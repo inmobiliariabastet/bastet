@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Ajustes de copy (2026-09-24)**: email del footer → `inmobiliaria@bastet.uno`; se quitó el nombre "Dra. Silvana A. Vásquez Uribe" del footer; en Honorarios (`#pricing`) se borró la frase "Sin pagos por adelantado, sin costos ocultos…" y la nota "La evaluación inicial no tiene costo." (queda solo "Tras una evaluación inicial, nuestros honorarios…").
+
 - ✅ Landing y panel admin construidos y desplegados en GitHub Pages.
 - ✅ Repo conectado a `https://github.com/inmobiliariabastet/bastet.git` (`origin`), rama `main`. Antes estaba en `leilasuhana15/maat` (ahora `maat-old`).
 - ✅ Proyecto Supabase creado, esquema (`supabase/schema.sql`) ejecutado: tabla `properties` + RLS confirmadas por API (`GET /rest/v1/properties` → 200).
@@ -57,7 +59,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
     - `assets/img/bastet-logo-completo.png` (2089×1249, fondo transparente) — lockup completo (ícono + "BASTET" + tagline) ya compuesto como una sola imagen; no está en uso todavía en ningún lado (el sitio arma el lockup en vivo con ícono + texto HTML), pero queda disponible si se prefiere usar la imagen pre-compuesta en algún lugar.
     - `assets/img/hero-start.jpg` — primer frame del video del hero, comprimido a JPEG (de 1.79MB a ~160KB) y usado como `poster` del `<video>` para que se vea algo antes de que cargue el video.
     - Los SVG dibujados a mano (`bastet-icon.svg`, `favicon.svg`) se borraron del repo, ya no se usan.
-  - **Contacto**: teléfono/WhatsApp actualizado al estándar del brand book (`+591 77666205`, antes `70613687`), dirección agregada al footer (`Calle Yanacocha, Edif. Cristal, Of. 706 — La Paz, Bolivia`). El **email de contacto quedó igual** (`maatfirmalegal.sv@gmail.com`) porque el brand book no especifica uno nuevo — pendiente de confirmar con la dueña si debe cambiar.
+  - **Contacto**: teléfono/WhatsApp actualizado al estándar del brand book (`+591 77666205`, antes `70613687`), dirección agregada al footer (`Calle Yanacocha, Edif. Cristal, Of. 706 — La Paz, Bolivia`). Email de contacto del footer: `inmobiliaria@bastet.uno` (cambiado 2026-09-24, antes `maatfirmalegal.sv@gmail.com`).
   - **Video del hero recuperado**: la dueña pasó el archivo original (`MAAT VIDEO.mp4`, vía ruta explícita) — ya no es el gradiente placeholder. Vive en `assets/video/hero.mp4` (1.17MB) y reproduce con el mismo efecto "ping-pong" del diseño original (al llegar al final retrocede en cámara lenta en vez de cortar y reiniciar), respetando `prefers-reduced-motion`.
 - ⚠️ **Pendiente:** confirmar con la dueña si el email de contacto del footer debe actualizarse (ver nota de rebranding arriba).
 - ⚠️ No probado end-to-end contra el proyecto real: el flujo completo de un agente real viendo su dashboard restringido tras el rebrand (los cambios de color/marca no deberían afectar la lógica de roles, pero no se re-verificó explícitamente tras estos últimos cambios).
@@ -137,8 +139,7 @@ Después de cada commit + push a `main`:
 
 ## Próximos pasos sugeridos
 
-1. Confirmar con la dueña el email de contacto del footer (sigue siendo el de "maatfirmalegal.sv", no se especificó uno nuevo en el brand book).
-2. Decidir si se incorpora el tagline oficial del brand book ("Propiedades que se cuidan como se cuida un hogar") al copy visible del hero/landing.
-3. Cargar datos reales de perfil (nombre, foto, redes) para los agentes/admin existentes desde "Mi cuenta", y asignar `owner_id` a las propiedades viejas que quedaron "Sin asignar" (creadas antes del sistema de roles) si se quiere que muestren un agente en el carrusel.
-4. `supabase/schema.sql` está al día con producción (todas las migraciones de esta sesión — testimonios, dirección/tipo de cambio, WhatsApp del propietario, perfil público del agente, `partners.url`, `property_events` de analítica — ya se corrieron y verificaron por API). Si se edita el archivo a futuro, seguir corriendo solo el fragmento nuevo en el SQL Editor, no hace falta el archivo completo salvo para un proyecto Supabase nuevo desde cero.
-5. Con datos reales de uso, revisar si la Analítica necesita algo más (ej. filtrar por rango de fechas, exportar a CSV) — por ahora es solo vistas/contactos totales y de los últimos 7 días por propiedad.
+1. Decidir si se incorpora el tagline oficial del brand book ("Propiedades que se cuidan como se cuida un hogar") al copy visible del hero/landing.
+2. Cargar datos reales de perfil (nombre, foto, redes) para los agentes/admin existentes desde "Mi cuenta", y asignar `owner_id` a las propiedades viejas que quedaron "Sin asignar" (creadas antes del sistema de roles) si se quiere que muestren un agente en el carrusel.
+3. `supabase/schema.sql` está al día con producción (todas las migraciones de esta sesión — testimonios, dirección/tipo de cambio, WhatsApp del propietario, perfil público del agente, `partners.url`, `property_events` de analítica — ya se corrieron y verificaron por API). Si se edita el archivo a futuro, seguir corriendo solo el fragmento nuevo en el SQL Editor, no hace falta el archivo completo salvo para un proyecto Supabase nuevo desde cero.
+4. Con datos reales de uso, revisar si la Analítica necesita algo más (ej. filtrar por rango de fechas, exportar a CSV) — por ahora es solo vistas/contactos totales y de los últimos 7 días por propiedad.
