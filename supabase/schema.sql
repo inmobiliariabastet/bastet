@@ -59,6 +59,11 @@ alter table public.profiles add column if not exists instagram_url text;
 alter table public.profiles add column if not exists tiktok_url text;
 
 -- Crea automáticamente el profile de cualquier usuario nuevo (admin o agente).
+-- Seguridad: solo nace activo quien llegó por invitación (invited_at no nulo,
+-- vía la Edge Function invite-admin). Cualquier cuenta creada por otra vía
+-- (p. ej. alguien llamando directo a /auth/v1/signup con la anon key) nace
+-- DESACTIVADA: el panel la desloguea y RLS no le deja tocar nada hasta que un
+-- admin la reactive en "Usuarios".
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -66,8 +71,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, role)
-  values (new.id, new.email, 'agent')
+  insert into public.profiles (id, email, role, is_active)
+  values (new.id, new.email, 'agent', new.invited_at is not null)
   on conflict (id) do nothing;
   return new;
 end;
@@ -172,12 +177,14 @@ create policy "public can read available properties"
 -- público entero. En su lugar, main.js pide explícitamente solo las columnas públicas
 -- (sin owner_whatsapp) al consultar propiedades como "anon" — ver loadProperties().
 
--- Cualquier usuario autenticado (admin o agente) puede leer todo
+-- Un usuario activo (admin o agente) puede leer todo (incluye owner_whatsapp,
+-- el teléfono privado del propietario). Una sesión desactivada o no invitada
+-- solo ve lo mismo que un visitante anónimo: propiedades disponibles.
 drop policy if exists "authenticated can read all properties" on public.properties;
 create policy "authenticated can read all properties"
   on public.properties for select
   to authenticated
-  using (true);
+  using (public.is_active_user() or status = 'available');
 
 -- Un agente activo solo puede crear propiedades a su propio nombre; un admin también
 drop policy if exists "authenticated can insert properties" on public.properties;

@@ -20,6 +20,13 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- 🔒 **Endurecimiento de seguridad de cuentas (2026-09-24)** — la dueña reportó que "¿Olvidaste tu contraseña?" con un correo supuestamente no registrado terminó dando acceso al panel. Hallazgos: (1) **Supabase tenía el registro público abierto** (`/auth/v1/settings` → `disable_signup: false`): cualquiera podía crear una cuenta con la anon key y el trigger `handle_new_user` le daba perfil `agent` **activo** → entraba al panel, podía publicar propiedades en el landing y leer `owner_whatsapp`; (2) la Edge Function `invite-admin` aceptaba a **cualquier** usuario con sesión, no solo admins. Nota: `resetPasswordForEmail` de Supabase no crea usuarios ni manda correo a direcciones inexistentes (responde 200 igual, a propósito, para no revelar qué correos tienen cuenta) — si llegó un correo, esa dirección ya existía en `auth.users` (p. ej. invitada antes). Cambios:
+  - `handle_new_user`: el perfil nace `is_active = (invited_at is not null)` → solo las cuentas invitadas nacen activas.
+  - RLS `properties` select para `authenticated`: `is_active_user() or status = 'available'` (una sesión no habilitada ya no ve `owner_whatsapp` ni propiedades no disponibles).
+  - `invite-admin`: verifica `profiles.role = 'admin'` e `is_active` de quien llama (si no, 403). **Hay que re-desplegarla** pegando `supabase/functions/invite-admin/index.ts` en el Dashboard.
+  - Panel: mensaje para cuenta no habilitada ahora sugiere pedir acceso desde "Acceso agentes".
+  - **Dashboard (manual)**: Authentication → Sign In / Providers → desactivar "Allow new users to sign up" (las invitaciones siguen funcionando).
+
 - ⚠️ **Caché de JS/CSS en Hostinger — subir la versión en cada cambio**: Hostinger sirve `assets/*` con `Cache-Control: max-age=604800` (7 días), pero el HTML no se cachea. Si se cambia un `.js`/`.css` sin más, el navegador del visitante usa el archivo viejo con el HTML nuevo y las funciones nuevas "no andan" (pasó con el botón "Acceso agentes", 2026-09-24). Por eso todos los `<link>`/`<script>` locales de `index.html` y `admin/index.html` llevan `?v=AAAAMMDDx`: **al tocar cualquier JS/CSS, cambiar ese valor en ambos HTML** (ej. `sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html`).
 
 - ✅ **Botones del hero + Acceso agentes + Solicitudes (2026-09-24)**:

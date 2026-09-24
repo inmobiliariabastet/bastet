@@ -178,7 +178,7 @@ async function handleSession(session) {
 
   if (!profile.is_active) {
     await supabaseClient.auth.signOut();
-    loginError.textContent = 'Tu acceso fue desactivado por un administrador.';
+    loginError.textContent = 'Tu cuenta no está habilitada. Si eres agente, solicita acceso desde "Acceso agentes" en la página principal.';
     loginError.classList.remove('hidden');
     showView('login');
     return;

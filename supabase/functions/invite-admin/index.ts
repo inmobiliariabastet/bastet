@@ -4,8 +4,9 @@
 // Por qué existe: crear usuarios de Supabase Auth requiere la service_role key,
 // que NUNCA debe estar en código que corre en el navegador (le da acceso total
 // a la base de datos, sin RLS). Esta función corre en el servidor de Supabase,
-// usa esa key solo ahí, y solo acepta la petición si quien llama ya tiene una
-// sesión válida (cualquier administrador ya logueado puede invitar a otro).
+// usa esa key solo ahí, y solo acepta la petición si quien llama es un
+// administrador activo (role = 'admin' e is_active en public.profiles). Un
+// agente, o cualquier cuenta que no sea admin, recibe 403.
 //
 // Despliegue: Supabase Dashboard > Edge Functions > Deploy a new function
 // (nombre exacto: invite-admin), pegar este archivo. SUPABASE_URL y
@@ -49,6 +50,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Solo un administrador activo puede invitar (no basta con tener sesión).
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: callerProfile } = await adminClient
+      .from('profiles')
+      .select('role, is_active')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (!callerProfile || callerProfile.role !== 'admin' || !callerProfile.is_active) {
+      return new Response(JSON.stringify({ error: 'Solo un administrador puede invitar usuarios.' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { email } = await req.json();
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ error: 'Falta el correo del nuevo administrador.' }), {
@@ -57,7 +72,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email);
 
     if (error) {
