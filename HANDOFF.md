@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Hero actualizado (2026-09-24)**: título = "Marketplace Inmobiliario / Venda o encuentre su inmueble en menos de 30 días."; subtexto = "Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente."
+
 - ✅ **Ajustes de copy (2026-09-24)**: email del footer → `inmobiliaria@bastet.uno`; se quitó el nombre "Dra. Silvana A. Vásquez Uribe" del footer; en Honorarios (`#pricing`) se borró la frase "Sin pagos por adelantado, sin costos ocultos…" y la nota "La evaluación inicial no tiene costo." (queda solo "Tras una evaluación inicial, nuestros honorarios…").
 
 - ✅ Landing y panel admin construidos y desplegados en GitHub Pages.
