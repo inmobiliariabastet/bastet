@@ -570,3 +570,28 @@ create policy "admin can delete agent requests"
   on public.agent_requests for delete
   to authenticated
   using (public.is_admin());
+
+-- ── Eliminar usuarios desde el panel (pestaña Usuarios, ícono de basurero) ──
+-- Borra la cuenta de Supabase Auth; su profile se borra en cascada y sus
+-- propiedades quedan "Sin asignar" (owner_id -> null, no se pierden).
+-- Security definer para poder tocar auth.users, pero solo lo ejecuta un admin
+-- activo y nunca sobre su propia cuenta.
+create or replace function public.admin_delete_user(target uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Solo un administrador puede eliminar usuarios.';
+  end if;
+  if target = auth.uid() then
+    raise exception 'No puedes eliminar tu propia cuenta.';
+  end if;
+  delete from auth.users where id = target;
+end;
+$$;
+
+revoke all on function public.admin_delete_user(uuid) from public, anon;
+grant execute on function public.admin_delete_user(uuid) to authenticated;

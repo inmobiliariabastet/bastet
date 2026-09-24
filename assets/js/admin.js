@@ -1169,10 +1169,14 @@ function renderUserList(users) {
         ? '<span class="role-tag ' + (user.role === 'admin' ? 'admin' : 'agent') + '">' + (user.role === 'admin' ? 'Admin' : 'Agente') + '</span>'
         : '<select class="role-select" data-action="role"><option value="agent"' + (user.role === 'agent' ? ' selected' : '') + '>Agente</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option></select>') +
       '<span class="status-badge ' + (user.is_active ? 'available' : 'sold') + '">' + (user.is_active ? 'Activo' : 'Desactivado') + '</span>' +
-      (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-danger' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>');
+      (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-danger' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
+      (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>');
 
     const toggleBtn = row.querySelector('[data-action="toggle"]');
     if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleUserActive(user); });
+
+    const deleteBtn = row.querySelector('[data-action="delete-user"]');
+    if (deleteBtn) deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteUser(user); });
 
     const roleSelect = row.querySelector('[data-action="role"]');
     if (roleSelect) roleSelect.addEventListener('change', () => changeUserRole(user, roleSelect));
@@ -1190,6 +1194,21 @@ async function toggleUserActive(user) {
   if (!confirm('¿Seguro que quieres ' + verb + ' a ' + (user.email || user.id) + '?')) return;
   const { error } = await supabaseClient.from('profiles').update({ is_active: nextActive }).eq('id', user.id);
   if (error) { alert('Error: ' + error.message); return; }
+  loadUsers();
+}
+
+async function deleteUser(user) {
+  const who = user.email || user.id;
+  const { count } = await supabaseClient
+    .from('properties')
+    .select('id', { count: 'exact', head: true })
+    .eq('owner_id', user.id);
+  const propsNote = count
+    ? '\n\nTiene ' + count + (count === 1 ? ' propiedad publicada: no se borrará, quedará "Sin asignar".' : ' propiedades publicadas: no se borrarán, quedarán "Sin asignar".')
+    : '';
+  if (!confirm('¿Eliminar definitivamente la cuenta de ' + who + '?\n\nYa no podrá iniciar sesión y esta acción no se puede deshacer (para volver a darle acceso habría que invitarla de nuevo).' + propsNote)) return;
+  const { error } = await supabaseClient.rpc('admin_delete_user', { target: user.id });
+  if (error) { alert('Error al eliminar: ' + error.message); return; }
   loadUsers();
 }
 
