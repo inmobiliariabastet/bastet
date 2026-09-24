@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ⚠️ **Caché de JS/CSS en Hostinger — subir la versión en cada cambio**: Hostinger sirve `assets/*` con `Cache-Control: max-age=604800` (7 días), pero el HTML no se cachea. Si se cambia un `.js`/`.css` sin más, el navegador del visitante usa el archivo viejo con el HTML nuevo y las funciones nuevas "no andan" (pasó con el botón "Acceso agentes", 2026-09-24). Por eso todos los `<link>`/`<script>` locales de `index.html` y `admin/index.html` llevan `?v=AAAAMMDDx`: **al tocar cualquier JS/CSS, cambiar ese valor en ambos HTML** (ej. `sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html`).
+
 - ✅ **Botones del hero + Acceso agentes + Solicitudes (2026-09-24)**:
   - Hero: "Solicitar evaluación" se reemplazó por dos botones — **Vender mi inmueble** (WhatsApp con el mensaje genérico de evaluación, `data-whatsapp-generic`) y **Buscar un inmueble** (ancla a `#propiedades`, estilo `.cta-button--outline`). El botón de Honorarios sigue siendo "Solicitar evaluación".
   - Menú principal (desktop y móvil): el CTA pasó a **Acceso agentes** (`data-agent-access`), que abre un modal (`#agent-modal-backdrop`) con dos pestañas: **Ya tengo cuenta** (login con `signInWithPassword` desde el landing; la sesión queda en localStorage del mismo origen y redirige a `admin/`, que valida rol/`is_active` como siempre; si ya hay sesión, el botón va directo a `admin/`) y **Quiero una cuenta** (formulario: nombre completo, WhatsApp, correo, ciudad, experiencia, inmobiliaria/empresa, mensaje → `insert` en `agent_requests`). "¿Olvidaste tu contraseña?" enlaza a `admin/#forgot`, que abre directo la pantalla de recuperar contraseña.
