@@ -406,3 +406,56 @@ a.btn { text-decoration: none; }
   background: rgba(var(--accent-rgb),0.18); color: #7a5a14;
 }
 .invisible { visibility: hidden; }
+
+/* ── Responsive: tablet y celular ── */
+.admin-tabs { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tab { white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 860px) {
+  /* Barra superior: logo arriba, acciones abajo, sin desbordar */
+  .admin-topbar { height: auto; min-height: 60px; padding: 10px 16px; flex-wrap: wrap; gap: 8px 12px; }
+  .admin-topbar-right { gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+  .admin-user-email { display: none; }
+  .admin-logo-sub { display: none; }
+
+  /* Pestañas: fila deslizable con aviso de que hay más a la derecha */
+  .admin-tabs {
+    gap: 4px; margin-left: -16px; margin-right: -16px; padding: 0 16px;
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent);
+            mask-image: linear-gradient(to right, #000 88%, transparent);
+  }
+  .admin-tab + .admin-tab { margin-left: 10px; }
+
+  .admin-main { padding-top: 24px; }
+  .admin-toolbar h1 { font-size: 24px; }
+  .admin-toolbar > .btn { width: 100%; }
+
+  /* Filas de propiedades / analítica: los datos arriba, precio, estado y acciones abajo */
+  .property-row { flex-wrap: wrap; gap: 10px 12px; padding: 12px; }
+  .property-info { flex: 1 1 calc(100% - 110px); }
+  .property-thumb, .property-thumb-placeholder { width: 56px; height: 56px; }
+  .property-actions { margin-left: auto; }
+  .analytics-metric { flex: 1 1 0; }
+
+  /* Usuarios y marcas/testimonios */
+  .user-row { flex-wrap: wrap; gap: 8px 10px; }
+  .user-row-email { flex-basis: 100%; }
+  .partner-row { flex-wrap: wrap; gap: 10px 12px; }
+  .invite-admin-card { max-width: none; padding: 18px; }
+
+  /* Ventanas (formulario y detalle) */
+  .modal-overlay { padding: 12px; }
+  .modal-panel { padding: 22px 18px; border-radius: 16px; }
+  .detail-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px 18px; }
+  .detail-photos img { width: 76px; height: 76px; }
+  .location-search-row { flex-wrap: wrap; }
+  .modal-form-actions { flex-direction: column-reverse; }
+  .modal-form-actions .btn { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .admin-topbar .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .role-badge { font-size: 10px; padding: 3px 7px; }
+  .request-actions .btn { flex: 1 1 auto; }
+}
