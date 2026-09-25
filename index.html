@@ -8,8 +8,8 @@
 <link rel="icon" type="image/png" href="assets/img/favicon.png">
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/css/fonts.css?v=20260924s">
-<link rel="stylesheet" href="assets/css/style.css?v=20260924s">
+<link rel="stylesheet" href="assets/css/fonts.css?v=20260924t">
+<link rel="stylesheet" href="assets/css/style.css?v=20260924t">
 </head>
 <body>
 
@@ -67,17 +67,6 @@
   </div>
 </section>
 
-<!-- Filtros "desvanecer en arena" para las tarjetas del anillo de propiedades (main.js → sandEdges) -->
-<svg class="sand-filters" width="0" height="0" aria-hidden="true" focusable="false">
-  <defs>
-    <filter id="sand-1" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" result="scattered"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -1.6" result="grains"/><feComposite in="scattered" in2="grains" operator="in"/></filter>
-    <filter id="sand-2" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" result="scattered"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -2.6" result="grains"/><feComposite in="scattered" in2="grains" operator="in"/></filter>
-    <filter id="sand-3" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="24" xChannelSelector="R" yChannelSelector="G" result="scattered"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -3.6" result="grains"/><feComposite in="scattered" in2="grains" operator="in"/></filter>
-    <filter id="sand-4" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="36" xChannelSelector="R" yChannelSelector="G" result="scattered"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -4.6" result="grains"/><feComposite in="scattered" in2="grains" operator="in"/></filter>
-    <filter id="sand-5" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="52" xChannelSelector="R" yChannelSelector="G" result="scattered"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -5.8" result="grains"/><feComposite in="scattered" in2="grains" operator="in"/></filter>
-  </defs>
-</svg>
-
 <section id="propiedades" class="propiedades-section">
   <div class="propiedades-inner reveal">
     <h2 class="section-heading section-heading--light">Propiedades disponibles</h2>
@@ -102,6 +91,12 @@
       </div>
     </div>
     <div class="city-filters" id="city-filters"></div>
+    <div class="clear-filters-wrap">
+      <button type="button" class="clear-filters hidden" id="clear-filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        Limpiar filtros
+      </button>
+    </div>
     <div class="ring-stage" id="ring-stage"></div>
   </div>
 </section>
@@ -245,10 +240,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="assets/js/supabase-config.js?v=20260924s"></script>
-<script src="assets/js/bolivia-cities.js?v=20260924s"></script>
-<script src="assets/js/password-toggle.js?v=20260924s"></script>
-<script src="assets/js/property-fields.js?v=20260924s"></script>
-<script src="assets/js/main.js?v=20260924s"></script>
+<script src="assets/js/supabase-config.js?v=20260924t"></script>
+<script src="assets/js/bolivia-cities.js?v=20260924t"></script>
+<script src="assets/js/password-toggle.js?v=20260924t"></script>
+<script src="assets/js/property-fields.js?v=20260924t"></script>
+<script src="assets/js/main.js?v=20260924t"></script>
 </body>
 </html>

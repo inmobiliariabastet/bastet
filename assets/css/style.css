@@ -740,9 +740,6 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 }
 .propiedades-section .ring-stage:has(.ring-empty) { margin-bottom: 24px; }
 
-/* Contenedor de los filtros SVG de "arena" (no ocupa espacio) */
-.sand-filters { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
-
 /* ── Responsive: ficha de propiedad en celular ── */
 @media (max-width: 560px) {
   .property-modal-backdrop { padding: 10px; align-items: flex-end; }
@@ -753,3 +750,32 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   .property-modal-features { grid-template-columns: 1fr 1fr; }
   .agent-modal-body { padding: 30px 18px 24px; }
 }
+
+/* ── Efecto arena del anillo: brillo dorado en el lado que se deshace + capa de granos ── */
+.propiedades-section { position: relative; }
+.propiedades-inner { position: relative; z-index: 1; }
+.sand-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.ring-card.is-sanding::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to left, rgba(255,226,150,0.85), rgba(241,191,70,0.35) 35%, rgba(241,191,70,0) 70%);
+  opacity: calc(var(--sand, 0) * 1.6); mix-blend-mode: screen;
+}
+.ring-card.is-sanding:not(.sand-right)::after {
+  background: linear-gradient(to right, rgba(255,226,150,0.85), rgba(241,191,70,0.35) 35%, rgba(241,191,70,0) 70%);
+}
+
+/* ── Botón "Limpiar filtros" ── */
+.clear-filters-wrap { display: flex; justify-content: center; }
+.clear-filters {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin: -6px 0 18px;
+  font-family: var(--font-sans); font-size: 14px; letter-spacing: 0.03em; color: var(--color-accent);
+  padding: 8px 18px; border-radius: 999px;
+  background: rgba(var(--accent-rgb),0.08);
+  border: 1px solid rgba(var(--accent-rgb),0.45);
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s var(--ease-out);
+  animation: fadeInSimple 0.5s var(--ease-out) both;
+}
+.clear-filters svg { width: 14px; height: 14px; transition: transform 0.4s var(--ease-out); }
+.clear-filters:hover { background: rgba(var(--accent-rgb),0.18); color: #fff; transform: translateY(-1px); }
+.clear-filters:hover svg { transform: rotate(90deg); }
+.clear-filters:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }

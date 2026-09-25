@@ -196,12 +196,108 @@ const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-m
    Reproduce la misma física: rotación automática + arrastre, con la tarjeta
    resuelta en pointerdown (no en el evento "click") para que no falle si el
    anillo se movió entre el down y el up. */
+// Capa de partículas de arena dorada sobre el anillo de propiedades. Un solo <canvas>
+// para todos los granos; el bucle solo corre mientras hay granos vivos.
+function createSandLayer(host) {
+  const canvas = document.createElement('canvas');
+  canvas.className = 'sand-layer';
+  canvas.setAttribute('aria-hidden', 'true');
+  host.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const COLORS = ['#FFF3CC', '#F8DA8C', '#F1BF46', '#E9B44C', '#D9A441', '#C99A5B'];
+  const MAX = 1400;
+  const grains = [];
+  // Halo dorado pre-dibujado (se estampa con drawImage: barato) para los granos que brillan
+  const glow = document.createElement('canvas');
+  glow.width = glow.height = 32;
+  const gctx = glow.getContext('2d');
+  const grad = gctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grad.addColorStop(0, 'rgba(255,236,170,0.9)');
+  grad.addColorStop(0.35, 'rgba(241,191,70,0.45)');
+  grad.addColorStop(1, 'rgba(241,191,70,0)');
+  gctx.fillStyle = grad;
+  gctx.fillRect(0, 0, 32, 32);
+  let w = 0, h = 0, rafId = null, lastT = 0;
+
+  function resize() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    w = host.clientWidth; h = host.clientHeight;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(host);
+
+  // rect: rectángulo de la tarjeta en pantalla; outward: 1 derecha / -1 izquierda; sand: 0..1
+  function emit(rect, outward, sand) {
+    const hostRect = host.getBoundingClientRect();
+    const count = Math.round(6 + sand * 22);
+    const band = rect.width * (0.12 + sand * 0.9); // franja del lado exterior que se está deshaciendo
+    const edge = outward > 0 ? rect.right : rect.left;
+    for (let i = 0; i < count; i++) {
+      const depth = Math.pow(Math.random(), 1.6) * band;
+      grains.push({
+        x: edge - outward * depth - hostRect.left,
+        y: rect.top + Math.random() * rect.height - hostRect.top,
+        vx: outward * (50 + Math.random() * 190) * (0.6 + sand),
+        vy: -30 - Math.random() * 70,
+        size: 1.1 + Math.random() * (Math.random() < 0.15 ? 3.2 : 1.9),
+        glows: Math.random() < 0.22,
+        life: 0,
+        ttl: 0.9 + Math.random() * 1.3,
+        color: COLORS[(Math.random() * COLORS.length) | 0],
+        wobble: Math.random() * Math.PI * 2,
+      });
+    }
+    if (grains.length > MAX) grains.splice(0, grains.length - MAX);
+    if (!rafId) { lastT = performance.now(); rafId = requestAnimationFrame(tick); }
+  }
+
+  function tick(t) {
+    const dt = Math.min((t - lastT) / 1000, 0.05);
+    lastT = t;
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'lighter'; // los granos brillan sobre el fondo verde
+    for (let i = grains.length - 1; i >= 0; i--) {
+      const g = grains[i];
+      g.life += dt;
+      if (g.life >= g.ttl) { grains.splice(i, 1); continue; }
+      g.wobble += dt * 6;
+      g.vx *= 0.985;
+      g.vy += 140 * dt;                       // la arena cae
+      g.x += (g.vx + Math.sin(g.wobble) * 18) * dt;
+      g.y += g.vy * dt;
+      const k = 1 - g.life / g.ttl;
+      ctx.globalAlpha = Math.min(1, k * 1.4);
+      ctx.fillStyle = g.color;
+      const s = g.size * (0.5 + k * 0.5);
+      if (g.glows) {
+        const gs = s * 7;
+        ctx.globalAlpha = Math.min(1, k * 1.2) * 0.7;
+        ctx.drawImage(glow, g.x - gs / 2, g.y - gs / 2, gs, gs);
+        ctx.globalAlpha = Math.min(1, k * 1.4);
+      }
+      ctx.fillRect(g.x, g.y, s, s);
+    }
+    ctx.globalAlpha = 1;
+    rafId = grains.length ? requestAnimationFrame(tick) : null;
+    if (!rafId) ctx.clearRect(0, 0, w, h);
+  }
+
+  return { emit };
+}
+
 function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, emptyText = 'Próximamente.', brightCenter = false, sandEdges = false }) {
   const step = 360 / size;
   // sandEdges: al acercarse al borde de la pantalla (o al límite del anillo) la tarjeta
-  // se "desvanece en arena": tono dorado, granos que se dispersan y se vuelven transparentes
-  // (filtros SVG #sand-1…#sand-5 en index.html). Solo afecta a las 1–2 tarjetas del borde.
+  // se "desvanece en arena": se erosiona desde su lado exterior con un brillo dorado mientras
+  // una capa <canvas> (createSandLayer) suelta granos que vuelan hacia afuera y caen.
+  // Todo es transform/opacity/máscara + canvas: fluido, sin filtros SVG por cuadro.
   // Se mide contra el borde de la pantalla (el anillo está centrado en la ventana).
+  const sandLayer = sandEdges && !reducedMotion ? createSandLayer(stage.closest('section') || stage.parentElement) : null;
+  const CARD_HALF_WIDTH = 115;
   let screenHalfWidth = window.innerWidth / 2;
   if (sandEdges) window.addEventListener('resize', () => { screenHalfWidth = window.innerWidth / 2; }, { passive: true });
 
@@ -211,7 +307,7 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
     const zone = Math.min(170, Math.max(40, screenHalfWidth * 0.2));
     const edgeOverlap = Math.abs(x) + cardHalfWidth - (screenHalfWidth - zone);
     const byEdge = edgeOverlap / (zone + cardHalfWidth);
-    const byAngle = (Math.abs(a) - cull * 0.72) / (cull * 0.28); // siempre termina en arena antes de ocultarse
+    const byAngle = (Math.abs(a) - cull * 0.8) / (cull * 0.2); // siempre termina en arena antes de ocultarse
     return Math.max(0, Math.min(1, Math.max(byEdge, byAngle)));
   }
   let cards = [];
@@ -236,23 +332,25 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
       const x = radius * Math.sin(r);
       el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + (radius * (1 - c)).toFixed(1) + 'px) rotateY(' + (-a).toFixed(1) + 'deg)';
       const brightness = brightCenter ? (1 - 0.8 * (1 / c - 1)) : (0.72 + 0.5 * (1 / c - 1));
-      const sand = sandEdges ? sandAmount(a, x, el.offsetWidth / 2) : 0;
-      if (sand > 0.02) {
-        const level = Math.min(5, Math.ceil(sand * 5));
-        el.style.filter = 'url(#sand-' + level + ') sepia(' + (sand * 0.85).toFixed(2) + ') saturate(' + (1 + sand * 0.4).toFixed(2) + ') brightness(' + (brightness * (1 + sand * 0.12)).toFixed(3) + ')';
-        el.style.opacity = (1 - sand * sand * 0.9).toFixed(3);
-        // el lado que toca el borde se deshace primero
-        const side = x > 0 ? 'to left' : 'to right';
-        const solid = (100 - sand * 70).toFixed(1);
-        el.style.webkitMaskImage = el.style.maskImage = 'linear-gradient(' + side + ', transparent 0%, #000 ' + (100 - Number(solid)).toFixed(1) + '%, #000 100%)';
+      const sand = sandEdges ? sandAmount(a, x, CARD_HALF_WIDTH) : 0;
+      el.style.filter = 'brightness(' + (brightness * (1 + sand * 0.25)).toFixed(3) + ')';
+      if (sand > 0.01) {
+        const outward = x > 0 ? 1 : -1;
+        // frente de erosión que avanza desde el lado exterior hacia adentro
+        const front = sand * 115 - 15;
+        const dir = outward > 0 ? 'to left' : 'to right';
+        el.style.webkitMaskImage = el.style.maskImage =
+          'linear-gradient(' + dir + ', transparent ' + front.toFixed(1) + '%, #000 ' + (front + 22).toFixed(1) + '%)';
+        el.style.opacity = (1 - Math.pow(sand, 2.2)).toFixed(3);
+        el.style.setProperty('--sand', sand.toFixed(3));
+        el.classList.toggle('sand-right', outward > 0);
         el.classList.add('is-sanding');
-      } else {
-        el.style.filter = 'brightness(' + brightness.toFixed(3) + ')';
-        if (el.classList.contains('is-sanding')) {
-          el.style.opacity = '';
-          el.style.webkitMaskImage = el.style.maskImage = '';
-          el.classList.remove('is-sanding');
-        }
+        if (sandLayer && sand < 0.97) sandLayer.emit(el.getBoundingClientRect(), outward, sand);
+      } else if (el.classList.contains('is-sanding')) {
+        el.style.opacity = '';
+        el.style.webkitMaskImage = el.style.maskImage = '';
+        el.style.removeProperty('--sand');
+        el.classList.remove('is-sanding', 'sand-right');
       }
       el.style.zIndex = String(Math.round(1000 - Math.abs(a)));
     }
@@ -727,7 +825,30 @@ function buildRingPool(list) {
   return pool;
 }
 
+const clearFiltersBtn = document.getElementById('clear-filters');
+
+function anyFilterActive() {
+  return operationFilter !== 'todas' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || budgetFilter !== '' || cityFilter !== 'Todas';
+}
+
+clearFiltersBtn.addEventListener('click', () => {
+  operationFilter = 'todas';
+  typeFilter = '';
+  roomsFilter = '';
+  bathsFilter = '';
+  budgetFilter = '';
+  cityFilter = 'Todas';
+  buildOperationFilters();
+  buildTypeFilter();
+  buildRoomsFilter();
+  buildBathsFilter();
+  buildBudgetFilter();
+  buildCityFilters();
+  renderPropertyRing();
+});
+
 function renderPropertyRing() {
+  clearFiltersBtn.classList.toggle('hidden', !anyFilterActive());
   const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '')
     ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
     : operationFilter !== 'todas'
