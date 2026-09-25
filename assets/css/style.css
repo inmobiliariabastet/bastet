@@ -705,3 +705,28 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   .operation-tab { padding: 9px 14px; font-size: 14px; }
 }
 .ring-stage:has(.ring-empty) { height: 180px; }
+
+/* ── Filtro por presupuesto (selector de vidrio) ── */
+.budget-filter { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 18px; }
+.budget-filter-label { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent); opacity: 0.9; }
+.budget-filter-select {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  font-family: var(--font-sans); font-size: 15px; color: var(--color-light);
+  padding: 10px 44px 10px 18px; border-radius: 999px; min-width: 240px; max-width: 100%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F1BF46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") right 16px center / 16px no-repeat,
+    rgba(255,255,255,0.06);
+  border: 1px solid rgba(var(--light-rgb),0.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.budget-filter-select:hover { border-color: rgba(var(--accent-rgb),0.6); }
+.budget-filter-select:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.2); }
+.budget-filter-select.is-set { border-color: var(--color-accent); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(var(--accent-rgb),0.35); }
+.budget-filter-select option { color: var(--color-charcoal); background: #fff; }
+.budget-filter-select option:disabled { color: #9aa0a3; }
+@media (max-width: 520px) {
+  .budget-filter { flex-direction: column; gap: 8px; }
+  .budget-filter-select { width: 100%; }
+}

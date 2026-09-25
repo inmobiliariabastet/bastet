@@ -305,6 +305,65 @@ const modal = document.getElementById('property-modal');
 let allProperties = [];
 let cityFilter = 'Todas';
 let operationFilter = 'todas'; // 'todas' | 'venta' | 'alquiler' | 'anticretico'
+let budgetFilter = ''; // índice del rango elegido en budgetRanges(), '' = cualquier presupuesto
+const budgetSelectEl = document.getElementById('budget-filter-select');
+
+// Rangos de presupuesto (USD) según la operación: un alquiler mensual no se busca
+// con los mismos montos que una compra o un anticrético. [mínimo exclusivo, máximo inclusivo]
+const BUDGET_RANGES = {
+  venta: [[0, 50000], [50000, 100000], [100000, 200000], [200000, 500000], [500000, Infinity]],
+  alquiler: [[0, 300], [300, 600], [600, 1000], [1000, 2000], [2000, Infinity]],
+  anticretico: [[0, 20000], [20000, 40000], [40000, 60000], [60000, Infinity]],
+};
+function budgetRanges() { return BUDGET_RANGES[operationFilter] || BUDGET_RANGES.venta; }
+
+function propertyPriceNumber(p) {
+  const digits = (p.price || '').toString().replace(/[^0-9]/g, '');
+  return digits ? parseInt(digits, 10) : null;
+}
+
+function formatUSDNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+function budgetRangeLabel([min, max]) {
+  const suffix = operationFilter === 'alquiler' ? ' USD/mes' : ' USD';
+  if (min === 0) return 'Hasta ' + formatUSDNumber(max) + suffix;
+  if (max === Infinity) return 'Más de ' + formatUSDNumber(min) + suffix;
+  return formatUSDNumber(min) + ' – ' + formatUSDNumber(max) + suffix;
+}
+
+function inBudgetRange(p, [min, max]) {
+  const price = propertyPriceNumber(p);
+  return price !== null && price > min && price <= max;
+}
+
+// Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
+// operación elegida); los rangos sin propiedades quedan deshabilitados.
+function buildBudgetFilter() {
+  const base = propertiesForOperation();
+  budgetSelectEl.innerHTML = '';
+  const any = document.createElement('option');
+  any.value = '';
+  any.textContent = 'Cualquier presupuesto';
+  budgetSelectEl.appendChild(any);
+  budgetRanges().forEach((range, i) => {
+    const count = base.filter((p) => inBudgetRange(p, range)).length;
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = budgetRangeLabel(range) + ' (' + count + ')';
+    opt.disabled = count === 0;
+    budgetSelectEl.appendChild(opt);
+  });
+  budgetSelectEl.value = budgetFilter;
+  budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
+}
+
+budgetSelectEl.addEventListener('change', () => {
+  budgetFilter = budgetSelectEl.value;
+  cityFilter = 'Todas';
+  budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
+  buildCityFilters();
+  renderPropertyRing();
+});
 const operationFiltersEl = document.getElementById('operation-filters');
 let selectedProperty = null;
 let selectedPhotoIndex = 0;
@@ -397,6 +456,7 @@ async function loadProperties() {
   }
 
   buildOperationFilters();
+  buildBudgetFilter();
   buildCityFilters();
   renderPropertyRing();
 }
@@ -430,7 +490,9 @@ function buildOperationFilters() {
     btn.addEventListener('click', () => {
       operationFilter = value;
       cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
+      budgetFilter = '';     // y los rangos de presupuesto también
       buildOperationFilters();
+      buildBudgetFilter();
       buildCityFilters();
       renderPropertyRing();
     });
@@ -442,8 +504,15 @@ function propertiesForOperation() {
   return operationFilter === 'todas' ? allProperties : allProperties.filter((p) => p.operation === operationFilter);
 }
 
+function propertiesForOperationAndBudget() {
+  const base = propertiesForOperation();
+  if (budgetFilter === '') return base;
+  const range = budgetRanges()[Number(budgetFilter)];
+  return range ? base.filter((p) => inBudgetRange(p, range)) : base;
+}
+
 function buildCityFilters() {
-  const presentCities = new Set(propertiesForOperation().map((p) => (p.location || '').split(',')[0].trim()));
+  const presentCities = new Set(propertiesForOperationAndBudget().map((p) => (p.location || '').split(',')[0].trim()));
   const cities = ['Todas'].concat(BOLIVIA_CITIES.filter((c) => presentCities.has(c)));
 
   cityFiltersEl.innerHTML = '';
@@ -464,10 +533,10 @@ function buildCityFilters() {
 }
 
 function filteredProperties() {
-  const byOperation = propertiesForOperation();
-  if (cityFilter === 'Todas') return byOperation;
-  const filtered = byOperation.filter((p) => (p.location || '').startsWith(cityFilter));
-  return filtered.length ? filtered : byOperation;
+  const base = propertiesForOperationAndBudget();
+  if (cityFilter === 'Todas') return base;
+  const filtered = base.filter((p) => (p.location || '').startsWith(cityFilter));
+  return filtered.length ? filtered : base;
 }
 
 const FEATURED_WEIGHT = 3; // una propiedad destacada aparece ~3x más seguido en el carrusel
@@ -486,9 +555,11 @@ function buildRingPool(list) {
 }
 
 function renderPropertyRing() {
-  const emptyMessage = operationFilter !== 'todas'
-    ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
-    : '';
+  const emptyMessage = budgetFilter !== ''
+    ? 'No tenemos propiedades en ese rango de presupuesto por ahora. Prueba con otro rango o escríbenos por WhatsApp y te ayudamos a encontrar una.'
+    : operationFilter !== 'todas'
+      ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
+      : '';
   propertyRing.render(buildRingPool(filteredProperties()), emptyMessage);
 }
 
