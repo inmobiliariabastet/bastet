@@ -1,0 +1,18 @@
+/* Tipografías oficiales del Brand Book Bastet (2026):
+   - Conso: títulos, subtítulos y botones  → var(--font-serif)
+   - Cabinet Grotesk: cuerpos de texto, labels y enlaces → var(--font-sans)
+   Archivos en assets/fonts/, convertidos de los .otf originales a WOFF2 y
+   recortados a caracteres latinos (español incluido) para que pesen menos.
+   Cabinet Grotesk solo tiene Light/Regular/Medium: Medium cubre también 600–700
+   para que el navegador no invente una "negrita falsa". */
+
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-RegularItalic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-SemiBold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Conso'; src: url('../fonts/Conso-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: 'Cabinet Grotesk'; src: url('../fonts/CabinetGrotesk-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Cabinet Grotesk'; src: url('../fonts/CabinetGrotesk-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Cabinet Grotesk'; src: url('../fonts/CabinetGrotesk-Medium.woff2') format('woff2'); font-weight: 500 800; font-style: normal; font-display: swap; }

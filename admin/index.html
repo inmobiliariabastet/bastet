@@ -6,11 +6,11 @@
 <title>Panel de administración — Bastet</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="../assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css?v=20260924i">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20260924h">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20260924i">
 </head>
 <body>
 
@@ -105,10 +105,10 @@
       </span>
     </div>
     <div class="admin-topbar-right">
-      <a href="../index.html" target="_blank" class="btn btn-ghost btn-sm" style="color:#F2E4DF;border-color:rgba(242,228,223,0.35);">Ver landing</a>
+      <a href="../index.html" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--color-light);border-color:rgba(var(--light-rgb),0.35);">Ver landing</a>
       <span class="role-badge" id="admin-role-badge"></span>
       <span class="admin-user-email" id="admin-user-email"></span>
-      <button id="logout-btn" class="btn btn-ghost btn-sm" style="color:#F2E4DF;border-color:rgba(242,228,223,0.35);">Cerrar sesión</button>
+      <button id="logout-btn" class="btn btn-ghost btn-sm" style="color:var(--color-light);border-color:rgba(var(--light-rgb),0.35);">Cerrar sesión</button>
     </div>
   </div>
 
@@ -444,9 +444,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../assets/js/supabase-config.js?v=20260924h"></script>
-<script src="../assets/js/bolivia-cities.js?v=20260924h"></script>
-<script src="../assets/js/password-toggle.js?v=20260924h"></script>
-<script src="../assets/js/admin.js?v=20260924h"></script>
+<script src="../assets/js/supabase-config.js?v=20260924i"></script>
+<script src="../assets/js/bolivia-cities.js?v=20260924i"></script>
+<script src="../assets/js/password-toggle.js?v=20260924i"></script>
+<script src="../assets/js/admin.js?v=20260924i"></script>
 </body>
 </html>

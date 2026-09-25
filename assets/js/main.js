@@ -531,7 +531,7 @@ function renderModal() {
       '</div>' +
       '<p class="property-modal-desc">' + escapeHtml(p.description) + '</p>' +
       buildAgentSectionHtml(p.agent) +
-      '<a class="cta-button cta-button--block" id="modal-whatsapp-cta" style="margin-top:8px;" href="' + whatsappUrl(message, p.whatsapp) + '" target="_blank" rel="noopener"><span>Consultar por WhatsApp</span></a>' +
+      '<a class="cta-button cta-button--block cta-button--arrow" id="modal-whatsapp-cta" style="margin-top:8px;" href="' + whatsappUrl(message, p.whatsapp) + '" target="_blank" rel="noopener"><span>Consultar por WhatsApp</span></a>' +
     '</div>';
 
   document.getElementById('property-modal-close').addEventListener('click', closeProperty);
