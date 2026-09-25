@@ -305,6 +305,8 @@ const modal = document.getElementById('property-modal');
 let allProperties = [];
 let cityFilter = 'Todas';
 let operationFilter = 'todas'; // 'todas' | 'venta' | 'alquiler' | 'anticretico'
+let typeFilter = ''; // '' | 'casa' | 'departamento' | 'terreno'
+const typeSelectEl = document.getElementById('type-filter-select');
 let budgetFilter = ''; // índice del rango elegido en budgetRanges(), '' = cualquier presupuesto
 const budgetSelectEl = document.getElementById('budget-filter-select');
 
@@ -336,10 +338,39 @@ function inBudgetRange(p, [min, max]) {
   return price !== null && price > min && price <= max;
 }
 
-// Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
-// operación elegida); los rangos sin propiedades quedan deshabilitados.
-function buildBudgetFilter() {
+// Selector de tipo de inmueble, con la cantidad de cada tipo dentro de la operación elegida.
+function buildTypeFilter() {
   const base = propertiesForOperation();
+  typeSelectEl.innerHTML = '';
+  const any = document.createElement('option');
+  any.value = '';
+  any.textContent = 'Todos los tipos';
+  typeSelectEl.appendChild(any);
+  Object.entries(PROPERTY_TYPE_LABELS).forEach(([value, label]) => {
+    const count = base.filter((p) => p.property_type === value).length;
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label + ' (' + count + ')';
+    opt.disabled = count === 0;
+    typeSelectEl.appendChild(opt);
+  });
+  typeSelectEl.value = typeFilter;
+  typeSelectEl.classList.toggle('is-set', typeFilter !== '');
+}
+
+typeSelectEl.addEventListener('change', () => {
+  typeFilter = typeSelectEl.value;
+  cityFilter = 'Todas';
+  typeSelectEl.classList.toggle('is-set', typeFilter !== '');
+  buildBudgetFilter(); // las cantidades por rango dependen del tipo
+  buildCityFilters();
+  renderPropertyRing();
+});
+
+// Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
+// operación y el tipo elegidos); los rangos sin propiedades quedan deshabilitados.
+function buildBudgetFilter() {
+  const base = propertiesForOperationAndType();
   budgetSelectEl.innerHTML = '';
   const any = document.createElement('option');
   any.value = '';
@@ -456,6 +487,7 @@ async function loadProperties() {
   }
 
   buildOperationFilters();
+  buildTypeFilter();
   buildBudgetFilter();
   buildCityFilters();
   renderPropertyRing();
@@ -491,7 +523,9 @@ function buildOperationFilters() {
       operationFilter = value;
       cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
       budgetFilter = '';     // y los rangos de presupuesto también
+      typeFilter = '';
       buildOperationFilters();
+      buildTypeFilter();
       buildBudgetFilter();
       buildCityFilters();
       renderPropertyRing();
@@ -504,8 +538,13 @@ function propertiesForOperation() {
   return operationFilter === 'todas' ? allProperties : allProperties.filter((p) => p.operation === operationFilter);
 }
 
-function propertiesForOperationAndBudget() {
+function propertiesForOperationAndType() {
   const base = propertiesForOperation();
+  return typeFilter === '' ? base : base.filter((p) => p.property_type === typeFilter);
+}
+
+function propertiesForOperationAndBudget() {
+  const base = propertiesForOperationAndType();
   if (budgetFilter === '') return base;
   const range = budgetRanges()[Number(budgetFilter)];
   return range ? base.filter((p) => inBudgetRange(p, range)) : base;
@@ -555,8 +594,8 @@ function buildRingPool(list) {
 }
 
 function renderPropertyRing() {
-  const emptyMessage = budgetFilter !== ''
-    ? 'No tenemos propiedades en ese rango de presupuesto por ahora. Prueba con otro rango o escríbenos por WhatsApp y te ayudamos a encontrar una.'
+  const emptyMessage = (budgetFilter !== '' || typeFilter !== '')
+    ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
     : operationFilter !== 'todas'
       ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
       : '';
