@@ -635,11 +635,11 @@ function buildPropertyCard(property) {
   card.innerHTML +=
     '<div class="ring-card-overlay"></div>' +
     '<div class="ring-card-label">' +
+      operationBadge +
       '<span class="ring-card-title-row">' + featuredIcon + '<span class="ring-card-title-text">' + escapeHtml(property.title) + '</span></span>' +
       priceLine +
       (metaLine ? '<span class="ring-card-meta">' + escapeHtml(metaLine) + '</span>' : '') +
     '</div>' +
-    operationBadge +
     buildAgentBadgeHtml(property.agent);
   return card;
 }
