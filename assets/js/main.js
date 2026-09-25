@@ -196,8 +196,24 @@ const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-m
    Reproduce la misma física: rotación automática + arrastre, con la tarjeta
    resuelta en pointerdown (no en el evento "click") para que no falle si el
    anillo se movió entre el down y el up. */
-function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, emptyText = 'Próximamente.', brightCenter = false }) {
+function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, emptyText = 'Próximamente.', brightCenter = false, sandEdges = false }) {
   const step = 360 / size;
+  // sandEdges: al acercarse al borde de la pantalla (o al límite del anillo) la tarjeta
+  // se "desvanece en arena": tono dorado, granos que se dispersan y se vuelven transparentes
+  // (filtros SVG #sand-1…#sand-5 en index.html). Solo afecta a las 1–2 tarjetas del borde.
+  // Se mide contra el borde de la pantalla (el anillo está centrado en la ventana).
+  let screenHalfWidth = window.innerWidth / 2;
+  if (sandEdges) window.addEventListener('resize', () => { screenHalfWidth = window.innerWidth / 2; }, { passive: true });
+
+  function sandAmount(a, x, cardHalfWidth) {
+    // Empieza cuando el borde exterior entra en la franja `zone` y termina cuando el
+    // centro de la tarjeta llega al borde (en celular la tarjeta central queda nítida).
+    const zone = Math.min(170, Math.max(40, screenHalfWidth * 0.2));
+    const edgeOverlap = Math.abs(x) + cardHalfWidth - (screenHalfWidth - zone);
+    const byEdge = edgeOverlap / (zone + cardHalfWidth);
+    const byAngle = (Math.abs(a) - cull * 0.72) / (cull * 0.28); // siempre termina en arena antes de ocultarse
+    return Math.max(0, Math.min(1, Math.max(byEdge, byAngle)));
+  }
   let cards = [];
   let phase = -2;
   let last = null;
@@ -217,9 +233,27 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
       if (Math.abs(a) > cull) { el.style.visibility = 'hidden'; continue; }
       el.style.visibility = 'visible';
       const r = (a * Math.PI) / 180, c = Math.cos(r);
-      el.style.transform = 'translate3d(' + (radius * Math.sin(r)).toFixed(1) + 'px,0,' + (radius * (1 - c)).toFixed(1) + 'px) rotateY(' + (-a).toFixed(1) + 'deg)';
+      const x = radius * Math.sin(r);
+      el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + (radius * (1 - c)).toFixed(1) + 'px) rotateY(' + (-a).toFixed(1) + 'deg)';
       const brightness = brightCenter ? (1 - 0.8 * (1 / c - 1)) : (0.72 + 0.5 * (1 / c - 1));
-      el.style.filter = 'brightness(' + brightness.toFixed(3) + ')';
+      const sand = sandEdges ? sandAmount(a, x, el.offsetWidth / 2) : 0;
+      if (sand > 0.02) {
+        const level = Math.min(5, Math.ceil(sand * 5));
+        el.style.filter = 'url(#sand-' + level + ') sepia(' + (sand * 0.85).toFixed(2) + ') saturate(' + (1 + sand * 0.4).toFixed(2) + ') brightness(' + (brightness * (1 + sand * 0.12)).toFixed(3) + ')';
+        el.style.opacity = (1 - sand * sand * 0.9).toFixed(3);
+        // el lado que toca el borde se deshace primero
+        const side = x > 0 ? 'to left' : 'to right';
+        const solid = (100 - sand * 70).toFixed(1);
+        el.style.webkitMaskImage = el.style.maskImage = 'linear-gradient(' + side + ', transparent 0%, #000 ' + (100 - Number(solid)).toFixed(1) + '%, #000 100%)';
+        el.classList.add('is-sanding');
+      } else {
+        el.style.filter = 'brightness(' + brightness.toFixed(3) + ')';
+        if (el.classList.contains('is-sanding')) {
+          el.style.opacity = '';
+          el.style.webkitMaskImage = el.style.maskImage = '';
+          el.classList.remove('is-sanding');
+        }
+      }
       el.style.zIndex = String(Math.round(1000 - Math.abs(a)));
     }
   }
@@ -542,6 +576,7 @@ const propertyRing = createRingCarousel({
   buildCard: buildPropertyCard,
   onSelect: (property) => openProperty(property),
   emptyText: 'Pronto publicaremos nuevas propiedades disponibles.',
+  sandEdges: true,
 });
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del

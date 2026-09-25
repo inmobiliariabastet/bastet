@@ -308,6 +308,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 
 /* ── Partners strip ── */
 .partners-strip {
+  position: relative; z-index: 1; /* por encima del brillo de las tarjetas destacadas */
   background: #ffffff;
   padding: 8px 0;
   overflow: hidden;
@@ -333,7 +334,9 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 }
 
 /* ── Propiedades / Ring carousel ── */
-.propiedades-section { background: var(--color-primary); padding: 120px clamp(20px,6vw,48px); }
+.propiedades-section { background: var(--color-primary); padding: 120px clamp(20px,6vw,48px) 28px; }
+/* El anillo deja ~110px vacíos bajo las tarjetas: se recorta para que la cinta de auspiciadores quede pegada al carrusel */
+.propiedades-section .ring-stage { margin-bottom: -70px; }
 .propiedades-inner { max-width: 1200px; margin: 0 auto; }
 .city-filters { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
 .city-pill {
@@ -733,3 +736,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   .budget-filter { align-items: stretch; gap: 6px; }
   .budget-filter-select { width: 100%; }
 }
+.propiedades-section .ring-stage:has(.ring-empty) { margin-bottom: 24px; }
+
+/* Contenedor de los filtros SVG de "arena" (no ocupa espacio) */
+.sand-filters { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
