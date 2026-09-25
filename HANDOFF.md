@@ -4,7 +4,27 @@
 >
 > **Práctica del proyecto:** este archivo se actualiza después de cada commit/push relevante, y antes de darlo por bueno se verifica que el sitio (landing + `/admin`) cargue sin errores de consola ni fallos de red. Ver [Cómo verificar antes de dar por bueno un cambio](#cómo-verificar-antes-de-dar-por-bueno-un-cambio).
 >
-> ⚠️ **El proyecto se renombró de "MAAT Firma Legal" a "Bastet Propiedades · Inmobiliarias"** (mismo negocio/dueña, nueva marca). La carpeta local, el nombre del repo de GitHub (`maat`) y el dominio de GitHub Pages (`leilasuhana15.github.io/maat`) siguen diciendo "maat" por razones históricas — no se renombraron para no romper el link ya compartido. Si algo dice "MAAT" en una URL, es solo el identificador técnico, no la marca visible.
+> ⚠️ **El proyecto se renombró de "MAAT Firma Legal" a "Bastet Propiedades · Inmobiliarias"** (mismo negocio/dueña, nueva marca). La carpeta local (`MATT FIRMA LEGAL`), el repo viejo (`leilasuhana15/maat`) y el nombre del proyecto en Supabase ("MAAT") siguen diciendo "maat" por razones históricas. La marca visible es solo **Bastet** y el sitio vive en **bastet.uno**.
+
+## ⚡ Resumen rápido (léelo primero)
+
+**Estado al 2026-09-24 — todo en producción en https://bastet.uno y verificado.**
+
+- **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260924w`):
+  ```bash
+  sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
+  ```
+- **Cambios de base de datos:** se agregan a `supabase/schema.sql` y **la dueña corre solo el bloque nuevo** en Supabase → SQL Editor (no hay CLI ni service key en esta máquina). No publicar código que dependa de columnas nuevas hasta que el SQL esté corrido y verificado por API con la anon key.
+- **Edge Function `invite-admin`:** se despliega pegando `supabase/functions/invite-admin/index.ts` en Supabase → Edge Functions (la dueña lo hace).
+- **Qué tiene hoy el sitio:**
+  - **Landing:** hero ("Marketplace Inmobiliario" / "Venda o Compre su inmueble en 30 días o menos.") con botones Vender (WhatsApp) / Buscar (ancla); carrusel 3D de propiedades con filtros (operación, tipo, habitaciones, baños, presupuesto, ciudad + "Limpiar filtros"); tarjetas con título grande, código `BST-xxxx`, etiqueta de operación y foto del agente que abre WhatsApp directo; efecto de arena dorada (partículas en canvas) al llegar al borde; cinta de auspiciadores bajo el carrusel; ficha de propiedad con características; testimonios; botón "Acceso agentes" (login + solicitud de cuenta).
+  - **Panel `/admin`:** roles admin/agente; Propiedades (código, tipo, operación, plantas, garaje, baulera, mascotas, niños), Analítica, Marcas, Testimonios, Usuarios (invitar, rol, activar/desactivar, eliminar), Solicitudes de nuevos agentes (aprobar = invitar), Mi cuenta.
+  - **Correo:** SMTP propio de Hostinger (`inmobiliaria@bastet.uno`), plantillas en español (copia en `supabase/email-templates/`).
+  - **Seguridad:** registro público cerrado; solo cuentas invitadas nacen activas; `invite-admin` solo para admins; RLS en todas las tablas.
+  - **Diseño:** Brand Book 2026 — Conso (títulos/botones) + Cabinet Grotesk (texto), paleta verde `#3D4C3A` / dorado `#F1BF46` / crema `#EEE6E0` / carbón `#1E2629`; botones pastilla con degradado y vidrio; responsive verificado a 375px y 768px.
+- **Pendientes de la dueña (datos, no código):** completar en cada propiedad tipo, operación y características (hoy vacías → los filtros de operación/tipo muestran 0) y el "WhatsApp del agente" (solo 6 de 14 lo tienen); confirmar la licencia web de la fuente **Conso**.
+- **Gotcha de pruebas:** las capturas del navegador integrado de Claude fallan al hacer scroll (salen en blanco o desfasadas, también con versiones viejas del sitio). No es un bug: verificar con medidas por JS (`getBoundingClientRect`, `scrollWidth`) o ocultar temporalmente el hero en la pestaña de prueba para que la sección quede arriba. Las animaciones (rAF) se pausan si el panel del navegador está oculto.
 
 ## Qué es esto
 
@@ -15,10 +35,13 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Panel admin:** https://bastet.uno/admin/
 - **Sitio viejo (histórico, repo viejo):** https://leilasuhana15.github.io/maat/ — ya no recibe actualizaciones.
 - ✅ **Supabase Auth apunta a bastet.uno** (2026-09-23): Site URL = `https://bastet.uno/admin/`, Redirect URL `https://bastet.uno/**`; la de github.io se quitó. Verificado llamando a `/auth/v1/verify` con token inválido: un `redirect_to` a bastet.uno se respeta, y uno no permitido (example.com, github.io) cae al Site URL `bastet.uno/admin/`.
-- **Deploy anterior:** GitHub Pages, rama `main`, carpeta raíz. Se redespliega automáticamente en cada push (tarda ~30-90s en build + hasta ~10 min en propagar por el CDN de Fastly en todos los edges — si ves contenido viejo justo después de pushear, es caché, no un bug; confirma con `curl` directo en vez de solo el navegador).
+- **Deploy actual:** Hostinger (bastet.uno) desde `main`, ~30s tras el push. **Deploy anterior (histórico):** GitHub Pages del repo viejo — ya no se usa.
+- **Correo del dominio:** buzones en Hostinger (`inmobiliaria@bastet.uno` envía los correos de Auth; `contacto@bastet.uno` existe). DNS con SPF, DKIM y DMARC `p=none`.
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
-## Estado actual (última actualización: este commit)
+## Historial de cambios (lo más reciente arriba)
+
+> Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
 
 - ✅ **Foto del agente en la tarjeta → WhatsApp directo (2026-09-24)**: `buildAgentBadgeHtml()` ahora pone en la parte inferior de cada tarjeta del carrusel la foto del agente (50px, aro dorado, insignia verde de WhatsApp) + nombre + "Consultar por WhatsApp", sobre un degradado oscuro. Sin agente/perfil → gato de Bastet y nombre "Bastet". El elemento lleva `data-ring-contact`: el carrusel (que resuelve el clic en `pointerdown` por el giro continuo) detecta ese atributo y llama a `onContact` en vez de `onSelect`, que abre `whatsappUrl(propertyWhatsappMessage(p), p.whatsapp)` y registra `whatsapp_click` en la analítica. Clic en el resto de la tarjeta sigue abriendo la ficha. `propertyWhatsappMessage()` es compartido con la ficha: "[BST-xxxx] Hola <Nombre del agente|Bastet>, me interesa…" (saluda por nombre solo si la propiedad tiene WhatsApp del agente; si no, va al número general). ⚠️ Solo 6 de 14 propiedades tienen `whatsapp` cargado: el resto contacta al número general de Bastet.
 
@@ -155,31 +178,35 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 ## Arquitectura / mapa de archivos
 
 ```
-index.html                   → landing público
-admin/index.html             → panel de administración
-agente/index.html            → redirige a /admin/ (link corto y fácil de compartir con agentes)
-assets/css/style.css         → estilos del landing
-assets/css/admin.css         → estilos del panel
-assets/js/supabase-config.js → credenciales de Supabase (URL + anon key, públicas por diseño)
-assets/js/bolivia-cities.js  → lista canónica de ciudades de Bolivia (compartida landing + admin)
-assets/js/main.js            → landing: createRingCarousel() genérico (motor del anillo 3D, opción brightCenter), fetch+render propiedades/testimonios/marcas, agente por propiedad, modal con WhatsApp, trackEvent() (analítica)
-assets/js/admin.js           → panel: auth+roles+recuperar contraseña, tabs, CRUD propiedades (owner_id/featured/dirección+mapa/tipo de cambio/whatsapp agente+propietario), detalle de propiedad, analítica, marcas, testimonios, usuarios (rol/activar/ver sus propiedades), mi cuenta (perfil público + contraseña)
-supabase/schema.sql          → tablas properties + profiles (roles + perfil público) + partners (+url) + testimonials + property_events (analítica), funciones/triggers de permisos (incluye protect_profile_privileged_columns), políticas RLS, buckets property-photos + partner-logos + testimonial-photos + agent-avatars
-supabase/functions/invite-admin/index.ts → Edge Function para invitar administradores (usa service_role, server-side)
-assets/img/bastet-gato-dorado.png / bastet-icon-verde.png / bastet-icon-gold.png / bastet-logo-completo.png → logos oficiales de marca + variante dorada (ver Estado actual)
-assets/img/favicon.png       → versión cuadrada con padding del ícono, usada como favicon (el ícono original es rectangular y se veía "achatado" si se usaba directo)
-assets/img/testimonials/testi-01.jpg … testi-10.jpg → fotos de stock para los testimonios semilla, servidas como archivos estáticos del repo (no Supabase Storage)
-assets/img/social-facebook.svg / social-instagram.svg / social-tiktok.svg → íconos de redes sociales del agente, usados en el modal de propiedad
-assets/video/hero.mp4        → video de fondo del hero (loop ping-pong)
-SETUP.md                     → guía de puesta en marcha (crear proyecto, correr SQL, crear admin, desplegar function)
-.claude/launch.json          → server estático local para preview (python -m http.server 8080)
+index.html                   → landing público (filtros SVG ya no; capa de arena = canvas creado por JS)
+admin/index.html             → panel de administración (admin y agentes)
+agente/index.html            → redirige a /admin/ (link corto para agentes)
+assets/css/fonts.css         → @font-face de Conso y Cabinet Grotesk (compartido por landing y panel)
+assets/fonts/*.woff2         → fuentes del Brand Book convertidas a WOFF2 (recortadas a latín)
+assets/css/style.css         → estilos del landing (tokens de color/fuente en :root, botones .cta-button, filtros, carrusel, modales, responsive)
+assets/css/admin.css         → estilos del panel (mismos tokens, .btn-*, responsive al final del archivo)
+assets/js/supabase-config.js → URL + anon key de Supabase (públicas por diseño)
+assets/js/bolivia-cities.js  → lista canónica de ciudades (landing + panel)
+assets/js/property-fields.js → etiquetas de tipo/operación, formatPropertyCode() ("BST-1001"), propertyFeatureList() (landing + panel)
+assets/js/password-toggle.js → "ojito" para mostrar/ocultar contraseñas (landing + panel)
+assets/js/main.js            → landing: createSandLayer() (partículas de arena), createRingCarousel() (anillo 3D: brightCenter, sandEdges, onSelect/onContact), filtros (operación→tipo→habitaciones→baños→presupuesto→ciudad), tarjetas con foto del agente, propertyWhatsappMessage(), ficha, testimonios, marcas, modal "Acceso agentes" (login + solicitud), trackEvent()
+assets/js/admin.js           → panel: auth/roles/recuperar contraseña, pestañas, CRUD de propiedades (código, tipo, operación, características), detalle, analítica, marcas, testimonios, usuarios (invitar/rol/activar/eliminar), solicitudes de agentes, mi cuenta
+supabase/schema.sql          → esquema completo e idempotente: properties (+code_number identity, tipo, operación, características), profiles, partners, testimonials, property_events, agent_requests, funciones (is_admin, is_active_user, handle_new_user, admin_delete_user…), RLS, buckets
+supabase/functions/invite-admin/index.ts → Edge Function para invitar usuarios (solo admins activos; usa service_role del lado del servidor)
+supabase/email-templates/    → copia de las plantillas de correo de Supabase Auth (invitación, recuperar contraseña) en español
+assets/img/…                 → logos oficiales (gato dorado, ícono verde, logo completo), favicon, fotos de testimonios, íconos sociales, poster del hero
+assets/video/hero.mp4        → video de fondo del hero
+SETUP.md                     → guía de puesta en marcha desde cero
+.claude/launch.json          → servidor estático local (python -m http.server 8080) para previsualizar
 ```
 
 ### Decisiones de diseño clave
 
 - El HTML original que trajo el usuario era un **export empaquetado de Claude Design** (formato `.dc.html` con bindings `{{ }}`), no HTML plano. Se decodificó el bundle y se reconstruyó como HTML/CSS/JS vanilla fiel al diseño original (mismo carrusel 3D: 12 tarjetas, radio 520px, `perspective:1000px`, auto-rotación + drag).
-- Colores de marca oficiales (Brand Book de Bastet): `--color-primary:#2C402D` `--color-secondary:#627362` `--color-olive:#8C7F3B` `--color-accent:#F2B035` `--color-light:#F2E4DF`. Tipografías: Cormorant Garamond (títulos) / Montserrat (cuerpo), vía Google Fonts. (Los colores/tipografía anteriores de "MAAT" — verde `#123F39`, dorado `#D9B26D`, Inter — quedaron completamente reemplazados.)
-- WhatsApp: cada propiedad puede tener su propio número de contacto (`properties.whatsapp`, opcional); si está vacío, el modal usa el número general de la firma (`WHATSAPP_PHONE` en `main.js`, actualmente `59177666205`).
+- **Marca (Brand Book 2026, `MANUAL DE MARCA BASTET.pdf`):** colores en `:root` de `style.css`/`admin.css` — `--color-primary:#3D4C3A` `--color-accent:#F1BF46` `--color-orange:#EC6C2E` `--color-light:#EEE6E0` `--color-charcoal:#1E2629` `--color-sage:#B7BEAD` (+ variantes `--*-rgb` para `rgba()`). Tipografías: **Conso** (`--font-serif`: títulos, subtítulos, botones; es ancha → usar pesos 300–500) y **Cabinet Grotesk** (`--font-sans`: texto, labels, enlaces), servidas desde `assets/fonts/`. Nada de Google Fonts. (La paleta #2C402D/#F2B035 y Cormorant/Montserrat anteriores quedaron reemplazadas.)
+- **Botones:** `.cta-button` (dorado con degradado y reflejo), `--glass` (vidrio esmerilado), `--sm`, `--arrow`; en el panel `.btn-primary/-accent/-ghost/-danger` con el mismo lenguaje.
+- **Filtros del landing:** se encadenan en este orden y cada selector muestra cantidades y deshabilita opciones vacías: operación → tipo → habitaciones → baños → presupuesto (rangos según operación, `BUDGET_RANGES`) → ciudad.
+- WhatsApp: cada propiedad puede tener su propio número de contacto (`properties.whatsapp`, opcional); si está vacío se usa el número general (`WHATSAPP_PHONE` en `main.js`, `59177666205`). El mensaje (`propertyWhatsappMessage()`) empieza con el código `[BST-xxxx]` y saluda al agente por nombre solo si el número es el suyo.
 - `properties.photos` es un array de URLs públicas del bucket `property-photos`. Al borrar una propiedad o una foto individual, el admin también borra el archivo del bucket.
 - Reordenar propiedades en el admin (drag & drop) actualiza `sort_order` de todas las filas; el landing ordena por ese campo.
 
@@ -187,20 +214,23 @@ SETUP.md                     → guía de puesta en marcha (crear proyecto, corr
 
 Después de cada commit + push a `main`:
 
-1. **Confirmar el deploy real con `curl`** (no confiar solo en el navegador, que puede mostrar caché vieja):
+1. **Confirmar el deploy real con `curl`** (no confiar solo en el navegador, que puede mostrar caché vieja; Hostinger publica en ~30s):
    ```bash
-   curl -s https://leilasuhana15.github.io/maat/assets/js/main.js | head -5
+   curl -s "https://bastet.uno/?x=$RANDOM" | grep -c "v=<versión nueva>"
    ```
+   Si cambiaste JS/CSS y no subiste el `?v=`, los visitantes seguirán viendo el archivo viejo hasta 7 días.
 2. **Abrir la landing y el admin en el navegador** y revisar la consola:
    - Errores esperados/inofensivos: ninguno, si las credenciales de Supabase están bien conectadas.
    - Si aparece `Failed to fetch` en `main.js` al cargar propiedades → revisar que `SUPABASE_URL`/`SUPABASE_ANON_KEY` en `assets/js/supabase-config.js` sean correctos y que el proyecto Supabase esté activo.
    - Si aparece `net::ERR_BLOCKED_BY_CLIENT` en la consola del navegador pero `curl` a los mismos recursos devuelve 200 → es un bloqueador de contenido del entorno de pruebas, no un bug real del sitio.
 3. **Probar el flujo real en `/admin`**: login, crear una propiedad de prueba con foto, verificar que aparece en el landing con `status='available'`, editarla, marcarla como `sold` y confirmar que desaparece del landing, borrarla.
-4. **Actualizar la sección "Estado actual" de este archivo** con lo que cambió.
+4. **Probar responsive** a 375px y 768px (sin desbordes: `document.documentElement.scrollWidth === innerWidth`).
+5. **Actualizar este archivo**: una entrada nueva arriba en el Historial y, si cambia algo vigente, el Resumen rápido.
 
 ## Próximos pasos sugeridos
 
-1. Decidir si se incorpora el tagline oficial del brand book ("Propiedades que se cuidan como se cuida un hogar") al copy visible del hero/landing.
-2. Cargar datos reales de perfil (nombre, foto, redes) para los agentes/admin existentes desde "Mi cuenta", y asignar `owner_id` a las propiedades viejas que quedaron "Sin asignar" (creadas antes del sistema de roles) si se quiere que muestren un agente en el carrusel.
-3. `supabase/schema.sql` está al día con producción (todas las migraciones de esta sesión — testimonios, dirección/tipo de cambio, WhatsApp del propietario, perfil público del agente, `partners.url`, `property_events` de analítica — ya se corrieron y verificaron por API). Si se edita el archivo a futuro, seguir corriendo solo el fragmento nuevo en el SQL Editor, no hace falta el archivo completo salvo para un proyecto Supabase nuevo desde cero.
-4. Con datos reales de uso, revisar si la Analítica necesita algo más (ej. filtrar por rango de fechas, exportar a CSV) — por ahora es solo vistas/contactos totales y de los últimos 7 días por propiedad.
+1. **Datos (la dueña, desde el panel):** completar en las 14 propiedades el tipo, la operación y las características; cargar el "WhatsApp del agente" donde falte (8 de 14); asignar `owner_id`/agente a las propiedades "Sin asignar"; completar perfiles de agentes (nombre, foto) en "Mi cuenta" para que su foto aparezca en las tarjetas.
+2. **Licencia de la fuente Conso:** confirmar con el diseñador del Brand Book (Chris VillMont) que cubre uso web. Cabinet Grotesk (Fontshare) ya lo permite.
+3. **Correos:** si siguen cayendo en spam, endurecer DMARC (`p=quarantine`) en el DNS de Hostinger.
+4. **Ideas pendientes ofrecidas a la dueña:** agrupar los filtros en un panel "Más filtros" si la sección se siente cargada; tagline del Brand Book ("Propiedades que se cuidan como se cuida un hogar") en el landing; filtros de fecha / exportar CSV en Analítica.
+5. **Estado "vendida" y alquileres:** el valor `status = 'sold'` se muestra como Vendida/Alquilada/En anticrético según la operación; si hace falta distinguir "reservada" u otros estados, habría que ampliar el `check` de `status`.
