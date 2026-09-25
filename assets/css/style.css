@@ -406,23 +406,40 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 .ring-card-featured-icon {
   width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; margin-top: 2px;
 }
+/* Foto del agente sobre la tarjeta (clic → WhatsApp con el agente) */
 .ring-card-agent {
-  position: absolute; left: 8px; bottom: 8px; right: 8px; padding: 6px 8px; border-radius: 4px;
-  background: rgba(10,30,27,0.78);
-  display: flex; align-items: center; gap: 6px;
+  position: absolute; left: 0; right: 0; bottom: 0; cursor: pointer;
+  padding: 36px 12px 12px;
+  background: linear-gradient(0deg, rgba(18,26,22,0.94) 0%, rgba(18,26,22,0.78) 55%, rgba(18,26,22,0) 100%);
+  display: flex; align-items: center; gap: 10px;
 }
+.ring-card-agent-photo { position: relative; flex-shrink: 0; transition: transform 0.4s var(--ease-out); }
 .ring-card-agent-avatar {
-  width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
-  border: 1px solid rgba(var(--accent-rgb),0.6);
+  width: 50px; height: 50px; border-radius: 50%; object-fit: cover; display: block;
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.22), 0 6px 16px rgba(0,0,0,0.5);
+  transition: box-shadow 0.4s ease;
 }
 .ring-card-agent-avatar-placeholder {
   display: flex; align-items: center; justify-content: center;
-  background: var(--color-secondary); color: var(--color-light); font-size: 11px; font-weight: 600;
+  background: var(--color-primary); color: var(--color-accent); font-family: var(--font-serif); font-size: 20px;
 }
-.ring-card-agent-name {
-  font-size: 11px; color: var(--color-light); letter-spacing: 0.2px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;
+.ring-card-agent-avatar-brand { display: flex; align-items: center; justify-content: center; background: var(--color-primary); }
+.ring-card-agent-avatar-brand img { width: 60%; height: 60%; object-fit: contain; }
+.ring-card-agent-wa {
+  position: absolute; right: -3px; bottom: -3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center;
+  border: 2px solid rgba(18,26,22,0.95); box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
+.ring-card-agent-wa svg { width: 12px; height: 12px; }
+.ring-card-agent-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ring-card-agent .ring-card-agent-name {
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: #fff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ring-card-agent .ring-card-agent-cta { font-size: 11px; color: #7EE2A0; letter-spacing: 0.02em; white-space: nowrap; }
+.ring-card-agent:hover .ring-card-agent-photo { transform: scale(1.08); }
+.ring-card-agent:hover .ring-card-agent-avatar { box-shadow: 0 0 0 4px rgba(37,211,102,0.35), 0 6px 18px rgba(0,0,0,0.5); }
 .ring-card--featured {
   border-color: rgba(var(--accent-rgb),0.9);
   box-shadow:

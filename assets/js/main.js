@@ -289,7 +289,7 @@ function createSandLayer(host) {
   return { emit };
 }
 
-function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, emptyText = 'Próximamente.', brightCenter = false, sandEdges = false }) {
+function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, onContact, emptyText = 'Próximamente.', brightCenter = false, sandEdges = false }) {
   const step = 360 / size;
   // sandEdges: al acercarse al borde de la pantalla (o al límite del anillo) la tarjeta
   // se "desvanece en arena": se erosiona desde su lado exterior con un brillo dorado mientras
@@ -320,6 +320,7 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
   let dragStartPhase = 0;
   let pauseUntil = 0;
   let downItem = null;
+  let downOnContact = false; // el pointerdown fue sobre la foto del agente ([data-ring-contact])
 
   function update() {
     for (let i = 0; i < cards.length; i++) {
@@ -401,6 +402,7 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
     dragStartPhase = phase;
     const cardEl = e.target.closest ? e.target.closest('[data-ring-card]') : null;
     downItem = cardEl ? cardEl.__item : null;
+    downOnContact = !!(e.target.closest && e.target.closest('[data-ring-contact]'));
     if (stage.setPointerCapture) { try { stage.setPointerCapture(e.pointerId); } catch (err) {} }
   });
   stage.addEventListener('pointermove', (e) => {
@@ -415,8 +417,12 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
     dragging = false;
     last = null;
     pauseUntil = performance.now() + 1600;
-    if (shouldSelect && !moved && downItem && onSelect) onSelect(downItem);
+    if (shouldSelect && !moved && downItem) {
+      if (downOnContact && onContact) onContact(downItem);
+      else if (onSelect) onSelect(downItem);
+    }
     downItem = null;
+    downOnContact = false;
   }
   stage.addEventListener('pointerup', () => end(true));
   stage.addEventListener('pointercancel', () => end(false));
@@ -645,16 +651,39 @@ function buildPropertyCard(property) {
 }
 
 // Solo avatar + nombre (sin redes: las redes se ven en el modal al abrir la propiedad).
+// Mensaje de WhatsApp de una propiedad: empieza con el código para que el agente la
+// identifique al instante, y saluda al agente por su nombre si lo tiene.
+function propertyWhatsappMessage(p) {
+  const code = formatPropertyCode(p);
+  const operationLabel = PROPERTY_OPERATION_LABELS[p.operation];
+  // Solo se saluda al agente por su nombre si el mensaje le llega a él (la propiedad tiene su
+  // WhatsApp); si no, va al número general de Bastet.
+  const agentFirstName = p.whatsapp && p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '';
+  return (code ? '[' + code + '] ' : '') +
+    'Hola ' + (agentFirstName || 'Bastet') + ', me interesa la propiedad: ' + p.title +
+    (operationLabel ? ' (' + operationLabel.toLowerCase() + ')' : '') +
+    ' en ' + p.location + '. ¿Podrían brindarme más información?';
+}
+
+const WHATSAPP_ICON_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.1.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
+
+// Foto del agente sobre la tarjeta: al tocarla se abre WhatsApp con el agente (ver onContact).
+// Sin agente asignado se muestra el gato de Bastet y el contacto va al número general.
 function buildAgentBadgeHtml(agent) {
-  if (!agent || (!agent.display_name && !agent.avatar_url)) return '';
-  const initial = (agent.display_name || '?').trim().charAt(0).toUpperCase();
-  const avatar = agent.avatar_url
+  const name = agent && agent.display_name ? agent.display_name : 'Bastet';
+  const initial = name.trim().charAt(0).toUpperCase();
+  const photo = agent && agent.avatar_url
     ? '<img class="ring-card-agent-avatar" src="' + escapeHtml(agent.avatar_url) + '" alt="">'
-    : '<span class="ring-card-agent-avatar ring-card-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>';
+    : (agent && agent.display_name
+      ? '<span class="ring-card-agent-avatar ring-card-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
+      : '<span class="ring-card-agent-avatar ring-card-agent-avatar-brand"><img src="assets/img/bastet-gato-dorado.png" alt=""></span>');
   return (
-    '<div class="ring-card-agent">' +
-      avatar +
-      '<span class="ring-card-agent-name">' + escapeHtml(agent.display_name || '') + '</span>' +
+    '<div class="ring-card-agent" data-ring-contact role="button" aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '" title="Consultar por WhatsApp con ' + escapeHtml(name) + '">' +
+      '<span class="ring-card-agent-photo">' + photo + '<span class="ring-card-agent-wa">' + WHATSAPP_ICON_SVG + '</span></span>' +
+      '<span class="ring-card-agent-text">' +
+        '<span class="ring-card-agent-name">' + escapeHtml(name) + '</span>' +
+        '<span class="ring-card-agent-cta">Consultar por WhatsApp</span>' +
+      '</span>' +
     '</div>'
   );
 }
@@ -673,6 +702,11 @@ const propertyRing = createRingCarousel({
   size: RING_SIZE,
   buildCard: buildPropertyCard,
   onSelect: (property) => openProperty(property),
+  // Clic en la foto del agente: WhatsApp directo con el agente, ya con el código de la propiedad
+  onContact: (property) => {
+    trackEvent(property.id, 'whatsapp_click');
+    window.open(whatsappUrl(propertyWhatsappMessage(property), property.whatsapp), '_blank', 'noopener');
+  },
   emptyText: 'Pronto publicaremos nuevas propiedades disponibles.',
   sandEdges: true,
 });
@@ -910,10 +944,7 @@ function renderModal() {
   const code = formatPropertyCode(p);
   const operationLabel = PROPERTY_OPERATION_LABELS[p.operation];
   // El código va primero para que el agente identifique la propiedad de un vistazo.
-  const message = (code ? '[' + code + '] ' : '') +
-    'Hola Bastet, me interesa la propiedad: ' + p.title +
-    (operationLabel ? ' (' + operationLabel.toLowerCase() + ')' : '') +
-    ' en ' + p.location + '. ¿Podrían brindarme más información?';
+  const message = propertyWhatsappMessage(p);
   const features = propertyFeatureList(p);
 
   modal.innerHTML =
