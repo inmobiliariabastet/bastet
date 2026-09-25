@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Filtro por baños en el landing (2026-09-24)**: selector `#baths-filter-select` ("1 o más" … "4 o más", con cantidades) entre Habitaciones y Presupuesto; número extraído del texto de `baths` ("5+ baños" → 5, "—" → 0). Cadena completa de filtros: operación → tipo → habitaciones → baños → presupuesto → ciudad (`propertiesBeforeBudget` aplica habitaciones + baños). Selectores con `min-width: 175px` para que los cuatro entren en una fila desde ~1000px.
+
 - ✅ **Filtro por habitaciones en el landing (2026-09-24)**: selector `#rooms-filter-select` ("1 o más" … "5 o más", con cantidades) entre Tipo y Presupuesto. El número se extrae del texto de `rooms` (`"6+ habitaciones"` → 6; "Espacio abierto"/"A diseñar" cuentan como 0). Cadena: operación → tipo → habitaciones → presupuesto → ciudad (`propertiesForOperationTypeAndRooms`). Las etiquetas de los selectores ahora van encima de cada uno (los tres entran en una fila desde ~1000px; en celular se apilan).
 
 - ✅ **Filtro por tipo de inmueble en el landing (2026-09-24)**: selector `#type-filter-select` (Todos / Casa / Departamento / Terreno, con cantidades; los vacíos se deshabilitan) junto al de presupuesto, dentro de `.select-filters`. Cadena de filtros: operación → tipo → presupuesto → ciudad (`propertiesForOperation` → `propertiesForOperationAndType` → `propertiesForOperationAndBudget` → `filteredProperties`). Cambiar la operación reinicia tipo, presupuesto y ciudad; cambiar el tipo recalcula las cantidades de presupuesto y reinicia la ciudad. Las propiedades sin `property_type` cargado solo aparecen con "Todos los tipos".

@@ -714,7 +714,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 .budget-filter-select {
   appearance: none; -webkit-appearance: none; cursor: pointer;
   font-family: var(--font-sans); font-size: 15px; color: var(--color-light);
-  padding: 10px 44px 10px 18px; border-radius: 999px; min-width: 190px; max-width: 100%;
+  padding: 10px 44px 10px 18px; border-radius: 999px; min-width: 175px; max-width: 100%;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F1BF46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") right 16px center / 16px no-repeat,
     rgba(255,255,255,0.06);

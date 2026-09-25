@@ -309,6 +309,15 @@ let typeFilter = ''; // '' | 'casa' | 'departamento' | 'terreno'
 let roomsFilter = ''; // '' = cualquiera; '3' = 3 o más habitaciones
 const roomsSelectEl = document.getElementById('rooms-filter-select');
 const ROOMS_MIN_OPTIONS = [1, 2, 3, 4, 5];
+let bathsFilter = ''; // '' = cualquiera; '2' = 2 o más baños
+const bathsSelectEl = document.getElementById('baths-filter-select');
+const BATHS_MIN_OPTIONS = [1, 2, 3, 4];
+
+// "2 baños" -> 2, "5+ baños" -> 5; "—" (no aplica) -> null
+function propertyBathsNumber(p) {
+  const match = (p.baths || '').match(/\d+/);
+  return match ? parseInt(match[0], 10) : null;
+}
 
 // "3 habitaciones" -> 3, "6+ habitaciones" -> 6; "Espacio abierto" / "A diseñar" -> null
 function propertyRoomsNumber(p) {
@@ -371,7 +380,8 @@ typeSelectEl.addEventListener('change', () => {
   typeFilter = typeSelectEl.value;
   cityFilter = 'Todas';
   typeSelectEl.classList.toggle('is-set', typeFilter !== '');
-  buildRoomsFilter();  // las cantidades de habitaciones y de presupuesto dependen del tipo
+  buildRoomsFilter();  // las cantidades de habitaciones, baños y presupuesto dependen del tipo
+  buildBathsFilter();
   buildBudgetFilter();
   buildCityFilters();
   renderPropertyRing();
@@ -401,15 +411,45 @@ roomsSelectEl.addEventListener('change', () => {
   roomsFilter = roomsSelectEl.value;
   cityFilter = 'Todas';
   roomsSelectEl.classList.toggle('is-set', roomsFilter !== '');
-  buildBudgetFilter(); // las cantidades por rango dependen de las habitaciones
+  buildBathsFilter();  // las cantidades de baños y de presupuesto dependen de las habitaciones
+  buildBudgetFilter();
+  buildCityFilters();
+  renderPropertyRing();
+});
+
+// Selector "N o más baños", con cantidades dentro de operación, tipo y habitaciones elegidos.
+function buildBathsFilter() {
+  const base = propertiesForOperationTypeAndRooms();
+  bathsSelectEl.innerHTML = '';
+  const any = document.createElement('option');
+  any.value = '';
+  any.textContent = 'Cualquier cantidad';
+  bathsSelectEl.appendChild(any);
+  BATHS_MIN_OPTIONS.forEach((min) => {
+    const count = base.filter((p) => (propertyBathsNumber(p) || 0) >= min).length;
+    const opt = document.createElement('option');
+    opt.value = String(min);
+    opt.textContent = min + ' o más (' + count + ')';
+    opt.disabled = count === 0;
+    bathsSelectEl.appendChild(opt);
+  });
+  bathsSelectEl.value = bathsFilter;
+  bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
+}
+
+bathsSelectEl.addEventListener('change', () => {
+  bathsFilter = bathsSelectEl.value;
+  cityFilter = 'Todas';
+  bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
+  buildBudgetFilter(); // las cantidades por rango dependen de los baños
   buildCityFilters();
   renderPropertyRing();
 });
 
 // Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
-// operación, el tipo y las habitaciones elegidos); los rangos vacíos quedan deshabilitados.
+// operación, el tipo, las habitaciones y los baños elegidos); los rangos vacíos quedan deshabilitados.
 function buildBudgetFilter() {
-  const base = propertiesForOperationTypeAndRooms();
+  const base = propertiesBeforeBudget();
   budgetSelectEl.innerHTML = '';
   const any = document.createElement('option');
   any.value = '';
@@ -528,6 +568,7 @@ async function loadProperties() {
   buildOperationFilters();
   buildTypeFilter();
   buildRoomsFilter();
+  buildBathsFilter();
   buildBudgetFilter();
   buildCityFilters();
   renderPropertyRing();
@@ -565,9 +606,11 @@ function buildOperationFilters() {
       budgetFilter = '';     // y los rangos de presupuesto también
       typeFilter = '';
       roomsFilter = '';
+      bathsFilter = '';
       buildOperationFilters();
       buildTypeFilter();
       buildRoomsFilter();
+      buildBathsFilter();
       buildBudgetFilter();
       buildCityFilters();
       renderPropertyRing();
@@ -592,8 +635,15 @@ function propertiesForOperationTypeAndRooms() {
   return base.filter((p) => (propertyRoomsNumber(p) || 0) >= min);
 }
 
-function propertiesForOperationAndBudget() {
+function propertiesBeforeBudget() {
   const base = propertiesForOperationTypeAndRooms();
+  if (bathsFilter === '') return base;
+  const min = Number(bathsFilter);
+  return base.filter((p) => (propertyBathsNumber(p) || 0) >= min);
+}
+
+function propertiesForOperationAndBudget() {
+  const base = propertiesBeforeBudget();
   if (budgetFilter === '') return base;
   const range = budgetRanges()[Number(budgetFilter)];
   return range ? base.filter((p) => inBudgetRange(p, range)) : base;
@@ -643,7 +693,7 @@ function buildRingPool(list) {
 }
 
 function renderPropertyRing() {
-  const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '')
+  const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '')
     ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
     : operationFilter !== 'todas'
       ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
