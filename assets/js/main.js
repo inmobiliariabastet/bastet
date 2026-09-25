@@ -240,14 +240,14 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
   }
   function stopAnim() { if (rafId) cancelAnimationFrame(rafId); rafId = null; }
 
-  function render(items) {
+  function render(items, emptyMessage) {
     stopAnim();
     stage.innerHTML = '';
     cards = [];
     if (!items.length) {
       const empty = document.createElement('div');
       empty.className = 'ring-empty';
-      empty.textContent = emptyText;
+      empty.textContent = emptyMessage || emptyText;
       stage.appendChild(empty);
       return;
     }
@@ -304,6 +304,8 @@ const modal = document.getElementById('property-modal');
 
 let allProperties = [];
 let cityFilter = 'Todas';
+let operationFilter = 'todas'; // 'todas' | 'venta' | 'alquiler' | 'anticretico'
+const operationFiltersEl = document.getElementById('operation-filters');
 let selectedProperty = null;
 let selectedPhotoIndex = 0;
 
@@ -394,6 +396,7 @@ async function loadProperties() {
     await attachAgentInfo(allProperties);
   }
 
+  buildOperationFilters();
   buildCityFilters();
   renderPropertyRing();
 }
@@ -411,8 +414,36 @@ async function attachAgentInfo(properties) {
   properties.forEach((p) => { p.agent = p.owner_id ? agentById[p.owner_id] || null : null; });
 }
 
+// Filtro por operación (Todas / Venta / Alquiler / Anticrético). Se muestran siempre las
+// tres opciones con su cantidad, así el visitante sabe qué hay disponible en cada una.
+function buildOperationFilters() {
+  const options = [['todas', 'Todas']].concat(Object.entries(PROPERTY_OPERATION_LABELS));
+  operationFiltersEl.innerHTML = '';
+  options.forEach(([value, label]) => {
+    const count = value === 'todas' ? allProperties.length : allProperties.filter((p) => p.operation === value).length;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', String(value === operationFilter));
+    btn.className = 'operation-tab' + (value === operationFilter ? ' is-active' : '');
+    btn.innerHTML = escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span>';
+    btn.addEventListener('click', () => {
+      operationFilter = value;
+      cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
+      buildOperationFilters();
+      buildCityFilters();
+      renderPropertyRing();
+    });
+    operationFiltersEl.appendChild(btn);
+  });
+}
+
+function propertiesForOperation() {
+  return operationFilter === 'todas' ? allProperties : allProperties.filter((p) => p.operation === operationFilter);
+}
+
 function buildCityFilters() {
-  const presentCities = new Set(allProperties.map((p) => (p.location || '').split(',')[0].trim()));
+  const presentCities = new Set(propertiesForOperation().map((p) => (p.location || '').split(',')[0].trim()));
   const cities = ['Todas'].concat(BOLIVIA_CITIES.filter((c) => presentCities.has(c)));
 
   cityFiltersEl.innerHTML = '';
@@ -433,9 +464,10 @@ function buildCityFilters() {
 }
 
 function filteredProperties() {
-  if (cityFilter === 'Todas') return allProperties;
-  const filtered = allProperties.filter((p) => (p.location || '').startsWith(cityFilter));
-  return filtered.length ? filtered : allProperties;
+  const byOperation = propertiesForOperation();
+  if (cityFilter === 'Todas') return byOperation;
+  const filtered = byOperation.filter((p) => (p.location || '').startsWith(cityFilter));
+  return filtered.length ? filtered : byOperation;
 }
 
 const FEATURED_WEIGHT = 3; // una propiedad destacada aparece ~3x más seguido en el carrusel
@@ -454,7 +486,10 @@ function buildRingPool(list) {
 }
 
 function renderPropertyRing() {
-  propertyRing.render(buildRingPool(filteredProperties()));
+  const emptyMessage = operationFilter !== 'todas'
+    ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
+    : '';
+  propertyRing.render(buildRingPool(filteredProperties()), emptyMessage);
 }
 
 /* ── Analítica: vistas y clics a WhatsApp por propiedad (sin datos personales) ── */
