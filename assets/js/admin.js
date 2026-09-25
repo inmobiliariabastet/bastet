@@ -75,7 +75,14 @@ document.getElementById('go-to-forgot').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('forgot-error').classList.add('hidden');
   document.getElementById('forgot-success').classList.add('hidden');
+  forgotForm.classList.remove('hidden');
   showView('forgot');
+  // Si ya escribió su correo en el login, se envía el enlace directo sin volver a pedirlo.
+  const loginEmailInput = document.getElementById('login-email');
+  if (loginEmailInput.value.trim() && loginEmailInput.checkValidity()) {
+    document.getElementById('forgot-email').value = loginEmailInput.value.trim();
+    forgotForm.requestSubmit();
+  }
 });
 document.getElementById('go-to-login-from-forgot').addEventListener('click', (e) => {
   e.preventDefault();
@@ -109,6 +116,7 @@ forgotForm.addEventListener('submit', async (e) => {
     '<br><br>¿No tienes una cuenta registrada? <a href="../#solicitar-cuenta">Solicita tu cuenta de agente aquí</a>.';
   forgotSuccess.classList.remove('hidden');
   forgotForm.reset();
+  forgotForm.classList.add('hidden'); // ya se envió: no volver a mostrar el campo de correo
 });
 
 const resetForm = document.getElementById('reset-form');

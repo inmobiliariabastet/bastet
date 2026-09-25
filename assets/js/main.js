@@ -106,6 +106,37 @@ agentLoginForm.addEventListener('submit', async (e) => {
   window.location.href = 'admin/';
 });
 
+// "¿Olvidaste tu contraseña?": usa el correo ya escrito arriba y manda el enlace directo.
+document.getElementById('agent-forgot').addEventListener('click', async () => {
+  const emailInput = document.getElementById('agent-login-email');
+  const note = document.getElementById('agent-forgot-note');
+  const email = emailInput.value.trim();
+  showAgentError('agent-login-error', '');
+  note.classList.add('hidden');
+  if (!email || !emailInput.checkValidity()) {
+    showAgentError('agent-login-error', 'Escribe arriba el correo de tu cuenta y vuelve a hacer clic en "¿Olvidaste tu contraseña?".');
+    emailInput.focus();
+    return;
+  }
+  const btn = document.getElementById('agent-forgot');
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/admin/',
+  });
+  btn.disabled = false;
+  if (error) {
+    showAgentError('agent-login-error', /rate limit/i.test(error.message)
+      ? 'Ya pediste varios enlaces seguidos. Espera unos minutos y vuelve a intentarlo.'
+      : 'No se pudo enviar el enlace: ' + error.message);
+    return;
+  }
+  // Mismo mensaje exista o no la cuenta (no se revela qué correos están registrados).
+  note.innerHTML = 'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
+    ' ¿No tienes cuenta? <a href="#" data-agent-go-request>Solicítala aquí</a>.';
+  note.classList.remove('hidden');
+  note.querySelector('[data-agent-go-request]').addEventListener('click', (ev) => { ev.preventDefault(); setAgentTab('request'); });
+});
+
 agentRequestForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   showAgentError('agent-request-error', '');
