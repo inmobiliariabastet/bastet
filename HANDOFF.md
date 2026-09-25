@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Titular del hero (2026-09-24)**: "Venda o Compre su inmueble en 30 días o menos." (debajo de la etiqueta "Marketplace Inmobiliario").
+
 - ✅ **Rediseño visual premium + tipografías y paleta del Brand Book 2026 (2026-09-24)** — la dueña compartió `MANUAL DE MARCA BASTET.pdf` (34 págs., carpeta WeTransfer en Descargas) y las fuentes:
   - **Tipografías**: **Conso** (títulos, subtítulos y botones → `var(--font-serif)`) y **Cabinet Grotesk** (textos, labels, enlaces → `var(--font-sans)`). Se quitaron Google Fonts (Cormorant/Montserrat). Los `.otf` se convirtieron a WOFF2 recortado a latín (`pyftsubset`) en `assets/fonts/`; `@font-face` en `assets/css/fonts.css` (cargado por ambos HTML, con `preload` de los Regular). Cabinet Grotesk solo trae Light/Regular/Medium: Medium cubre 500–800. Conso es ancha: títulos en peso 300/400 (600 se veía pesado). ⚠️ Cabinet Grotesk es de Fontshare (gratis, uso web OK); **Conso (Pavel Larin) — confirmar con el diseñador que la licencia cubra uso web**.
   - **Paleta nueva** (`:root` de `style.css` y `admin.css`): verde `#3D4C3A`, dorado `#F1BF46`, naranja `#EC6C2E`, crema `#EEE6E0`, carbón `#1E2629` (footer y texto), salvia `#B7BEAD`; se agregaron `--primary-rgb/--accent-rgb/--light-rgb/--charcoal-rgb` y todos los `rgba()` hardcodeados ahora usan esas variables.
