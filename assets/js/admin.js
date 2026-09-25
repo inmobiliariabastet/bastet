@@ -243,6 +243,11 @@ async function loadProperties() {
   renderPropertyList();
 }
 
+function propertyStatusLabel(property) {
+  if (property.status !== 'sold') return 'Disponible';
+  return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
+}
+
 function renderPropertyList() {
   if (!properties.length) {
     propertyListEl.innerHTML = '<p class="property-empty">Aún no hay propiedades. Crea la primera con "+ Nueva propiedad".</p>';
@@ -270,10 +275,11 @@ function renderPropertyList() {
       thumb +
       '<div class="property-info">' +
         '<p class="property-info-title">' + (property.featured ? '<img class="property-featured-icon" src="../assets/img/bastet-icon-gold.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</p>' +
-        '<p class="property-info-meta">' + escapeHtml(property.location) + ' · ' + escapeHtml(property.area) + ' · ' + escapeHtml(property.rooms) + '</p>' +
+        '<p class="property-info-meta">' + (formatPropertyCode(property) ? '<span class="property-code-tag">' + formatPropertyCode(property) + '</span>' : '') +
+          [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location, property.area, property.rooms].filter(Boolean).map(escapeHtml).join(' · ') + '</p>' +
       '</div>' +
       '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      '<span class="status-badge ' + (property.status === 'sold' ? 'sold' : 'available') + '">' + (property.status === 'sold' ? 'Vendida' : 'Disponible') + '</span>' +
+      '<span class="status-badge ' + (property.status === 'sold' ? 'sold' : 'available') + '">' + propertyStatusLabel(property) + '</span>' +
       '<div class="property-actions">' +
         '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
         '<button class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>' +
@@ -373,7 +379,8 @@ async function openPropertyDetail(property) {
   detailBodyEl.innerHTML =
     (photos ? '<div class="detail-photos">' + photos + '</div>' : '') +
     '<div class="detail-grid">' +
-      '<div><p class="detail-label">Estado</p><p class="detail-value">' + (property.status === 'sold' ? 'Vendida' : 'Disponible') + '</p></div>' +
+      (formatPropertyCode(property) ? '<div><p class="detail-label">Código</p><p class="detail-value">' + formatPropertyCode(property) + '</p></div>' : '') +
+      '<div><p class="detail-label">Estado</p><p class="detail-value">' + propertyStatusLabel(property) + '</p></div>' +
       '<div><p class="detail-label">Precio</p><p class="detail-value">' + formatPriceUSD(property.price) + '</p></div>' +
       (property.exchange_rate ? '<div><p class="detail-label">Tipo de cambio aceptado</p><p class="detail-value">' + escapeHtml(property.exchange_rate) + '</p></div>' : '') +
       '<div><p class="detail-label">Ciudad</p><p class="detail-value">' + escapeHtml(property.location) + '</p></div>' +
@@ -381,6 +388,7 @@ async function openPropertyDetail(property) {
       '<div><p class="detail-label">Área</p><p class="detail-value">' + escapeHtml(property.area) + '</p></div>' +
       '<div><p class="detail-label">Ambientes</p><p class="detail-value">' + escapeHtml(property.rooms) + '</p></div>' +
       '<div><p class="detail-label">Baños</p><p class="detail-value">' + escapeHtml(property.baths) + '</p></div>' +
+      propertyFeatureList(property).map((f) => '<div><p class="detail-label">' + f.label + '</p><p class="detail-value">' + escapeHtml(f.value) + '</p></div>').join('') +
       ownerRow +
     '</div>' +
     (property.description ? '<p class="detail-label">Descripción</p><p class="detail-desc">' + escapeHtml(property.description) + '</p>' : '') +
@@ -441,6 +449,8 @@ function openPropertyForm(property) {
       id: crypto.randomUUID(),
       title: '', location: '', address: '', price: '', exchange_rate: '', area: '', rooms: '', baths: '',
       description: '', whatsapp: '', owner_whatsapp: '', photos: [], status: 'available', featured: false,
+      property_type: '', operation: '', floors: null, has_garage: null, garage_spots: null,
+      has_storage: null, pets_allowed: null, kids_allowed: null,
     };
     document.getElementById('property-form-title-heading').textContent = 'Nueva propiedad';
   }
@@ -465,6 +475,18 @@ function openPropertyForm(property) {
   document.getElementById('field-owner-whatsapp').value = formState.owner_whatsapp || '';
   document.getElementById('field-status').value = formState.status;
   document.getElementById('field-featured').checked = !!formState.featured;
+  document.getElementById('field-type').value = formState.property_type || '';
+  document.getElementById('field-operation').value = formState.operation || '';
+  document.getElementById('field-floors').value = formState.floors ? String(Math.min(formState.floors, 5)) : '';
+  document.getElementById('field-garage').value = boolToSelect(formState.has_garage);
+  document.getElementById('field-garage-spots').value = formState.garage_spots ? String(Math.min(formState.garage_spots, 5)) : '';
+  document.getElementById('field-storage').value = boolToSelect(formState.has_storage);
+  document.getElementById('field-pets').value = boolToSelect(formState.pets_allowed);
+  document.getElementById('field-kids').value = boolToSelect(formState.kids_allowed);
+  const codeEl = document.getElementById('property-form-code');
+  codeEl.textContent = isNewProperty ? '' : 'Código: ' + (formatPropertyCode(formState) || 'se asigna al guardar');
+  codeEl.classList.toggle('hidden', isNewProperty);
+  updatePropertyTypeFields();
 
   renderPhotoGrid();
   setUpLocationPicker(currentCity, formState.address);
@@ -548,6 +570,21 @@ photoDropzone.addEventListener('drop', (e) => {
   if (e.dataTransfer.files.length) uploadPhotos(e.dataTransfer.files);
 });
 
+// Selects "Sí / No / Sin especificar" <-> true / false / null
+function boolToSelect(value) { return value === true ? 'true' : value === false ? 'false' : ''; }
+function selectToBool(value) { return value === 'true' ? true : value === 'false' ? false : null; }
+
+// Un terreno no tiene plantas, garaje, baulera, ni reglas de mascotas/niños: se ocultan esos campos.
+// "¿Para cuántos autos?" solo aparece si tiene garaje.
+function updatePropertyTypeFields() {
+  const isLand = document.getElementById('field-type').value === 'terreno';
+  document.querySelectorAll('#property-form .not-terreno').forEach((el) => el.classList.toggle('hidden', isLand));
+  const hasGarage = document.getElementById('field-garage').value === 'true';
+  document.getElementById('field-garage-spots-wrap').classList.toggle('invisible', !hasGarage);
+}
+document.getElementById('field-type').addEventListener('change', updatePropertyTypeFields);
+document.getElementById('field-garage').addEventListener('change', updatePropertyTypeFields);
+
 propertyForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   formError.classList.add('hidden');
@@ -568,9 +605,21 @@ propertyForm.addEventListener('submit', async (e) => {
     status: document.getElementById('field-status').value,
     featured: document.getElementById('field-featured').checked,
     photos: formState.photos,
+    property_type: document.getElementById('field-type').value || null,
+    operation: document.getElementById('field-operation').value || null,
   };
+  const isLand = payload.property_type === 'terreno';
+  const hasGarage = !isLand && selectToBool(document.getElementById('field-garage').value);
+  Object.assign(payload, {
+    floors: isLand ? null : (parseInt(document.getElementById('field-floors').value, 10) || null),
+    has_garage: isLand ? null : hasGarage,
+    garage_spots: hasGarage ? (parseInt(document.getElementById('field-garage-spots').value, 10) || null) : null,
+    has_storage: isLand ? null : selectToBool(document.getElementById('field-storage').value),
+    pets_allowed: isLand ? null : selectToBool(document.getElementById('field-pets').value),
+    kids_allowed: isLand ? null : selectToBool(document.getElementById('field-kids').value),
+  });
 
-  if (!payload.title || !payload.location || !payload.price || !payload.area || !payload.rooms || !payload.baths) {
+  if (!payload.title || !payload.location || !payload.price || !payload.area || !payload.rooms || !payload.baths || !payload.property_type || !payload.operation) {
     formError.textContent = 'Completa todos los campos obligatorios.';
     formError.classList.remove('hidden');
     return;

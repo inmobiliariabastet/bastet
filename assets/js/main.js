@@ -325,12 +325,18 @@ function buildPropertyCard(property) {
   const featuredIcon = property.featured
     ? '<img class="ring-card-featured-icon" src="assets/img/bastet-icon-gold.png" alt="Destacada">'
     : '';
+  const metaLine = [PROPERTY_TYPE_LABELS[property.property_type], formatPropertyCode(property)].filter(Boolean).join(' · ');
+  const operationBadge = PROPERTY_OPERATION_LABELS[property.operation]
+    ? '<span class="ring-card-operation">' + PROPERTY_OPERATION_LABELS[property.operation] + '</span>'
+    : '';
   card.innerHTML +=
     '<div class="ring-card-overlay"></div>' +
     '<div class="ring-card-label">' +
       '<span class="ring-card-title-row">' + featuredIcon + '<span class="ring-card-title-text">' + escapeHtml(property.title) + '</span></span>' +
       priceLine +
+      (metaLine ? '<span class="ring-card-meta">' + escapeHtml(metaLine) + '</span>' : '') +
     '</div>' +
+    operationBadge +
     buildAgentBadgeHtml(property.agent);
   return card;
 }
@@ -369,7 +375,7 @@ const propertyRing = createRingCarousel({
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,sort_order,status,created_at';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
 const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
 
@@ -501,7 +507,14 @@ function renderModal() {
   const hasPhotos = photos.length > 0;
   const currentPhoto = hasPhotos ? photos[selectedPhotoIndex] : null;
 
-  const message = 'Hola Bastet, me interesa la propiedad: ' + p.title + ' (' + p.location + '). ¿Podrían brindarme más información?';
+  const code = formatPropertyCode(p);
+  const operationLabel = PROPERTY_OPERATION_LABELS[p.operation];
+  // El código va primero para que el agente identifique la propiedad de un vistazo.
+  const message = (code ? '[' + code + '] ' : '') +
+    'Hola Bastet, me interesa la propiedad: ' + p.title +
+    (operationLabel ? ' (' + operationLabel.toLowerCase() + ')' : '') +
+    ' en ' + p.location + '. ¿Podrían brindarme más información?';
+  const features = propertyFeatureList(p);
 
   modal.innerHTML =
     '<button class="property-modal-close" aria-label="Cerrar" id="property-modal-close">×</button>' +
@@ -519,6 +532,11 @@ function renderModal() {
     '</div>' +
     '<div class="property-modal-body">' +
       '<div>' +
+        '<div class="property-modal-tags">' +
+          (code ? '<span class="property-modal-code">Código ' + code + '</span>' : '') +
+          (operationLabel ? '<span class="property-modal-tag">' + operationLabel + '</span>' : '') +
+          (PROPERTY_TYPE_LABELS[p.property_type] ? '<span class="property-modal-tag">' + PROPERTY_TYPE_LABELS[p.property_type] + '</span>' : '') +
+        '</div>' +
         '<p class="property-modal-location">' + escapeHtml(p.location) + '</p>' +
         '<h3 class="property-modal-title">' + escapeHtml(p.title) + '</h3>' +
         '<p class="property-modal-price">' + formatPriceUSD(p.price) + '</p>' +
@@ -529,6 +547,13 @@ function renderModal() {
         '<div><p class="property-modal-spec-label">Ambientes</p><p class="property-modal-spec-value">' + escapeHtml(p.rooms) + '</p></div>' +
         '<div><p class="property-modal-spec-label">Baños</p><p class="property-modal-spec-value">' + escapeHtml(p.baths) + '</p></div>' +
       '</div>' +
+      (features.filter((f) => f.label !== 'Tipo' && f.label !== 'Operación').length
+        ? '<div class="property-modal-features">' +
+            features.filter((f) => f.label !== 'Tipo' && f.label !== 'Operación').map((f) =>
+              '<div class="property-modal-feature"><span class="property-modal-feature-label">' + f.label + '</span><span class="property-modal-feature-value">' + escapeHtml(f.value) + '</span></div>'
+            ).join('') +
+          '</div>'
+        : '') +
       '<p class="property-modal-desc">' + escapeHtml(p.description) + '</p>' +
       buildAgentSectionHtml(p.agent) +
       '<a class="cta-button cta-button--block cta-button--arrow" id="modal-whatsapp-cta" style="margin-top:8px;" href="' + whatsappUrl(message, p.whatsapp) + '" target="_blank" rel="noopener"><span>Consultar por WhatsApp</span></a>' +

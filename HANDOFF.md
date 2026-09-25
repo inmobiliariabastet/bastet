@@ -20,6 +20,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Estado actual (última actualización: este commit)
 
+- ✅ **Código de propiedad + características (2026-09-24)**: columnas nuevas en `properties` (ver `supabase/schema.sql`): `code_number` (identity `generated always`, empieza en 1001, índice único → se muestra "BST-1001"; las propiedades existentes también reciben número), `property_type` (casa/departamento/terreno), `operation` (venta/alquiler/anticretico), `floors`, `has_garage`, `garage_spots`, `has_storage` (baulera), `pets_allowed`, `kids_allowed` (todas opcionales en BD; tipo y operación obligatorios en el formulario). Etiquetas y formato compartidos en `assets/js/property-fields.js` (cargado antes de `main.js`/`admin.js`). Formulario: al elegir "Terreno" se ocultan plantas/garaje/baulera/mascotas/niños; "¿Para cuántos autos?" solo si tiene garaje. Panel: código en la lista y en la ficha; el estado "sold" se muestra como Vendida/Alquilada/En anticrético según la operación. Landing: etiqueta de operación en la tarjeta del carrusel + tipo y código; en la ficha, chips de código/operación/tipo y grilla de características. **El mensaje de WhatsApp empieza con el código**: "[BST-1004] Hola Bastet, me interesa la propiedad: … (venta) en …".
+
 - ✅ **Titular del hero (2026-09-24)**: "Venda o Compre su inmueble en 30 días o menos." (debajo de la etiqueta "Marketplace Inmobiliario").
 
 - ✅ **Rediseño visual premium + tipografías y paleta del Brand Book 2026 (2026-09-24)** — la dueña compartió `MANUAL DE MARCA BASTET.pdf` (34 págs., carpeta WeTransfer en Descargas) y las fuentes:

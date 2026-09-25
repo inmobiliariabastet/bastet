@@ -648,3 +648,27 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   color: var(--color-primary); opacity: 0.6;
 }
 .pw-toggle:hover, .pw-toggle:focus-visible { opacity: 1; background: rgba(var(--primary-rgb),0.08); }
+
+/* ── Código, operación y características de la propiedad ── */
+.ring-card-meta { font-size: 10.5px !important; opacity: 0.75; letter-spacing: 0.04em !important; }
+.ring-card-operation {
+  position: absolute; right: 8px; top: 8px; pointer-events: none;
+  font-family: var(--font-serif); font-size: 11px; letter-spacing: 0.05em; color: var(--color-charcoal);
+  padding: 5px 10px; border-radius: 999px;
+  background: linear-gradient(180deg, #F8DA8C 0%, var(--color-accent) 60%, #DCA431 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 10px -4px rgba(0,0,0,0.5);
+}
+.property-modal-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.property-modal-code, .property-modal-tag {
+  font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+  padding: 5px 12px; border-radius: 999px;
+}
+.property-modal-code { background: var(--color-primary); color: var(--color-accent); }
+.property-modal-tag { background: rgba(var(--primary-rgb),0.08); color: var(--color-primary); border: 1px solid rgba(var(--primary-rgb),0.14); }
+.property-modal-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.property-modal-feature {
+  display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 14px;
+  background: #fff; border: 1px solid rgba(var(--primary-rgb),0.1);
+}
+.property-modal-feature-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-primary); opacity: 0.6; }
+.property-modal-feature-value { font-family: var(--font-serif); font-size: 15px; color: var(--color-dark-text); }

@@ -32,6 +32,21 @@ alter table public.properties add column if not exists address text;
 alter table public.properties add column if not exists exchange_rate text;
 alter table public.properties add column if not exists owner_whatsapp text;
 
+-- Código de referencia y características (2026-09-24).
+-- code_number: número correlativo que asigna la base (se muestra como "BST-1001");
+-- "generated always" impide que alguien lo cambie o lo repita a mano. Al agregarse,
+-- las propiedades existentes también reciben su número.
+alter table public.properties add column if not exists code_number integer generated always as identity (start with 1001);
+create unique index if not exists properties_code_number_idx on public.properties (code_number);
+alter table public.properties add column if not exists property_type text check (property_type in ('casa', 'departamento', 'terreno'));
+alter table public.properties add column if not exists operation text check (operation in ('venta', 'alquiler', 'anticretico'));
+alter table public.properties add column if not exists floors smallint check (floors between 1 and 50);
+alter table public.properties add column if not exists has_garage boolean;
+alter table public.properties add column if not exists garage_spots smallint check (garage_spots between 0 and 50);
+alter table public.properties add column if not exists has_storage boolean; -- baulera
+alter table public.properties add column if not exists pets_allowed boolean;
+alter table public.properties add column if not exists kids_allowed boolean;
+
 create index if not exists properties_sort_order_idx on public.properties (sort_order);
 create index if not exists properties_status_idx on public.properties (status);
 create index if not exists properties_owner_id_idx on public.properties (owner_id);
