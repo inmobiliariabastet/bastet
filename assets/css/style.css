@@ -308,7 +308,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 
 /* ── Partners strip ── */
 .partners-strip {
-  position: relative; z-index: 1; /* por encima del brillo de las tarjetas destacadas */
+  position: relative;
   background: #ffffff;
   padding: 8px 0;
   min-height: 72px; display: flex; align-items: center;
@@ -336,7 +336,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 
 /* ── Propiedades / Ring carousel ── */
 .propiedades-section { background: var(--color-primary); padding: 120px clamp(20px,6vw,48px) 28px; }
-/* El anillo deja ~110px vacíos bajo las tarjetas: se recorta para que la cinta de auspiciadores quede pegada al carrusel */
+/* El anillo deja ~110px vacíos bajo las tarjetas: se recorta para no dejar un hueco grande antes de la sección siguiente */
 .propiedades-section .ring-stage { margin-bottom: -70px; }
 .propiedades-inner { max-width: 1200px; margin: 0 auto; }
 .city-filters { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
