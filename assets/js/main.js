@@ -351,6 +351,147 @@ const typeSelectEl = document.getElementById('type-filter-select');
 let budgetFilter = ''; // índice del rango elegido en budgetRanges(), '' = cualquier presupuesto
 const budgetSelectEl = document.getElementById('budget-filter-select');
 
+// Selector con la marca: la lista nativa de <select> no se puede estilizar (el navegador la pinta
+// en azul con su propia fuente), así que se reemplaza por un botón + lista propia. El <select>
+// queda oculto como fuente de verdad: el resto del código sigue leyendo/escribiendo su valor y
+// escuchando su "change"; un MutationObserver copia sus opciones y su clase is-set.
+let openBrandSelect = null;
+function enhanceSelect(selectEl) {
+  const wrap = selectEl.parentElement;
+  const label = wrap.querySelector('label[for="' + selectEl.id + '"]');
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.id = selectEl.id + '-trigger';
+  trigger.className = 'budget-filter-select brand-select-trigger';
+  trigger.setAttribute('aria-haspopup', 'listbox');
+  trigger.setAttribute('aria-expanded', 'false');
+  const list = document.createElement('ul');
+  list.className = 'brand-select-list';
+  list.id = selectEl.id + '-list';
+  list.setAttribute('role', 'listbox');
+  list.tabIndex = -1;
+  trigger.setAttribute('aria-controls', list.id);
+  if (label) {
+    label.htmlFor = trigger.id;
+    label.id = label.id || selectEl.id + '-label';
+    list.setAttribute('aria-labelledby', label.id);
+  }
+  selectEl.classList.remove('budget-filter-select');
+  selectEl.classList.add('brand-select-native');
+  selectEl.tabIndex = -1;
+  selectEl.setAttribute('aria-hidden', 'true');
+  wrap.classList.add('brand-select');
+  selectEl.after(trigger, list);
+
+  let active = -1; // índice de la opción resaltada con el teclado
+
+  // "3 o más (11)" -> texto "3 o más" + cantidad en una pastilla
+  function splitCount(text) {
+    const m = text.match(/^(.*?)\s*\((\d+)\)$/);
+    return m ? { text: m[1], count: m[2] } : { text, count: null };
+  }
+
+  function sync() {
+    const opts = [...selectEl.options];
+    list.innerHTML = '';
+    opts.forEach((o, i) => {
+      const { text, count } = splitCount(o.textContent);
+      const li = document.createElement('li');
+      li.className = 'brand-select-option';
+      li.id = selectEl.id + '-opt-' + i;
+      li.setAttribute('role', 'option');
+      li.dataset.index = i;
+      li.setAttribute('aria-selected', String(o.selected));
+      if (o.disabled) li.setAttribute('aria-disabled', 'true');
+      li.innerHTML = '<span class="brand-select-check" aria-hidden="true"></span><span class="brand-select-text"></span>' +
+        (count != null ? '<span class="brand-select-count"></span>' : '');
+      li.querySelector('.brand-select-text').textContent = text;
+      if (count != null) li.querySelector('.brand-select-count').textContent = count;
+      list.appendChild(li);
+    });
+    const sel = selectEl.options[selectEl.selectedIndex];
+    trigger.textContent = sel ? splitCount(sel.textContent).text : '';
+    trigger.classList.toggle('is-set', selectEl.classList.contains('is-set'));
+  }
+
+  function setActive(i) {
+    const items = list.children;
+    if (active >= 0 && items[active]) items[active].classList.remove('is-active');
+    active = i;
+    if (i >= 0 && items[i]) {
+      items[i].classList.add('is-active');
+      list.setAttribute('aria-activedescendant', items[i].id);
+      items[i].scrollIntoView({ block: 'nearest' });
+    } else list.removeAttribute('aria-activedescendant');
+  }
+  // siguiente opción habilitada en la dirección dir (1 / -1)
+  function step(from, dir) {
+    const opts = selectEl.options;
+    for (let i = from + dir; i >= 0 && i < opts.length; i += dir) if (!opts[i].disabled) return i;
+    return from;
+  }
+
+  function open() {
+    if (openBrandSelect && openBrandSelect !== api) openBrandSelect.close(false);
+    openBrandSelect = api;
+    wrap.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    setActive(selectEl.selectedIndex);
+    list.focus({ preventScroll: true });
+  }
+  function close(focusTrigger = true) {
+    if (openBrandSelect === api) openBrandSelect = null;
+    wrap.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    setActive(-1);
+    if (focusTrigger) trigger.focus({ preventScroll: true });
+  }
+  function choose(i) {
+    const o = selectEl.options[i];
+    if (!o || o.disabled) return;
+    close();
+    if (selectEl.selectedIndex === i) return;
+    selectEl.selectedIndex = i;
+    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+    sync();
+  }
+  const api = { close };
+
+  trigger.addEventListener('click', () => (wrap.classList.contains('is-open') ? close() : open()));
+  trigger.addEventListener('keydown', (e) => {
+    if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); open(); }
+  });
+  list.addEventListener('click', (e) => {
+    const li = e.target.closest('.brand-select-option');
+    if (li) choose(Number(li.dataset.index));
+  });
+  list.addEventListener('mousemove', (e) => {
+    const li = e.target.closest('.brand-select-option');
+    if (li && !li.hasAttribute('aria-disabled') && Number(li.dataset.index) !== active) setActive(Number(li.dataset.index));
+  });
+  list.addEventListener('keydown', (e) => {
+    const last = selectEl.options.length - 1;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(step(active, 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(step(active, -1)); }
+    else if (e.key === 'Home') { e.preventDefault(); setActive(step(-1, 1)); }
+    else if (e.key === 'End') { e.preventDefault(); setActive(step(last + 1, -1)); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(active); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'Tab') close(false);
+  });
+  list.addEventListener('focusout', (e) => {
+    if (!wrap.contains(e.relatedTarget) && wrap.classList.contains('is-open')) close(false);
+  });
+
+  new MutationObserver(sync).observe(selectEl, { childList: true, attributes: true, attributeFilter: ['class'] });
+  selectEl.addEventListener('change', sync);
+  sync();
+}
+document.addEventListener('pointerdown', (e) => {
+  if (openBrandSelect && !e.target.closest('.brand-select.is-open')) openBrandSelect.close(false);
+});
+[typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].forEach(enhanceSelect);
+
 // Rangos de presupuesto (USD) según la operación: un alquiler mensual no se busca
 // con los mismos montos que una compra o un anticrético. [mínimo exclusivo, máximo inclusivo]
 const BUDGET_RANGES = {
