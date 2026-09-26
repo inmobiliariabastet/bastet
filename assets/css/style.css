@@ -776,17 +776,12 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   .agent-modal-body { padding: 30px 18px 24px; }
 }
 
-/* ── Efecto arena del anillo: brillo dorado en el lado que se deshace + capa de granos ── */
-.propiedades-section { position: relative; }
-.propiedades-inner { position: relative; z-index: 1; }
-.sand-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-.ring-card.is-sanding::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to left, rgba(255,226,150,0.85), rgba(241,191,70,0.35) 35%, rgba(241,191,70,0) 70%);
-  opacity: calc(var(--sand, 0) * 1.6); mix-blend-mode: screen;
-}
-.ring-card.is-sanding:not(.sand-right)::after {
-  background: linear-gradient(to right, rgba(255,226,150,0.85), rgba(241,191,70,0.35) 35%, rgba(241,191,70,0) 70%);
+/* ── Anillo de propiedades a todo el ancho, desvanecido en los bordes ── */
+.ring-stage--edge-fade {
+  width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  --fade: clamp(40px, 14vw, 240px);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
 }
 
 /* ── Botón "Limpiar filtros" ── */
