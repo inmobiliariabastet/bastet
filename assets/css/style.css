@@ -311,19 +311,20 @@ section[id], footer[id] { scroll-margin-top: 76px; }
   position: relative; z-index: 1; /* por encima del brillo de las tarjetas destacadas */
   background: #ffffff;
   padding: 8px 0;
+  min-height: 72px; display: flex; align-items: center;
   overflow: hidden;
 }
 .partners-track {
   display: flex;
   align-items: center;
-  gap: 48px;
+  gap: 56px;
   width: max-content;
   animation: partnersScroll 28s linear infinite;
 }
 .partners-strip:hover .partners-track { animation-play-state: paused; }
 .partners-track img {
-  height: 32px;
-  width: auto;
+  height: 40px; /* provisional hasta que normalizeLogo() recorta y mide el logo */
+  width: auto; max-width: 230px;
   object-fit: contain;
   flex-shrink: 0;
 }

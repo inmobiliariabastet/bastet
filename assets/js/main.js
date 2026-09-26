@@ -1097,13 +1097,91 @@ async function loadPartners() {
   }
 
   const logosHtml = data.map((p) => {
-    const img = '<img src="' + escapeHtml(p.logo_url) + '" alt="' + escapeHtml(p.name || 'Empresa aliada') + '" loading="lazy">';
+    const img = '<img src="' + escapeHtml(p.logo_url) + '" alt="' + escapeHtml(p.name || 'Empresa aliada') + '" data-logo="' + escapeHtml(p.logo_url) + '">';
     return p.url
       ? '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(p.name || 'Empresa aliada') + '">' + img + '</a>'
       : img;
   }).join('');
   // El track se duplica una vez para que la animación de scroll sea continua (sin salto visible).
   track.innerHTML = logosHtml + logosHtml;
+  // Cada logo se recorta y se dimensiona una vez (el track está duplicado: se aplica a ambas copias)
+  const byUrl = new Map();
+  track.querySelectorAll('img[data-logo]').forEach((img) => {
+    const url = img.dataset.logo;
+    if (!byUrl.has(url)) byUrl.set(url, []);
+    byUrl.get(url).push(img);
+  });
+  byUrl.forEach((imgs, url) => normalizeLogo(url, imgs));
+}
+
+// Los logos llegan con márgenes blancos o transparentes muy distintos (algunos ocupan menos de la
+// mitad de la imagen) y con proporciones distintas, así que unos se ven enormes y otros diminutos.
+// Aquí se recorta el margen (lo que es casi blanco o transparente) en un <canvas> y se elige un
+// tamaño con el mismo peso visual para todos: los cuadrados y redondos van a la altura máxima y
+// los muy anchos (tipo Coca-Cola) se achican un poco para no dominar la cinta.
+const LOGO_MAX_H = 56;     // alto máximo en px (la cinta mide 72px: 8px de aire arriba y abajo)
+const LOGO_MAX_W = 230;
+const LOGO_WIDE_ASPECT = 2.2; // desde esta proporción (ancho/alto) el logo empieza a bajar de alto
+function logoSize(aspect) {
+  let h = LOGO_MAX_H * Math.min(1, Math.sqrt(LOGO_WIDE_ASPECT / aspect));
+  let w = h * aspect;
+  if (w > LOGO_MAX_W) { w = LOGO_MAX_W; h = w / aspect; }
+  return { w: Math.round(w), h: Math.round(h) };
+}
+function applyLogoSize(imgs, aspect) {
+  const { w, h } = logoSize(aspect);
+  imgs.forEach((img) => { img.style.width = w + 'px'; img.style.height = h + 'px'; });
+}
+function normalizeLogo(url, imgs) {
+  const src = new Image();
+  src.crossOrigin = 'anonymous';
+  src.onload = () => {
+    const nw = src.naturalWidth, nh = src.naturalHeight;
+    if (!nw || !nh) return;
+    applyLogoSize(imgs, nw / nh); // tamaño provisional, por si el recorte falla
+    try {
+      // 1) Buscar el contenido en una copia chica (máx. 400px de lado)
+      const k = 400 / Math.max(nw, nh);
+      const aw = Math.max(1, Math.round(nw * k)), ah = Math.max(1, Math.round(nh * k));
+      const probe = document.createElement('canvas');
+      probe.width = aw; probe.height = ah;
+      const pctx = probe.getContext('2d', { willReadFrequently: true });
+      pctx.drawImage(src, 0, 0, aw, ah);
+      const px = pctx.getImageData(0, 0, aw, ah).data;
+      let x0 = aw, y0 = ah, x1 = -1, y1 = -1;
+      for (let y = 0; y < ah; y++) {
+        for (let x = 0; x < aw; x++) {
+          const i = (y * aw + x) * 4;
+          const isBg = px[i + 3] < 16 || (px[i] > 235 && px[i + 1] > 235 && px[i + 2] > 235);
+          if (isBg) continue;
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+      if (x1 < 0) return; // imagen vacía o toda blanca: se deja como está
+      // 2) Rectángulo del contenido en la imagen original (con 1px de aire)
+      const sx = Math.max(0, (x0 - 1) / k), sy = Math.max(0, (y0 - 1) / k);
+      const sw = Math.min(nw - sx, (x1 - x0 + 3) / k), sh = Math.min(nh - sy, (y1 - y0 + 3) / k);
+      const aspect = sw / sh;
+      const { w, h } = logoSize(aspect);
+      // 3) Dibujar solo el contenido, a la resolución de la pantalla
+      const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
+      const out = document.createElement('canvas');
+      out.width = Math.round(w * dpr); out.height = Math.round(h * dpr);
+      const octx = out.getContext('2d');
+      octx.imageSmoothingQuality = 'high';
+      octx.drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
+      out.toBlob((blob) => {
+        if (!blob) return;
+        const trimmed = URL.createObjectURL(blob);
+        imgs.forEach((img) => { img.src = trimmed; });
+        applyLogoSize(imgs, aspect);
+      }, 'image/png');
+    } catch (e) {
+      // Sin permiso CORS para leer los píxeles: queda con el tamaño provisional
+    }
+  };
+  src.src = url;
 }
 
 loadPartners();
