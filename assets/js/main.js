@@ -738,6 +738,13 @@ const propertyRing = createRingCarousel({
   edgeFade: true,
 });
 
+// Pista "desliza" bajo el carrusel: se va en cuanto la persona toca o arrastra el anillo.
+(function setupSwipeHint() {
+  const hint = document.getElementById('swipe-hint');
+  if (!hint) return;
+  ringStage.addEventListener('pointerdown', () => hint.classList.add('is-done'), { once: true, passive: true });
+})();
+
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
 const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';

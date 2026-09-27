@@ -11,7 +11,7 @@
 **Estado al 2026-09-26 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926g`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926h`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -43,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 ## Historial de cambios (lo más reciente arriba)
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
+
+- ✅ **Pista "desliza" bajo el carrusel (2026-09-26)**: `#swipe-hint` justo después de `#ring-stage` en `index.html`: manito dorada (ícono "pointer" de Lucide, SVG inline) que va y viene (`@keyframes swipeHand`, 2.6s) sobre un rastro tenue, flechas ‹ › que se iluminan según el lado y el texto "Desliza para ver más propiedades". Queda dentro del espacio vacío que deja el anillo bajo las tarjetas (`z-index: 2`, `pointer-events: none`). Se desvanece para siempre (en esa visita) al primer `pointerdown` sobre el anillo (`setupSwipeHint()` en `main.js`, clase `.is-done`). Oculta si el carrusel está vacío; sin animación con `prefers-reduced-motion`.
 
 - ✅ **Favicon nuevo (2026-09-26)**: el mismo icono de destacada (O de UNO con el gato) reemplaza a `favicon.png` en landing y panel. Archivos: `favicon-uno-32.png`, `favicon-uno-192.png` (transparentes) y `apple-touch-icon-uno.png` (180×180, icono sobre fondo verde `#3D4C3A`, para iPhone). `favicon.png` quedó sin uso. Los navegadores guardan el favicon mucho tiempo: puede tardar en verse o requerir recargar con Ctrl+F5.
 
