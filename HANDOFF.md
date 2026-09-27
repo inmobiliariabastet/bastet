@@ -11,7 +11,7 @@
 **Estado al 2026-09-26 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926h`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926i`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -25,7 +25,7 @@
   - **Seguridad:** registro público cerrado; solo cuentas invitadas nacen activas; `invite-admin` solo para admins; RLS en todas las tablas.
   - **Diseño:** Brand Book 2026 — Conso (títulos/botones) + Cabinet Grotesk (texto), paleta verde `#3D4C3A` / dorado `#F1BF46` / crema `#EEE6E0` / carbón `#1E2629`; botones pastilla con degradado y vidrio; responsive verificado a 375px y 768px.
 - **Pendientes de la dueña (datos, no código):** completar en cada propiedad tipo, operación y características (hoy vacías → los filtros de operación/tipo muestran 0) y el "WhatsApp del agente" (solo 6 de 14 lo tienen); confirmar la licencia web de la fuente **Conso**. Opcional: subir versiones horizontales de los logos de SOBOCE y Eddyfica (son verticales y en la cinta de auspiciadores se ven angostos).
-- **Pendientes de código:** ninguno. Todo lo pedido al 2026-09-26 está publicado y verificado en vivo (landing y `/admin` sin errores de consola ni de red). Limpieza opcional: imágenes sin uso (`favicon.png`, `bastet-icon-gold.png`) y clases CSS viejas del logo (`.navbar-logo-icon/-main/-sub`, `.footer-logo-icon/-text/-sub`, `.auth-logo-icon/-main`, `.admin-logo-icon/-main`).
+- **Pendientes de código:** ninguno. Todo lo pedido al 2026-09-26 está publicado y verificado en vivo (landing y `/admin` sin errores de consola ni de red).
 - **Gotcha de pruebas:** las capturas del navegador integrado de Claude fallan al hacer scroll (salen en blanco o desfasadas, también con versiones viejas del sitio). No es un bug: verificar con medidas por JS (`getBoundingClientRect`, `scrollWidth`) o ocultar temporalmente el hero en la pestaña de prueba para que la sección quede arriba. Las animaciones (rAF) se pausan si el panel del navegador está oculto.
 
 ## Qué es esto
@@ -44,6 +44,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 ## Historial de cambios (lo más reciente arriba)
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
+
+- ✅ **Limpieza de imágenes y estilos viejos (2026-09-26)**: borradas `favicon.png`, `bastet-icon-gold.png`, `bastet-icon-verde.png` y `bastet-logo-completo.png` (sin referencias en HTML/JS/CSS ni en `supabase/email-templates/`). `agente/index.html` (redirección a `/admin/`) usaba `favicon.png`: ahora `favicon-uno-32.png`. Quitadas las reglas CSS del logo anterior (`.navbar-logo-icon/-text/-main/-sub`, `.footer-logo`, `.footer-logo-icon/-text/-sub` en `style.css`; `.auth-logo-icon/-main`, `.admin-logo-icon/-text/-main` en `admin.css`). Se conservan `bastet-gato-dorado.png` (foto por defecto del agente en las tarjetas) y `uno-logo.png` (copia maestra sin pérdida del logo; la web usa `uno-logo.webp`). Verificado: landing, `/admin` y `/agente` sin ningún 404 ni error de consola.
 
 - ✅ **Pista "desliza" bajo el carrusel (2026-09-26)**: `#swipe-hint` justo después de `#ring-stage` en `index.html`: manito dorada (ícono "pointer" de Lucide, SVG inline) que va y viene (`@keyframes swipeHand`, 2.6s) sobre un rastro tenue, flechas ‹ › que se iluminan según el lado y el texto "Desliza para ver más propiedades". Queda dentro del espacio vacío que deja el anillo bajo las tarjetas (`z-index: 2`, `pointer-events: none`). Se desvanece para siempre (en esa visita) al primer `pointerdown` sobre el anillo (`setupSwipeHint()` en `main.js`, clase `.is-done`). Oculta si el carrusel está vacío; sin animación con `prefers-reduced-motion`.
 
