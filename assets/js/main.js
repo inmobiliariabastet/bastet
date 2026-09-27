@@ -658,7 +658,7 @@ function buildPropertyCard(property) {
     ? '<span class="ring-card-price">' + formatPriceUSD(property.price) + (property.exchange_rate ? ' · ' + escapeHtml(property.exchange_rate) : '') + '</span>'
     : '';
   const featuredIcon = property.featured
-    ? '<img class="ring-card-featured-icon" src="assets/img/bastet-icon-gold.png" alt="Destacada">'
+    ? '<img class="ring-card-featured-icon" src="assets/img/uno-destacada.png" alt="Destacada">'
     : '';
   const metaLine = [PROPERTY_TYPE_LABELS[property.property_type], formatPropertyCode(property)].filter(Boolean).join(' · ');
   const operationBadge = PROPERTY_OPERATION_LABELS[property.operation]

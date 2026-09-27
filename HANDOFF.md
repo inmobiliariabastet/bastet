@@ -11,7 +11,7 @@
 **Estado al 2026-09-26 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926f`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926g`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -43,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 ## Historial de cambios (lo más reciente arriba)
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
+
+- ✅ **Icono de destacada nuevo (2026-09-26)**: la "O" del logo UNO con el gato dentro reemplaza a `bastet-icon-gold.png` como marca de propiedad destacada. Archivo nuevo `assets/img/uno-destacada.png` (160×160, recortado y centrado, transparente; nombre nuevo para esquivar el caché de 7 días de las imágenes). Se usa en la tarjeta del carrusel (`.ring-card-featured-icon`, ahora 22px) y en el panel (`.property-featured-icon`, ahora 18px: lista, detalle, analítica y orden). `bastet-icon-gold.png` quedó sin uso.
 
 - ✅ **Hero: "Marketplace Inmobiliario" como título real (2026-09-26)**: se quitó la etiqueta tipo pastilla (`.hero-eyebrow`, eliminada del HTML y CSS). Ahora el `<h1 class="hero-title">` es "Marketplace Inmobiliario": Conso 400, `clamp(40px,6.2vw,76px)`, texto con degradado dorado (`background-clip: text`, `#FBE6A6 → #F1BF46 → #C9922E`, como el logo UNO) y `padding-bottom: 0.08em` para que el degradado no corte la "p". El titular anterior pasó a `<p class="hero-tagline">` (Conso 300, `clamp(22px,2.7vw,34px)`, crema). Aclaración de la dueña: **UNO es un producto de Bastet** (su canal digital de ventas de inmuebles), no un cambio de marca: Bastet sigue siendo el nombre en título, favicon y copyright.
 
