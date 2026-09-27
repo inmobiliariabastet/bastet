@@ -49,6 +49,7 @@ input, textarea, select { font-family: inherit; }
   box-shadow: 0 24px 60px rgba(0,0,0,0.35);
 }
 .auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo-img { display: block; height: 96px; width: auto; margin: 0 auto 10px; }
 .auth-logo-icon { display: inline-block; width: 40px; height: 40px; margin-bottom: 8px; }
 .auth-logo-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .auth-logo-main { display: block; font-family: var(--font-serif); font-size: 30px; font-weight: 400; color: var(--color-primary); }
@@ -144,7 +145,8 @@ a.btn { text-decoration: none; }
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 50;
 }
-.admin-logo { display: flex; align-items: center; gap: 8px; line-height: 1; }
+.admin-logo { display: flex; align-items: center; gap: 14px; line-height: 1; }
+.admin-logo-img { display: block; height: 46px; width: auto; }
 .admin-logo-icon { width: 30px; height: 30px; flex-shrink: 0; }
 .admin-logo-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .admin-logo-text { display: flex; flex-direction: column; }

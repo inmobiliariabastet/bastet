@@ -11,12 +11,13 @@
 **Estado al 2026-09-26 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926d`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926e`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
 - **Cambios de base de datos:** se agregan a `supabase/schema.sql` y **la dueña corre solo el bloque nuevo** en Supabase → SQL Editor (no hay CLI ni service key en esta máquina). No publicar código que dependa de columnas nuevas hasta que el SQL esté corrido y verificado por API con la anon key.
 - **Edge Function `invite-admin`:** se despliega pegando `supabase/functions/invite-admin/index.ts` en Supabase → Edge Functions (la dueña lo hace).
+- **Logotipo (desde 2026-09-26):** "UNO · Marketplace Inmobiliario by Bastet" (`assets/img/uno-logo.webp` + `.png`, 1000×453, recortado del original de la dueña, fondo transparente) en navbar (66px de alto, 52px en celular), footer (96px), login/recuperar/nueva contraseña del panel (96px) y barra del panel (46px). El favicon, el `<title>` y el copyright siguen diciendo Bastet.
 - **Qué tiene hoy el sitio:**
   - **Landing:** hero ("Marketplace Inmobiliario" / "Venda o Compre su inmueble en 30 días o menos.") con botones Vender (WhatsApp) / Buscar (ancla); carrusel 3D de propiedades con filtros (operación, tipo, habitaciones, baños, presupuesto, ciudad + "Limpiar filtros"; los selectores usan una lista desplegable propia con la marca, no la nativa); tarjetas con título grande, código `BST-xxxx`, etiqueta de operación y foto del agente que abre WhatsApp directo; anillo a todo el ancho de la pantalla que se desvanece suavemente en los bordes; cinta de auspiciadores debajo de Garantías (72px, logos recortados y con tamaño parejo automáticamente); ficha de propiedad con características; testimonios; botón "Acceso agentes" (login + solicitud de cuenta).
   - **Panel `/admin`:** roles admin/agente; Propiedades (código, tipo, operación, plantas, garaje, baulera, mascotas, niños), Analítica, Marcas, Testimonios, Usuarios (invitar, rol, activar/desactivar, eliminar), Solicitudes de nuevos agentes (aprobar = invitar), Mi cuenta.
@@ -42,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 ## Historial de cambios (lo más reciente arriba)
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
+
+- ✅ **Nuevo logotipo UNO by Bastet (2026-09-26)**: la dueña envió el logo "UNO · Marketplace Inmobiliario · by BASTET" (dorado, gato de Bastet dentro de la O). Se recortó al contenido y se guardó en `assets/img/uno-logo.webp` (el que se usa) y `uno-logo.png`. Reemplaza el gato + texto "BASTET / PROPIEDADES · INMOBILIARIAS" en `.navbar-logo` y `.footer-logo-row` del landing, en los 3 `.auth-logo` del panel (con la leyenda "PANEL DE ADMINISTRACIÓN") y en `.admin-logo` (con "PANEL DE PROPIEDADES"). Las clases viejas (`.navbar-logo-icon/-main/-sub`, `.footer-logo-*`, `.auth-logo-icon/-main`, `.admin-logo-icon/-main`) quedaron sin uso en el CSS. No se tocaron el favicon (`favicon.png`, gato), el `<title>` ni el copyright.
 
 - ✅ **Cinta de auspiciadores debajo de Garantías (2026-09-26)**: pedido de la dueña. En `index.html`, `.partners-strip` se movió de después de `#propiedades` a entre `#garantias` y `.testimonials-section`. Se quitó su `z-index: 1` (solo servía para tapar el brillo de las destacadas). El recorte bajo el carrusel (`.propiedades-section` `padding-bottom: 28px` + `.ring-stage` `margin-bottom: -70px`) se mantiene para que no quede un hueco grande antes de "Qué incluye nuestra asesoría".
 
