@@ -45,7 +45,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
 
-- ✅ **Usuarios: check dorado y "Desactivar" dorado (2026-09-28)**: en `renderUserList()` la etiqueta "Activo" pasó a un círculo dorado con ✓ (`.user-active-check` + `CHECK_ICON`, const nueva en `admin.js`); los desactivados siguen mostrando la etiqueta "Desactivado". "Desactivar" pasó de `btn-danger` (rojo) a `btn-accent` (oro macizo); "Reactivar" sigue `btn-ghost`. Caché `?v=20260928g`.
+- ✅ **Usuarios: check dorado y "Desactivar" dorado (2026-09-28)**: en `renderUserList()` la etiqueta "Activo" pasó a un círculo dorado con ✓ (`.user-active-check` + `CHECK_ICON`, const nueva en `admin.js`); los desactivados muestran un círculo con contorno dorado y signo menos (`.user-inactive-mark` + `MINUS_ICON`, en vez de la etiqueta "Desactivado"; la fila ya se ve atenuada). "Desactivar" pasó de `btn-danger` (rojo) a `btn-accent` (oro macizo); "Reactivar" sigue `btn-ghost`. Caché `?v=20260928h`.
 
 - ✅ **Basurero dorado en Marcas, Testimonios, Solicitudes y Usuarios (2026-09-28)**: los botones "Eliminar" de `renderPartnerList()`, `renderTestimonialList()` y `renderRequestList()` y el basurero rojo de `renderUserList()` ahora usan `.btn-trash-gold` + `TRASH_ICON` (mismo botón que en Propiedades). `.btn-trash-gold` lleva `flex: 0 0 auto !important` para no estirarse en `.request-actions` del celular. Ya no queda ningún botón "Eliminar" con texto en el panel. Caché `?v=20260928f`.
 

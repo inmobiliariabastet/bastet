@@ -247,6 +247,8 @@ const TRASH_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" 
 
 const CHECK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
+const MINUS_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>';
+
 function propertyStatusLabel(property) {
   if (property.status !== 'sold') return 'Disponible';
   return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
@@ -1254,7 +1256,7 @@ function renderUserList(users) {
         : '<select class="role-select" data-action="role"><option value="agent"' + (user.role === 'agent' ? ' selected' : '') + '>Agente</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option></select>') +
       (user.is_active
         ? '<span class="user-active-check" title="Activo" aria-label="Activo" role="img">' + CHECK_ICON + '</span>'
-        : '<span class="status-badge sold">Desactivado</span>') +
+        : '<span class="user-inactive-mark" title="Desactivado" aria-label="Desactivado" role="img">' + MINUS_ICON + '</span>') +
       (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-accent' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
       (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario">' + TRASH_ICON + '</button>');
 
