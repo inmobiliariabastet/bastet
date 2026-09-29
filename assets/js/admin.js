@@ -1249,9 +1249,7 @@ function renderUserList(users) {
 
     row.innerHTML =
       '<span class="user-row-email">' + escapeHtml(user.email || user.id) + (isSelf ? ' (tú)' : '') + '</span>' +
-      (isSelf
-        ? '<span class="role-tag ' + (user.role === 'admin' ? 'admin' : 'agent') + '">' + (user.role === 'admin' ? 'Admin' : 'Agente') + '</span>'
-        : '<select class="role-select" data-action="role"><option value="agent"' + (user.role === 'agent' ? ' selected' : '') + '>Agente</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option></select>') +
+      '<span class="role-tag ' + (user.role === 'admin' ? 'admin' : 'agent') + '">' + (user.role === 'admin' ? 'Admin' : 'Agente') + '</span>' +
       (user.is_active
         ? '<span class="user-active-check" title="Activo" aria-label="Activo" role="img">' + CHECK_ICON + '</span>'
         : '<span class="user-inactive-mark" title="Desactivado" aria-label="Desactivado" role="img">' + MINUS_ICON + '</span>') +
@@ -1263,10 +1261,6 @@ function renderUserList(users) {
 
     const deleteBtn = row.querySelector('[data-action="delete-user"]');
     if (deleteBtn) deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteUser(user); });
-
-    const roleSelect = row.querySelector('[data-action="role"]');
-    if (roleSelect) roleSelect.addEventListener('change', () => changeUserRole(user, roleSelect));
-    if (roleSelect) roleSelect.addEventListener('click', (e) => e.stopPropagation());
 
     row.addEventListener('click', () => openUserProperties(user));
 
@@ -1295,21 +1289,6 @@ async function deleteUser(user) {
   if (!confirm('¿Eliminar definitivamente la cuenta de ' + who + '?\n\nYa no podrá iniciar sesión y esta acción no se puede deshacer (para volver a darle acceso habría que invitarla de nuevo).' + propsNote)) return;
   const { error } = await supabaseClient.rpc('admin_delete_user', { target: user.id });
   if (error) { alert('Error al eliminar: ' + error.message); return; }
-  loadUsers();
-}
-
-async function changeUserRole(user, selectEl) {
-  const nextRole = selectEl.value;
-  if (nextRole === user.role) return;
-  const label = nextRole === 'admin' ? 'administrador' : 'agente';
-  if (!confirm('¿Cambiar a ' + (user.email || user.id) + ' a ' + label + '?')) {
-    selectEl.value = user.role;
-    return;
-  }
-  selectEl.disabled = true;
-  const { error } = await supabaseClient.from('profiles').update({ role: nextRole }).eq('id', user.id);
-  selectEl.disabled = false;
-  if (error) { alert('Error: ' + error.message); selectEl.value = user.role; return; }
   loadUsers();
 }
 

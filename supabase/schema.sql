@@ -167,6 +167,11 @@ begin
     new.is_active := old.is_active;
     new.email := old.email;
   end if;
+  -- Desde 2026-09-29 no se crean administradores nuevos desde la app: el rol
+  -- solo se cambia desde el SQL Editor (auth.uid() es null ahí).
+  if auth.uid() is not null then
+    new.role := old.role;
+  end if;
   return new;
 end;
 $$;

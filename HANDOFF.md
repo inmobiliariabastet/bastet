@@ -11,7 +11,7 @@
 **Estado al 2026-09-28 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260928i`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929a`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -43,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+- ✅ **Sin opción de crear administradores (2026-09-29)**: pedido de la dueña; solo `shane130617@gmail.com` y `kunabox14@gmail.com` son admins. En Usuarios se quitó la lista Agente/Admin (queda la etiqueta fija) y `changeUserRole()`. Invitar ya creaba siempre "agent". Caché `?v=20260929a`. **SQL pendiente (lo corre la dueña):** el trigger `protect_profile_privileged` ver bloque en `supabase/schema.sql` (`protect_profile_privileged_columns`: si `auth.uid()` no es null, el rol no cambia) para bloquear también por API. Además `laboratoriovisnity@gmail.com` aparece hoy como Admin: bajarlo a agent con SQL Editor si corresponde.
 
 - ✅ **Leyenda del login (2026-09-29)**: "PANEL DE ADMINISTRACIÓN" → "PANEL DE USUARIO" en las 3 pantallas de acceso (`admin/index.html`).
 
