@@ -11,7 +11,7 @@
 **Estado al 2026-09-28 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929b`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929c`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -43,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+- ✅ **Menú desplegable de celular/tablet opaco (2026-09-29)**: el menú se veía transparente sobre el carrusel. Causa: al hacer scroll la barra (`.navbar.is-scrolled`) lleva `backdrop-filter`, y eso vuelve a la barra el contenedor del panel `position: fixed` → el panel medía 0px de alto (los enlaces desbordaban sin fondo). Solución (final de `style.css`): `.navbar.is-menu-open` quita el `backdrop-filter`; el panel mide `100dvh - 76px`, con fondo negro casi opaco (`rgba(10,10,9,.97)`) + desenfoque, hilo dorado arriba y líneas doradas entre enlaces, scroll interno; `body.menu-open` bloquea el scroll de la página, y el menú se cierra solo al pasar a escritorio (≥1080px). Caché `?v=20260929c`. Verificado a 375px con la página scrolleada sobre el carrusel.
 
 - ✅ **Botón "Instalar app" (PWA) (2026-09-29)**: la landing es instalable como app ("UNO") con acceso directo a bastet.uno. Archivos nuevos: `manifest.json`, `sw.js` (service worker mínimo, sin caché a propósito), iconos `assets/img/uno-app-192.png` / `-512.png` (la O con el gato sobre negro). Botón `[data-install-app]` en el menú (escritorio y celular): en Chrome/Edge/Android abre el diálogo nativo de instalación (`beforeinstallprompt`); en iPhone o navegadores sin ese evento muestra un aviso con los pasos ("Compartir → Añadir a pantalla de inicio"). Se oculta si ya se abrió como app instalada. Lógica al final de `main.js`, estilos del aviso al final de `style.css`. Caché `?v=20260929b`. Si algún día se cambian los iconos, usar nombres nuevos (caché de 7 días).
 

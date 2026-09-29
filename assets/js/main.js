@@ -21,8 +21,10 @@ const mobilePanel = document.querySelector('.navbar-mobile-panel');
 function setMenuOpen(open) {
   mobilePanel.classList.toggle('is-open', open);
   navbar.classList.toggle('is-menu-open', open);
+  document.body.classList.toggle('menu-open', open);
 }
 burger.addEventListener('click', () => setMenuOpen(!mobilePanel.classList.contains('is-open')));
+window.matchMedia('(min-width: 1080px)').addEventListener('change', (e) => { if (e.matches) setMenuOpen(false); });
 mobilePanel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenuOpen(false)));
 
 window.addEventListener('scroll', () => {
