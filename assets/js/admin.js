@@ -245,6 +245,8 @@ async function loadProperties() {
 
 const TRASH_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 
+const CHECK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
 function propertyStatusLabel(property) {
   if (property.status !== 'sold') return 'Disponible';
   return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
@@ -1250,8 +1252,10 @@ function renderUserList(users) {
       (isSelf
         ? '<span class="role-tag ' + (user.role === 'admin' ? 'admin' : 'agent') + '">' + (user.role === 'admin' ? 'Admin' : 'Agente') + '</span>'
         : '<select class="role-select" data-action="role"><option value="agent"' + (user.role === 'agent' ? ' selected' : '') + '>Agente</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option></select>') +
-      '<span class="status-badge ' + (user.is_active ? 'available' : 'sold') + '">' + (user.is_active ? 'Activo' : 'Desactivado') + '</span>' +
-      (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-danger' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
+      (user.is_active
+        ? '<span class="user-active-check" title="Activo" aria-label="Activo" role="img">' + CHECK_ICON + '</span>'
+        : '<span class="status-badge sold">Desactivado</span>') +
+      (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-accent' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
       (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario">' + TRASH_ICON + '</button>');
 
     const toggleBtn = row.querySelector('[data-action="toggle"]');

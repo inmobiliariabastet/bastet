@@ -736,3 +736,12 @@ html { scrollbar-color: rgba(var(--accent-rgb),0.35) transparent; }
 }
 .property-actions { align-items: center; }
 .btn-trash-gold { flex: 0 0 auto !important; } /* no se estira en .request-actions del celular */
+
+/* Usuarios: check dorado en lugar de la etiqueta "Activo" */
+.user-active-check {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #15130e;
+  background: linear-gradient(180deg, #F8DA8C 0%, var(--color-accent) 55%, #DCA431 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 14px -2px rgba(var(--accent-rgb),0.55);
+}
