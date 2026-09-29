@@ -44,6 +44,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Leyenda del login (2026-09-29)**: "PANEL DE ADMINISTRACIÓN" → "PANEL DE USUARIO" en las 3 pantallas de acceso (`admin/index.html`).
+
 - ✅ **Nombre "Bastet Real State" y logo nuevo (2026-09-29)**: la empresa se llama Bastet Real State (así lo escribe el logo de la dueña, sin la "e" de "Estate"; se respetó). Copyright del footer: "© 2026 Bastet Real State." Logo nuevo (versión dorado claro, fondo transparente) en `assets/img/uno-logo-bastet.webp/.png` reemplaza a `uno-logo.*` en navbar, footer, login/recuperar/nueva contraseña y barra del panel (nombre de archivo nuevo para esquivar el caché de 7 días). No se tocaron `<title>` (Bastet) ni los correos.
 
 > Detalle de cada cambio con su porqué. El estado vigente está resumido en [Resumen rápido](#-resumen-rápido-léelo-primero); si algo de aquí contradice al resumen, manda el resumen.
