@@ -8,10 +8,10 @@
 
 ## ⚡ Resumen rápido (léelo primero)
 
-**Estado al 2026-09-26 — todo en producción en https://bastet.uno y verificado.**
+**Estado al 2026-09-28 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260926i`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260928i`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -23,9 +23,10 @@
   - **Panel `/admin`:** roles admin/agente; Propiedades (código, tipo, operación, plantas, garaje, baulera, mascotas, niños), Analítica, Marcas, Testimonios, Usuarios (invitar, rol, activar/desactivar, eliminar), Solicitudes de nuevos agentes (aprobar = invitar), Mi cuenta.
   - **Correo:** SMTP propio de Hostinger (`inmobiliaria@bastet.uno`), plantillas en español (copia en `supabase/email-templates/`).
   - **Seguridad:** registro público cerrado; solo cuentas invitadas nacen activas; `invite-admin` solo para admins; RLS en todas las tablas.
-  - **Diseño:** Brand Book 2026 — Conso (títulos/botones) + Cabinet Grotesk (texto), paleta verde `#3D4C3A` / dorado `#F1BF46` / crema `#EEE6E0` / carbón `#1E2629`; botones pastilla con degradado y vidrio; responsive verificado a 375px y 768px.
+  - **Diseño (desde 2026-09-28): negro y dorado "premium"** en landing y panel. Tipografías del Brand Book (Conso + Cabinet Grotesk); los tokens verdes originales siguen en `:root`, pero los bloques "Landing en negro y dorado" (final de `style.css`) y "Panel completo en negro y dorado" (final de `admin.css`, variables `--lux-*`) los pisan. Botón principal = vidrio negro con borde en degradado dorado y letras doradas; dorado macizo para la acción más importante. En el panel: basurero dorado (`.btn-trash-gold` + `TRASH_ICON`) en vez de "Eliminar" en todas las pestañas, sin etiquetas Disponible/Vendida en las listas, y en Usuarios check dorado (activo) / signo menos (desactivado). La cinta de auspiciadores queda clara a propósito (logos con fondo blanco). Responsive verificado a 375px y 1366px.
 - **Pendientes de la dueña (datos, no código):** completar en cada propiedad tipo, operación y características (hoy vacías → los filtros de operación/tipo muestran 0) y el "WhatsApp del agente" (solo 6 de 14 lo tienen); confirmar la licencia web de la fuente **Conso**. Opcional: subir versiones horizontales de los logos de SOBOCE y Eddyfica (son verticales y en la cinta de auspiciadores se ven angostos).
-- **Pendientes de código:** ninguno. Todo lo pedido al 2026-09-26 está publicado y verificado en vivo (landing y `/admin` sin errores de consola ni de red).
+- **Pendientes de código:** ninguno. Todo lo pedido al 2026-09-28 está publicado (cada cambio verificado en local y confirmado en vivo con `curl`).
+- **Estrategia de tokenización (2026-09-28):** análisis y hoja de ruta en un documento compartible: https://claude.ai/code/artifact/ebb8f946-b5b3-40bb-8d02-1146d7107919 (también exportado a PDF). Ruta propuesta: fase 0 opinión legal → fase 1 "pasaporte digital" / sello **Verificado por Bastet** (primer paso de código posible, sin riesgo regulatorio) → fase 2 preventa tokenizada con una constructora aliada → fase 3 inversión fraccionada vía estructura regulada (ASFI). Nada de esto está implementado; falta que la dueña complete sus % de honorarios en el plan de negocio y elija la constructora del piloto (pregunta dejada como comentario en el documento).
 - **Gotcha de pruebas:** las capturas del navegador integrado de Claude fallan al hacer scroll (salen en blanco o desfasadas, también con versiones viejas del sitio). No es un bug: verificar con medidas por JS (`getBoundingClientRect`, `scrollWidth`) o ocultar temporalmente el hero en la pestaña de prueba para que la sección quede arriba. Las animaciones (rAF) se pausan si el panel del navegador está oculto.
 
 ## Qué es esto
