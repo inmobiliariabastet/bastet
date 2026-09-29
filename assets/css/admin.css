@@ -722,3 +722,16 @@ body {
 
 /* Barras de desplazamiento doradas y finas */
 html { scrollbar-color: rgba(var(--accent-rgb),0.35) transparent; }
+
+/* Botón de basurero dorado (eliminar propiedad) */
+.btn-trash-gold {
+  width: 36px; height: 36px; padding: 0;
+  color: var(--lux-gold-light); background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(var(--accent-rgb),0.4);
+}
+.btn-trash-gold svg { filter: drop-shadow(0 0 6px rgba(var(--accent-rgb),0.45)); }
+.btn-trash-gold:not(:disabled):hover {
+  color: #FFE9A8; background: rgba(var(--accent-rgb),0.12); border-color: var(--lux-gold-light);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.12), 0 8px 20px -10px rgba(var(--accent-rgb),0.7);
+}
+.property-actions { align-items: center; }

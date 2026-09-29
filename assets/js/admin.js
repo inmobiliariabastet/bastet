@@ -243,6 +243,8 @@ async function loadProperties() {
   renderPropertyList();
 }
 
+const TRASH_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+
 function propertyStatusLabel(property) {
   if (property.status !== 'sold') return 'Disponible';
   return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
@@ -279,10 +281,11 @@ function renderPropertyList() {
           [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location, property.area, property.rooms].filter(Boolean).map(escapeHtml).join(' · ') + '</p>' +
       '</div>' +
       '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      '<span class="status-badge ' + (property.status === 'sold' ? 'sold' : 'available') + '">' + propertyStatusLabel(property) + '</span>' +
+      // Solo se marca lo que ya no está disponible (Vendida/Alquilada/En anticrético)
+      (property.status === 'sold' ? '<span class="status-badge sold">' + propertyStatusLabel(property) + '</span>' : '') +
       '<div class="property-actions">' +
         '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
-        '<button class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>' +
+        '<button class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar propiedad" aria-label="Eliminar propiedad">' + TRASH_ICON + '</button>' +
       '</div>';
 
     row.querySelector('[data-action="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyForm(property); });
@@ -1470,7 +1473,7 @@ async function openUserProperties(user) {
         '<p class="property-info-meta">' + escapeHtml(property.location) + ' · ' + escapeHtml(property.area) + ' · ' + escapeHtml(property.rooms) + '</p>' +
       '</div>' +
       '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      '<span class="status-badge ' + (property.status === 'sold' ? 'sold' : 'available') + '">' + (property.status === 'sold' ? 'Vendida' : 'Disponible') + '</span>';
+      (property.status === 'sold' ? '<span class="status-badge sold">' + propertyStatusLabel(property) + '</span>' : '');
     row.addEventListener('click', () => { closeUserProperties(); openPropertyDetail(property); });
     list.appendChild(row);
   });
