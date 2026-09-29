@@ -564,7 +564,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 /* ── Testimonials ── */
 .testimonials-section { background: var(--color-light); padding: 120px clamp(20px,6vw,48px); }
 .testi-ring-stage {
-  position: relative; height: 460px; max-width: 1200px; width: 100%; margin: 0 auto;
+  position: relative; height: 420px; width: 100%;
   perspective: 1200px; perspective-origin: 50% 55%;
   touch-action: pan-y; cursor: grab; user-select: none;
 }
@@ -572,7 +572,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 .testi-ring-stage .ring-empty { color: var(--color-dark-text); opacity: 0.55; }
 .testi-ring-card {
   position: absolute; left: 50%; top: 50%;
-  width: 320px; height: 232px; margin: -116px 0 0 -160px;
+  width: 290px; height: 264px; margin: -132px 0 0 -145px;
   border-radius: 14px; overflow: hidden; cursor: grab;
   background: #ffffff; padding: 28px 26px;
   display: flex; flex-direction: column; gap: 16px;
@@ -600,7 +600,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 .testi-ring-quote {
   font-family: var(--font-sans); font-size: 16px; line-height: 1.6; font-style: normal; font-weight: 400;
   color: var(--color-dark-text); opacity: 0.85; margin: 0;
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
 }
 
 /* ── Pricing ── */

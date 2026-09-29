@@ -196,13 +196,13 @@ const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-m
    Reproduce la misma física: rotación automática + arrastre, con la tarjeta
    resuelta en pointerdown (no en el evento "click") para que no falle si el
    anillo se movió entre el down y el up. */
-function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, onContact, emptyText = 'Próximamente.', brightCenter = false, edgeFade = false }) {
+function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, buildCard, onSelect, onContact, emptyText = 'Próximamente.', brightCenter = false, edgeFade = false, perspective = 1000, cardHalfWidth = 115 }) {
   const step = 360 / size;
   // edgeFade: el anillo ocupa todo el ancho y se desvanece en los bordes con una máscara
   // en CSS (.ring-stage--edge-fade). Aquí solo se ocultan las tarjetas que ya salieron de
   // la pantalla y se suaviza la entrada/salida por ángulo para que nunca aparezcan de golpe.
-  const PERSPECTIVE = 1000; // igual que .ring-stage { perspective }
-  const CARD_HALF_WIDTH = 115;
+  const PERSPECTIVE = perspective;       // igual que el perspective del escenario en CSS
+  const CARD_HALF_WIDTH = cardHalfWidth; // mitad del ancho de la tarjeta en CSS
   let screenHalfWidth = window.innerWidth / 2;
   if (edgeFade) {
     stage.classList.add('ring-stage--edge-fade');
@@ -230,7 +230,7 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
       const r = (a * Math.PI) / 180, c = Math.cos(r);
       const x = radius * Math.sin(r);
       el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + (radius * (1 - c)).toFixed(1) + 'px) rotateY(' + (-a).toFixed(1) + 'deg)';
-      const brightness = brightCenter ? (1 - 0.8 * (1 / c - 1)) : Math.min(1.05, 0.72 + 0.5 * (1 / c - 1));
+      const brightness = brightCenter ? Math.max(0.88, 1 - 0.8 * (1 / c - 1)) : Math.min(1.05, 0.72 + 0.5 * (1 / c - 1));
       el.style.filter = 'brightness(' + brightness.toFixed(3) + ')';
       if (edgeFade) {
         const z = radius * (1 - c);
@@ -1042,8 +1042,10 @@ document.addEventListener('keydown', (e) => {
 loadProperties();
 
 /* ── Testimonios: fetch + carrusel (mismo efecto de anillo que Propiedades) ── */
-const TESTI_RING_SIZE = 10;
-const TESTI_RING_RADIUS = 640;
+// Anillo amplio y casi plano: a 18° entre tarjetas caben 4 a lo ancho de una laptop (1366px),
+// las de los extremos entrando/saliendo por el desvanecido de los bordes.
+const TESTI_RING_SIZE = 20;
+const TESTI_RING_RADIUS = 1050;
 const testiRingStage = document.getElementById('testi-ring-stage');
 
 function buildTestimonialCard(t) {
@@ -1070,6 +1072,10 @@ const testimonialRing = testiRingStage ? createRingCarousel({
   buildCard: buildTestimonialCard,
   emptyText: 'Pronto compartiremos las experiencias de nuestros clientes.',
   brightCenter: true,
+  cull: 80,
+  edgeFade: true,
+  perspective: 1200, // .testi-ring-stage { perspective }
+  cardHalfWidth: 145, // .testi-ring-card { width: 290px }
 }) : null;
 
 async function loadTestimonials() {
