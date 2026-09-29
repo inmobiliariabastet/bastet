@@ -454,3 +454,88 @@ a.btn { text-decoration: none; }
   .role-badge { font-size: 10px; padding: 3px 7px; }
   .request-actions .btn { flex: 1 1 auto; }
 }
+
+/* ── Pantallas de acceso (login / recuperar / nueva contraseña): tarjeta negra con detalles dorados ──
+   Todo va bajo .auth-card para no tocar el resto del panel. */
+.auth-card {
+  position: relative;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(var(--accent-rgb),0.10) 0%, rgba(var(--accent-rgb),0) 60%),
+    linear-gradient(180deg, rgba(22,22,20,0.94) 0%, rgba(8,8,8,0.96) 100%);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  border: 1px solid rgba(var(--accent-rgb),0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 0 1px rgba(0,0,0,0.6),
+    0 30px 80px rgba(0,0,0,0.6),
+    0 0 60px -20px rgba(var(--accent-rgb),0.35);
+  color: #EDE3D1;
+}
+/* hilo dorado arriba */
+.auth-card::before {
+  content: ''; position: absolute; top: -1px; left: 18%; right: 18%; height: 1px;
+  background: linear-gradient(90deg, transparent, #F8DA8C, transparent);
+}
+.auth-card .auth-logo-sub { color: #C9A85C; letter-spacing: 3px; }
+.auth-card .auth-title { color: #F4EBDD; letter-spacing: 0.02em; }
+.auth-card .field label { color: #C9A85C; letter-spacing: 0.6px; }
+.auth-card .field-hint { color: rgba(237,227,209,0.6); }
+.auth-card .field input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(var(--accent-rgb),0.22);
+  color: #F4EBDD;
+  caret-color: var(--color-accent);
+}
+.auth-card .field input::placeholder { color: rgba(237,227,209,0.35); }
+.auth-card .field input:focus {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(var(--accent-rgb),0.8);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14);
+}
+/* Chrome pinta de celeste los campos autocompletados: se tapa con una sombra interior oscura */
+.auth-card .field input:-webkit-autofill,
+.auth-card .field input:-webkit-autofill:hover,
+.auth-card .field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #F4EBDD;
+  -webkit-box-shadow: 0 0 0 1000px #161512 inset;
+  caret-color: var(--color-accent);
+  transition: background-color 9999s ease-out 0s;
+}
+.auth-card .pw-toggle { color: #C9A85C; }
+.auth-card .pw-toggle:hover, .auth-card .pw-toggle:focus-visible { background: rgba(var(--accent-rgb),0.12); }
+
+/* Botón: vidrio negro con borde en degradado dorado, letras doradas y un destello que cruza */
+.auth-card .btn-primary {
+  margin-top: 6px; padding: 14px 22px;
+  font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #F8DA8C;
+  text-shadow: 0 0 12px rgba(var(--accent-rgb),0.45), 0 1px 0 rgba(0,0,0,0.6);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.25) 100%) padding-box,
+    linear-gradient(180deg, #1c1a15, #0b0b0a) padding-box,
+    linear-gradient(135deg, #FBE6A6 0%, #C9922E 35%, #F1BF46 55%, #8C6A22 80%, #FBE6A6 100%) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,236,180,0.25),
+    0 10px 28px -12px rgba(var(--accent-rgb),0.55);
+}
+.auth-card .btn-primary::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; z-index: -1;
+  background: linear-gradient(100deg, transparent, rgba(255,226,150,0.22), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.9s var(--ease-out);
+}
+.auth-card .btn-primary:not(:disabled):hover {
+  color: #FFE9A8;
+  box-shadow:
+    inset 0 1px 0 rgba(255,236,180,0.35),
+    0 0 0 3px rgba(var(--accent-rgb),0.12),
+    0 14px 34px -12px rgba(var(--accent-rgb),0.8);
+}
+.auth-card .btn-primary:not(:disabled):hover::after { left: 120%; }
+
+.auth-card .auth-switch { color: rgba(237,227,209,0.7); }
+.auth-card .auth-switch a { color: #E3BE66; transition: color 0.2s ease; }
+.auth-card .auth-switch a:hover { color: #FBE6A6; text-decoration: underline; text-underline-offset: 3px; }
+.auth-card .auth-error { background: rgba(179,64,47,0.18); color: #F2B8AC; border: 1px solid rgba(196,85,63,0.45); }
+.auth-card .auth-banner { background: rgba(var(--accent-rgb),0.10); color: #F4DDA0; border-color: rgba(var(--accent-rgb),0.5); }
