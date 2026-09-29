@@ -285,8 +285,6 @@ function renderPropertyList() {
           [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location, property.area, property.rooms].filter(Boolean).map(escapeHtml).join(' · ') + '</p>' +
       '</div>' +
       '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      // Solo se marca lo que ya no está disponible (Vendida/Alquilada/En anticrético)
-      (property.status === 'sold' ? '<span class="status-badge sold">' + propertyStatusLabel(property) + '</span>' : '') +
       '<div class="property-actions">' +
         '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
         '<button class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar propiedad" aria-label="Eliminar propiedad">' + TRASH_ICON + '</button>' +
@@ -1478,8 +1476,7 @@ async function openUserProperties(user) {
         '<p class="property-info-title">' + escapeHtml(property.title) + '</p>' +
         '<p class="property-info-meta">' + escapeHtml(property.location) + ' · ' + escapeHtml(property.area) + ' · ' + escapeHtml(property.rooms) + '</p>' +
       '</div>' +
-      '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      (property.status === 'sold' ? '<span class="status-badge sold">' + propertyStatusLabel(property) + '</span>' : '');
+      '<span class="property-price">' + formatPriceUSD(property.price) + '</span>';
     row.addEventListener('click', () => { closeUserProperties(); openPropertyDetail(property); });
     list.appendChild(row);
   });
