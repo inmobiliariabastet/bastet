@@ -44,7 +44,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
-- ✅ **Sin opción de crear administradores (2026-09-29)**: pedido de la dueña; solo `shane130617@gmail.com` y `kunabox14@gmail.com` son admins. En Usuarios se quitó la lista Agente/Admin (queda la etiqueta fija) y `changeUserRole()`. Invitar ya creaba siempre "agent". Caché `?v=20260929a`. **SQL pendiente (lo corre la dueña):** el trigger `protect_profile_privileged` ver bloque en `supabase/schema.sql` (`protect_profile_privileged_columns`: si `auth.uid()` no es null, el rol no cambia) para bloquear también por API. Además `laboratoriovisnity@gmail.com` aparece hoy como Admin: bajarlo a agent con SQL Editor si corresponde.
+- ✅ **Sin opción de crear administradores (2026-09-29)**: pedido de la dueña; solo `shane130617@gmail.com` y `kunabox14@gmail.com` son admins. En Usuarios se quitó la lista Agente/Admin (queda la etiqueta fija) y `changeUserRole()`. Invitar ya creaba siempre "agent". Caché `?v=20260929a`. **SQL ya corrido y verificado (2026-09-29):** `laboratoriovisnity@gmail.com` bajó a agent (solo shane130617 y kunabox14 son admin) y el trigger `protect_profile_privileged_columns` congela el rol para cualquier llamada con `auth.uid()` (app/API). Para cambiar un rol en el futuro: SQL Editor con `alter table public.profiles disable trigger protect_profile_privileged;` → `update` → `enable trigger`.
 
 - ✅ **Leyenda del login (2026-09-29)**: "PANEL DE ADMINISTRACIÓN" → "PANEL DE USUARIO" en las 3 pantallas de acceso (`admin/index.html`).
 
