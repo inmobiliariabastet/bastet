@@ -8,7 +8,7 @@
 
 ## ⚡ Resumen rápido (léelo primero)
 
-**Estado al 2026-09-28 — todo en producción en https://bastet.uno y verificado.**
+**Estado al 2026-09-29 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
 - **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929c`):
@@ -24,6 +24,7 @@
   - **Correo:** SMTP propio de Hostinger (`inmobiliaria@bastet.uno`), plantillas en español (copia en `supabase/email-templates/`).
   - **Seguridad:** registro público cerrado; solo cuentas invitadas nacen activas; `invite-admin` solo para admins; RLS en todas las tablas.
   - **Diseño (desde 2026-09-28): negro y dorado "premium"** en landing y panel. Tipografías del Brand Book (Conso + Cabinet Grotesk); los tokens verdes originales siguen en `:root`, pero los bloques "Landing en negro y dorado" (final de `style.css`) y "Panel completo en negro y dorado" (final de `admin.css`, variables `--lux-*`) los pisan. Botón principal = vidrio negro con borde en degradado dorado y letras doradas; dorado macizo para la acción más importante. En el panel: basurero dorado (`.btn-trash-gold` + `TRASH_ICON`) en vez de "Eliminar" en todas las pestañas, sin etiquetas Disponible/Vendida en las listas, y en Usuarios check dorado (activo) / signo menos (desactivado). La cinta de auspiciadores queda clara a propósito (logos con fondo blanco). Responsive verificado a 375px y 1366px.
+- **Novedades 2026-09-29 (ver detalle en el historial):** empresa = **Bastet Real State** (así lo escribe el logo; copyright del footer y logo nuevo `uno-logo-bastet.webp`); solo `shane130617@gmail.com` y `kunabox14@gmail.com` son admins y el rol ya no se puede cambiar desde la app (trigger en Supabase, SQL ya corrido); botón **Instalar app** (PWA: `manifest.json`, `sw.js`, iconos `uno-app-*.png`); menú móvil/tablet opaco; textos "Panel de usuario".
 - **Pendientes de la dueña (datos, no código):** completar en cada propiedad tipo, operación y características (hoy vacías → los filtros de operación/tipo muestran 0) y el "WhatsApp del agente" (solo 6 de 14 lo tienen); confirmar la licencia web de la fuente **Conso**. Opcional: subir versiones horizontales de los logos de SOBOCE y Eddyfica (son verticales y en la cinta de auspiciadores se ven angostos).
 - **Pendientes de código:** ninguno. Todo lo pedido al 2026-09-28 está publicado (cada cambio verificado en local y confirmado en vivo con `curl`).
 - **Estrategia de tokenización (2026-09-28):** análisis y hoja de ruta en un documento compartible: https://claude.ai/code/artifact/ebb8f946-b5b3-40bb-8d02-1146d7107919 (también exportado a PDF). Ruta propuesta: fase 0 opinión legal → fase 1 "pasaporte digital" / sello **Verificado por Bastet** (primer paso de código posible, sin riesgo regulatorio) → fase 2 preventa tokenizada con una constructora aliada → fase 3 inversión fraccionada vía estructura regulada (ASFI). Nada de esto está implementado; falta que la dueña complete sus % de honorarios en el plan de negocio y elija la constructora del piloto (pregunta dejada como comentario en el documento).
@@ -43,6 +44,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+- ✅ **Textos "Panel de usuario" (2026-09-29)**: leyenda de las pantallas de acceso, leyenda de la barra superior del panel (antes "PANEL DE PROPIEDADES") y `<title>` de `/admin` ahora dicen "Panel de usuario".
 
 - ✅ **Menú desplegable de celular/tablet opaco (2026-09-29)**: el menú se veía transparente sobre el carrusel. Causa: al hacer scroll la barra (`.navbar.is-scrolled`) lleva `backdrop-filter`, y eso vuelve a la barra el contenedor del panel `position: fixed` → el panel medía 0px de alto (los enlaces desbordaban sin fondo). Solución (final de `style.css`): `.navbar.is-menu-open` quita el `backdrop-filter`; el panel mide `100dvh - 76px`, con fondo negro casi opaco (`rgba(10,10,9,.97)`) + desenfoque, hilo dorado arriba y líneas doradas entre enlaces, scroll interno; `body.menu-open` bloquea el scroll de la página, y el menú se cierra solo al pasar a escritorio (≥1080px). Caché `?v=20260929c`. Verificado a 375px con la página scrolleada sobre el carrusel.
 
