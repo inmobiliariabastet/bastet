@@ -896,7 +896,7 @@ function renderPartnerList() {
       '<span class="partner-info">' + escapeHtml(partner.name || '(sin nombre)') +
         (partner.url ? '<br><a href="' + escapeHtml(partner.url) + '" target="_blank" rel="noopener" style="font-size:12px;font-weight:400;">' + escapeHtml(partner.url) + '</a>' : '') +
       '</span>' +
-      '<button type="button" class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>';
+      '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar logo" aria-label="Eliminar logo">' + TRASH_ICON + '</button>';
 
     row.querySelector('[data-action="delete"]').addEventListener('click', () => deletePartner(partner));
 
@@ -1037,7 +1037,7 @@ function renderTestimonialList() {
         '<p class="testimonial-info-role">' + escapeHtml(testimonial.role_label) + '</p>' +
         '<p class="testimonial-info-quote">&ldquo;' + escapeHtml(testimonial.quote) + '&rdquo;</p>' +
       '</div>' +
-      '<button type="button" class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>';
+      '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar testimonio" aria-label="Eliminar testimonio">' + TRASH_ICON + '</button>';
 
     row.querySelector('[data-action="delete"]').addEventListener('click', () => deleteTestimonial(testimonial));
 
@@ -1252,7 +1252,7 @@ function renderUserList(users) {
         : '<select class="role-select" data-action="role"><option value="agent"' + (user.role === 'agent' ? ' selected' : '') + '>Agente</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option></select>') +
       '<span class="status-badge ' + (user.is_active ? 'available' : 'sold') + '">' + (user.is_active ? 'Activo' : 'Desactivado') + '</span>' +
       (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-danger' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
-      (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>');
+      (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario">' + TRASH_ICON + '</button>');
 
     const toggleBtn = row.querySelector('[data-action="toggle"]');
     if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleUserActive(user); });
@@ -1381,7 +1381,7 @@ function renderRequestList(requests) {
         (r.status !== 'approved' ? '<button type="button" class="btn btn-accent btn-sm" data-action="approve">Aprobar y enviar invitación</button>' : '') +
         (r.status === 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="reject">Rechazar</button>' : '') +
         (r.status !== 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="pending">Volver a pendiente</button>' : '') +
-        '<button type="button" class="btn btn-danger btn-sm" data-action="delete">Eliminar</button>' +
+        '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar solicitud" aria-label="Eliminar solicitud">' + TRASH_ICON + '</button>' +
       '</div>' +
       '<p class="request-feedback hidden"></p>';
 

@@ -735,3 +735,4 @@ html { scrollbar-color: rgba(var(--accent-rgb),0.35) transparent; }
   box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.12), 0 8px 20px -10px rgba(var(--accent-rgb),0.7);
 }
 .property-actions { align-items: center; }
+.btn-trash-gold { flex: 0 0 auto !important; } /* no se estira en .request-actions del celular */
