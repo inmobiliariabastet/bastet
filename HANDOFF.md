@@ -11,7 +11,7 @@
 **Estado al 2026-09-28 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
-- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929a`):
+- **Regla de caché (obligatoria):** Hostinger cachea `assets/*` 7 días pero no el HTML. **Cada vez que cambies un `.js` o `.css`, sube el `?v=` en `index.html` y `admin/index.html`** (versión actual: `20260929b`):
   ```bash
   sed -i -E 's/\?v=[0-9a-z]+"/?v=NUEVO"/' index.html admin/index.html
   ```
@@ -43,6 +43,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+- ✅ **Botón "Instalar app" (PWA) (2026-09-29)**: la landing es instalable como app ("UNO") con acceso directo a bastet.uno. Archivos nuevos: `manifest.json`, `sw.js` (service worker mínimo, sin caché a propósito), iconos `assets/img/uno-app-192.png` / `-512.png` (la O con el gato sobre negro). Botón `[data-install-app]` en el menú (escritorio y celular): en Chrome/Edge/Android abre el diálogo nativo de instalación (`beforeinstallprompt`); en iPhone o navegadores sin ese evento muestra un aviso con los pasos ("Compartir → Añadir a pantalla de inicio"). Se oculta si ya se abrió como app instalada. Lógica al final de `main.js`, estilos del aviso al final de `style.css`. Caché `?v=20260929b`. Si algún día se cambian los iconos, usar nombres nuevos (caché de 7 días).
 
 - ✅ **Sin opción de crear administradores (2026-09-29)**: pedido de la dueña; solo `shane130617@gmail.com` y `kunabox14@gmail.com` son admins. En Usuarios se quitó la lista Agente/Admin (queda la etiqueta fija) y `changeUserRole()`. Invitar ya creaba siempre "agent". Caché `?v=20260929a`. **SQL ya corrido y verificado (2026-09-29):** `laboratoriovisnity@gmail.com` bajó a agent (solo shane130617 y kunabox14 son admin) y el trigger `protect_profile_privileged_columns` congela el rol para cualquier llamada con `auth.uid()` (app/API). Para cambiar un rol en el futuro: SQL Editor con `alter table public.profiles disable trigger protect_profile_privileged;` → `update` → `enable trigger`.
 

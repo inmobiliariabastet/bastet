@@ -1076,3 +1076,18 @@ html { scrollbar-color: rgba(var(--accent-rgb),0.35) var(--lux-black); }
 .agent-form-note a { color: var(--lux-gold-light); }
 .pw-toggle { color: var(--lux-gold); }
 .pw-toggle:hover, .pw-toggle:focus-visible { background: rgba(var(--accent-rgb),0.12); }
+
+/* ── Instalar app (PWA) ── */
+[data-install-app][hidden] { display: none !important; }
+.install-modal {
+  position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center;
+  padding: 20px; background: rgba(0,0,0,0.72);
+}
+.install-modal[hidden] { display: none; }
+.install-modal-card {
+  max-width: 380px; width: 100%; padding: 28px 24px; text-align: center;
+  background: #0A0A09; border: 1px solid rgba(var(--accent-rgb),0.35); border-radius: 18px;
+  box-shadow: 0 0 40px rgba(var(--accent-rgb),0.12);
+}
+.install-modal-card h3 { font-family: 'Conso', serif; font-weight: 400; font-size: 22px; color: var(--lux-gold-light); margin: 0 0 12px; }
+.install-modal-card p { color: var(--lux-text); opacity: 0.85; font-size: 15px; line-height: 1.5; margin: 0 0 20px; }
