@@ -194,7 +194,7 @@ function formatPriceUSD(price) {
 
 const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ── Carrusel 3D en anillo, genérico (lo usan Propiedades y Testimonios) ──
+/* ── Carrusel 3D en anillo, genérico (hoy solo lo usan los Testimonios) ──
    Reproduce la misma física: rotación automática + arrastre, con la tarjeta
    resuelta en pointerdown (no en el evento "click") para que no falle si el
    anillo se movió entre el down y el up. */
@@ -318,11 +318,12 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
   return { render };
 }
 
-/* ── Propiedades: fetch + city filter + carrusel + modal ── */
-const RING_SIZE = 12;
-const RING_RADIUS = 520;
+/* ── Propiedades: fetch + filtros + grilla de tarjetas + modal ── */
+const PROP_PAGE_SIZE = 9; // tarjetas que se muestran de entrada; "Ver más" agrega otra tanda
+let propVisibleCount = PROP_PAGE_SIZE;
 
-const ringStage = document.getElementById('ring-stage');
+const propGridEl = document.getElementById('prop-grid');
+const propMoreWrapEl = document.getElementById('prop-more-wrap');
 const cityFiltersEl = document.getElementById('city-filters');
 const modalBackdrop = document.getElementById('property-modal-backdrop');
 const modal = document.getElementById('property-modal');
@@ -550,7 +551,7 @@ typeSelectEl.addEventListener('change', () => {
   buildBathsFilter();
   buildBudgetFilter();
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 });
 
 // Selector "N o más habitaciones", con cantidades dentro de la operación y el tipo elegidos.
@@ -580,7 +581,7 @@ roomsSelectEl.addEventListener('change', () => {
   buildBathsFilter();  // las cantidades de baños y de presupuesto dependen de las habitaciones
   buildBudgetFilter();
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 });
 
 // Selector "N o más baños", con cantidades dentro de operación, tipo y habitaciones elegidos.
@@ -609,7 +610,7 @@ bathsSelectEl.addEventListener('change', () => {
   bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
   buildBudgetFilter(); // las cantidades por rango dependen de los baños
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 });
 
 // Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
@@ -638,47 +639,56 @@ budgetSelectEl.addEventListener('change', () => {
   cityFilter = 'Todas';
   budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 });
 const operationFiltersEl = document.getElementById('operation-filters');
 let selectedProperty = null;
 let selectedPhotoIndex = 0;
 
-function placeholderImgHtml(title) {
-  return '<div class="ring-card-img-placeholder">' + escapeHtml(title || 'BASTET') + '</div>';
+// Valor numérico -> con su unidad ("3" -> "3 amb."); si ya trae texto se muestra tal cual.
+function withUnit(value, unit) {
+  const v = String(value ?? '').trim();
+  if (!v) return '';
+  return /^\d+([.,]\d+)?$/.test(v) ? v + ' ' + unit : v;
 }
 
-function buildPropertyCard(property) {
-  const card = document.createElement('div');
-  card.className = 'ring-card' + (isFeatured(property) ? ' ring-card--featured' : '');
-  card.setAttribute('data-ring-card', '');
+// Tarjeta limpia de propiedad (mismo lenguaje que el panel): toda la tarjeta abre la ficha;
+// el agente que la publicó queda abajo con su WhatsApp directo y sus redes.
+function buildPropertyTile(property) {
+  const tile = document.createElement('article');
+  const featured = isFeatured(property);
+  tile.className = 'prop-tile' + (featured ? ' prop-tile--featured' : '');
+  tile.tabIndex = 0;
+  tile.setAttribute('role', 'button');
+  tile.setAttribute('aria-label', 'Ver ' + property.title);
+  tile.__property = property;
+
   const firstPhoto = (property.photos && property.photos[0]) || null;
-  card.innerHTML = firstPhoto
-    ? '<img class="ring-card-img" src="' + escapeHtml(firstPhoto) + '" alt="' + escapeHtml(property.title) + '" loading="lazy">'
-    : placeholderImgHtml(property.title);
-  const priceLine = property.price
-    ? '<span class="ring-card-price">' + formatPriceUSD(property.price) + (property.exchange_rate ? ' · ' + escapeHtml(property.exchange_rate) : '') + '</span>'
-    : '';
-  const featuredIcon = isFeatured(property)
-    ? '<img class="ring-card-featured-icon" src="assets/img/uno-destacada.png" alt="Destacada">'
-    : '';
-  const metaLine = [PROPERTY_TYPE_LABELS[property.property_type], formatPropertyCode(property)].filter(Boolean).join(' · ');
-  const operationBadge = PROPERTY_OPERATION_LABELS[property.operation]
-    ? '<span class="ring-card-operation">' + PROPERTY_OPERATION_LABELS[property.operation] + '</span>'
-    : '';
-  card.innerHTML +=
-    '<div class="ring-card-overlay"></div>' +
-    '<div class="ring-card-label">' +
-      operationBadge +
-      '<span class="ring-card-title-row">' + featuredIcon + '<span class="ring-card-title-text">' + escapeHtml(property.title) + '</span></span>' +
-      priceLine +
-      (metaLine ? '<span class="ring-card-meta">' + escapeHtml(metaLine) + '</span>' : '') +
+  const operation = PROPERTY_OPERATION_LABELS[property.operation];
+  const code = formatPropertyCode(property);
+  const eyebrow = [PROPERTY_TYPE_LABELS[property.property_type], property.location].filter(Boolean).map(escapeHtml).join(' · ');
+  const facts = [withUnit(property.area, 'm²'), withUnit(property.rooms, 'amb.'), withUnit(property.baths, 'baños')].filter(Boolean).map(escapeHtml);
+
+  tile.innerHTML =
+    '<div class="prop-tile-ph">' +
+      (firstPhoto
+        ? '<img class="prop-tile-img" src="' + escapeHtml(firstPhoto) + '" alt="' + escapeHtml(property.title) + '" loading="lazy">'
+        : '<div class="prop-tile-noimg">' + escapeHtml(property.title || 'BASTET') + '</div>') +
+      '<div class="prop-tile-badges">' +
+        (operation ? '<span class="prop-tile-badge">' + operation + '</span>' : '') +
+        (featured ? '<span class="prop-tile-badge prop-tile-badge--gold"><img src="assets/img/uno-destacada.png" alt="" width="14" height="14">Destacada</span>' : '') +
+      '</div>' +
     '</div>' +
-    buildAgentBadgeHtml(property.agent);
-  return card;
+    '<div class="prop-tile-body">' +
+      (eyebrow ? '<span class="prop-tile-eyebrow">' + eyebrow + '</span>' : '') +
+      '<h3 class="prop-tile-title">' + escapeHtml(property.title) + '</h3>' +
+      (property.price ? '<div class="prop-tile-price">' + formatPriceUSD(property.price) + (property.exchange_rate ? '<small> · T.C. ' + escapeHtml(property.exchange_rate) + '</small>' : '') + '</div>' : '') +
+      (facts.length || code ? '<p class="prop-tile-facts">' + facts.join(' · ') + (code ? '<span class="prop-tile-code">' + code + '</span>' : '') + '</p>' : '') +
+    '</div>' +
+    buildTileAgentHtml(property);
+  return tile;
 }
 
-// Solo avatar + nombre (sin redes: las redes se ven en el modal al abrir la propiedad).
 // Mensaje de WhatsApp de una propiedad: empieza con el código para que el agente la
 // identifique al instante, y saluda al agente por su nombre si lo tiene.
 function propertyWhatsappMessage(p) {
@@ -695,23 +705,30 @@ function propertyWhatsappMessage(p) {
 
 const WHATSAPP_ICON_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.1.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
 
-// Foto del agente sobre la tarjeta: al tocarla se abre WhatsApp con el agente (ver onContact).
+// Agente que publicó la propiedad: foto, nombre, redes y botón de WhatsApp directo.
 // Sin agente asignado se muestra el gato de Bastet y el contacto va al número general.
-function buildAgentBadgeHtml(agent) {
+function buildTileAgentHtml(property) {
+  const agent = property.agent;
   const name = agent && agent.display_name ? agent.display_name : 'Bastet';
   const initial = name.trim().charAt(0).toUpperCase();
   const photo = agent && agent.avatar_url
-    ? '<img class="ring-card-agent-avatar" src="' + escapeHtml(agent.avatar_url) + '" alt="">'
+    ? '<img class="prop-tile-avatar" src="' + escapeHtml(agent.avatar_url) + '" alt="" loading="lazy">'
     : (agent && agent.display_name
-      ? '<span class="ring-card-agent-avatar ring-card-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
-      : '<span class="ring-card-agent-avatar ring-card-agent-avatar-brand"><img src="assets/img/bastet-gato-dorado.png" alt=""></span>');
+      ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
+      : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-gato-dorado.png" alt=""></span>');
+  const socials = agent
+    ? socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
+      socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
+      socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok')
+    : '';
   return (
-    '<div class="ring-card-agent" data-ring-contact role="button" aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '" title="Consultar por WhatsApp con ' + escapeHtml(name) + '">' +
-      '<span class="ring-card-agent-photo">' + photo + '<span class="ring-card-agent-wa">' + WHATSAPP_ICON_SVG + '</span></span>' +
-      '<span class="ring-card-agent-text">' +
-        '<span class="ring-card-agent-name">' + escapeHtml(name) + '</span>' +
-        '<span class="ring-card-agent-cta">Consultar por WhatsApp</span>' +
-      '</span>' +
+    '<div class="prop-tile-agent">' +
+      '<div class="prop-tile-agent-row">' +
+        photo +
+        '<span class="prop-tile-agent-who"><span class="prop-tile-agent-label">Publicado por</span><span class="prop-tile-agent-name">' + escapeHtml(name) + '</span></span>' +
+        (socials ? '<span class="prop-tile-socials">' + socials + '</span>' : '') +
+      '</div>' +
+      '<button type="button" class="prop-tile-wa" data-tile-wa aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '">' + WHATSAPP_ICON_SVG + '<span>Consultar por WhatsApp</span></button>' +
     '</div>'
   );
 }
@@ -723,29 +740,6 @@ function socialIconLink(url, kind, label) {
     '<img src="assets/img/social-' + kind + '.svg" alt="' + label + '">' +
   '</a>';
 }
-
-const propertyRing = createRingCarousel({
-  stage: ringStage,
-  radius: RING_RADIUS,
-  size: RING_SIZE,
-  buildCard: buildPropertyCard,
-  onSelect: (property) => openProperty(property),
-  // Clic en la foto del agente: WhatsApp directo con el agente, ya con el código de la propiedad
-  onContact: (property) => {
-    trackEvent(property.id, 'whatsapp_click');
-    window.open(whatsappUrl(propertyWhatsappMessage(property), property.whatsapp), '_blank', 'noopener');
-  },
-  emptyText: 'Pronto publicaremos nuevas propiedades disponibles.',
-  cull: 80,
-  edgeFade: true,
-});
-
-// Pista "desliza" bajo el carrusel: se va en cuanto la persona toca o arrastra el anillo.
-(function setupSwipeHint() {
-  const hint = document.getElementById('swipe-hint');
-  if (!hint) return;
-  ringStage.addEventListener('pointerdown', () => hint.classList.add('is-done'), { once: true, passive: true });
-})();
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
@@ -779,7 +773,7 @@ async function loadProperties() {
   buildBathsFilter();
   buildBudgetFilter();
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 }
 
 async function attachAgentInfo(properties) {
@@ -821,7 +815,7 @@ function buildOperationFilters() {
       buildBathsFilter();
       buildBudgetFilter();
       buildCityFilters();
-      renderPropertyRing();
+      renderPropertyGrid();
     });
     operationFiltersEl.appendChild(btn);
   });
@@ -872,7 +866,7 @@ function buildCityFilters() {
     btn.addEventListener('click', () => {
       cityFilter = city;
       buildCityFilters();
-      renderPropertyRing();
+      renderPropertyGrid();
     });
     cityFiltersEl.appendChild(btn);
   });
@@ -888,21 +882,6 @@ function filteredProperties() {
 // Destacada = marcada por un admin (featured) o con créditos vigentes (featured_until en el futuro).
 function isFeatured(p) {
   return !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
-}
-
-const FEATURED_WEIGHT = 3; // una propiedad destacada aparece ~3x más seguido en el carrusel
-
-function buildRingPool(list) {
-  const pool = [];
-  list.forEach((p) => {
-    const copies = isFeatured(p) ? FEATURED_WEIGHT : 1;
-    for (let i = 0; i < copies; i++) pool.push(p);
-  });
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  return pool;
 }
 
 const clearFiltersBtn = document.getElementById('clear-filters');
@@ -924,18 +903,60 @@ clearFiltersBtn.addEventListener('click', () => {
   buildBathsFilter();
   buildBudgetFilter();
   buildCityFilters();
-  renderPropertyRing();
+  renderPropertyGrid();
 });
 
-function renderPropertyRing() {
+function renderPropertyGrid(resetPage = true) {
+  if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
   clearFiltersBtn.classList.toggle('hidden', !anyFilterActive());
   const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '')
     ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
     : operationFilter !== 'todas'
       ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
-      : '';
-  propertyRing.render(buildRingPool(filteredProperties()), emptyMessage);
+      : 'Pronto publicaremos nuevas propiedades disponibles.';
+
+  // Las destacadas van primero; dentro de cada grupo se respeta el orden que define el administrador.
+  const list = filteredProperties()
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => (isFeatured(b.p) - isFeatured(a.p)) || (a.i - b.i))
+    .map((x) => x.p);
+
+  propGridEl.innerHTML = '';
+  if (!list.length) {
+    propGridEl.innerHTML = '<p class="prop-grid-empty">' + escapeHtml(emptyMessage) + '</p>';
+    propMoreWrapEl.innerHTML = '';
+    return;
+  }
+  list.slice(0, propVisibleCount).forEach((p) => propGridEl.appendChild(buildPropertyTile(p)));
+
+  const remaining = list.length - propVisibleCount;
+  propMoreWrapEl.innerHTML = remaining > 0
+    ? '<button type="button" class="cta-button cta-button--glass" id="prop-more-btn"><span>Ver más propiedades (' + remaining + ')</span></button>'
+    : '';
+  const moreBtn = document.getElementById('prop-more-btn');
+  if (moreBtn) moreBtn.addEventListener('click', () => { propVisibleCount += PROP_PAGE_SIZE; renderPropertyGrid(false); });
 }
+
+// Un solo manejador para toda la grilla: WhatsApp directo con el agente, redes, o abrir la ficha.
+propGridEl.addEventListener('click', (e) => {
+  const tile = e.target.closest('.prop-tile');
+  if (!tile) return;
+  const property = tile.__property;
+  if (e.target.closest('[data-tile-wa]')) {
+    trackEvent(property.id, 'whatsapp_click');
+    window.open(whatsappUrl(propertyWhatsappMessage(property), property.whatsapp), '_blank', 'noopener');
+    return;
+  }
+  if (e.target.closest('a')) return; // redes sociales: abren su enlace sin abrir la ficha
+  openProperty(property);
+});
+propGridEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const tile = e.target.closest('.prop-tile');
+  if (!tile || e.target !== tile) return; // el botón y los enlaces internos mantienen su comportamiento
+  e.preventDefault();
+  openProperty(tile.__property);
+});
 
 /* ── Analítica: vistas y clics a WhatsApp por propiedad (sin datos personales) ── */
 function trackEvent(propertyId, eventType) {
