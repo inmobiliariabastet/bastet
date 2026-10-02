@@ -170,7 +170,7 @@
   function closeModal() { modal.classList.add('hidden'); modalPanel.innerHTML = ''; }
 
   document.addEventListener('click', (e) => {
-    const card = e.target.closest('.lead-card');
+    const card = e.target.closest('.lead-card[data-lead]');
     if (card) { openLead(Number(card.dataset.lead)); return; }
     if (e.target.closest('[data-lead-close]') || e.target === modal) { closeModal(); return; }
     if (e.target.closest('.admin-tab[data-tab="leads"]')) load();
