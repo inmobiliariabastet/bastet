@@ -119,6 +119,15 @@
           </div>`).join('') : '<p class="credits-empty">Aún no tienes propiedades. Crea una en la pestaña Propiedades.</p>'}
       </div>
 
+      ${d.admin ? renderAdmin(d.admin) : ''}
+
+      <h2 class="admin-subheading">Movimientos</h2>
+      <div class="credits-table-wrap">
+        ${d.ledger.length ? `<table class="credits-table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th class="r">Créditos</th></tr></thead><tbody>
+          ${d.ledger.map((m) => `<tr><td>${fdate(m.created_at)}</td><td>${KIND[m.kind] || esc(m.kind)}</td><td>${esc(m.description)}</td><td class="r ${m.amount > 0 ? 'is-in' : 'is-out'}">${m.amount > 0 ? '+' : ''}${m.amount}</td></tr>`).join('')}
+        </tbody></table>` : '<p class="credits-empty">Todavía no hay movimientos.</p>'}
+      </div>
+
       <h2 class="admin-subheading">Comprar créditos</h2>
       <div class="credits-packs">
         ${d.packs.map((p) => `
@@ -143,16 +152,7 @@
           <button type="submit" class="btn btn-accent btn-sm" id="credits-method-submit">Enviar solicitud</button>
           <button type="button" class="btn btn-ghost btn-sm" id="credits-method-cancel">Cancelar</button>
         </div>
-      </form>
-
-      ${d.admin ? renderAdmin(d.admin) : ''}
-
-      <h2 class="admin-subheading">Movimientos</h2>
-      <div class="credits-table-wrap">
-        ${d.ledger.length ? `<table class="credits-table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th class="r">Créditos</th></tr></thead><tbody>
-          ${d.ledger.map((m) => `<tr><td>${fdate(m.created_at)}</td><td>${KIND[m.kind] || esc(m.kind)}</td><td>${esc(m.description)}</td><td class="r ${m.amount > 0 ? 'is-in' : 'is-out'}">${m.amount > 0 ? '+' : ''}${m.amount}</td></tr>`).join('')}
-        </tbody></table>` : '<p class="credits-empty">Todavía no hay movimientos.</p>'}
-      </div>`;
+      </form>`;
 
     bind(d);
     if (window.UnoPublications) window.UnoPublications.refresh();
