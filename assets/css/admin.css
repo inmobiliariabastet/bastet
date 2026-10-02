@@ -384,6 +384,27 @@ a.btn { text-decoration: none; }
 @media (max-width: 1100px) { .leads-board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 860px) { .leads-board { grid-template-columns: 1fr; } }
 
+/* ── Comisiones (cobranzas): tabla de datos ── */
+.data-table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--linea); border-radius: 14px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.data-table th {
+  padding: 12px; text-align: left; white-space: nowrap; font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--oro-p); border-bottom: 1px solid var(--linea);
+}
+.data-table td { padding: 14px 12px; border-bottom: 1px solid #F0EADB; vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table tbody tr:hover td { background: #FDFAF3; }
+.data-table .r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.data-table .muted { font-size: 12.5px; color: var(--tinta-2); }
+.data-table .amt { font-family: var(--serif); font-size: 20px; font-weight: 600; white-space: nowrap; }
+.data-actions { white-space: nowrap; text-align: right; }
+.data-actions > * + * { margin-left: 6px; }
+.stat-ok { color: var(--ok); }
+.data-table td.nw { white-space: nowrap; }
+.data-table .col-prop { min-width: 210px; }
+#collections-stats { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+#collections-stats .analytics-stat-value { font-size: clamp(26px, 2.6vw, 34px); white-space: nowrap; }
+
 /* ── Responsive: tablet y celular ── */
 @media (max-width: 1100px) {
   .field-row-3 { grid-template-columns: 1fr 1fr; }

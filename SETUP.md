@@ -61,6 +61,10 @@ El panel usa un menú lateral (`<aside id="admin-side">` en `admin/index.html`):
 
 El formulario "Quiero que me contacten" de la ficha de propiedad guarda contactos en `property_leads` mediante la función `submit_property_lead` (el visitante nunca escribe en la tabla). Para activarlo, corre [`supabase/leads.sql`](supabase/leads.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Cada agente ve solo los clientes de sus propiedades; los administradores ven todos, incluidos los de propiedades sin asignar. **Antes de publicar el formulario, valida con asesoría legal el texto de consentimiento y tu política de privacidad.**
 
+## Comisiones (cobranzas)
+
+La pestaña "Comisiones" lee la tabla `collections`. Para activarla, corre [`supabase/collections.sql`](supabase/collections.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Solo los administradores cargan, editan y eliminan cobranzas; cada agente ve únicamente las suyas. Los porcentajes y montos los define el administrador en cada cobranza: el sistema no aplica ninguna política de honorarios.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.
