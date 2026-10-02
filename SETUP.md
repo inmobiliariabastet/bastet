@@ -73,6 +73,10 @@ La página pública es `privacidad.html` (estilos en `assets/css/legal.css`). Es
 
 `index.html` (inicio con vista previa de propiedades), `marketplace.html` (Marketplace Inmobiliario completo, con filtros), `privacidad.html` (política de privacidad) y `admin/` (panel). El inicio y el Marketplace comparten `assets/js/main.js` y `assets/css/style.css`. `marketplace.html` repite a mano el menú, el pie y las ventanas de `index.html`: si cambias uno, actualiza el otro.
 
+## Contrato de Exclusividad (herramienta del panel)
+
+Para activarla corre [`supabase/contracts.sql`](supabase/contracts.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Cada contrato generado descuenta los créditos que indique `credit_tool_prices` (`contrato_exclusividad`, hoy 5): para cambiar el precio, un administrador edita esa fila (`update credit_tool_prices set cost = 7 where code = 'contrato_exclusividad';`). El texto legal está en `assets/contracts/exclusividad-v1.md`: **cualquier cambio de redacción debe hacerlo y aprobarlo un abogado**; si cambias una cláusula de un contrato ya emitido, crea una versión nueva (`exclusividad-v2.md`) en lugar de editar la v1, para no alterar el texto de contratos ya generados. Los contratos se verifican en `verificar.html`. Pruebas: ver `tests/README.md`.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.

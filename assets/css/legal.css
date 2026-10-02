@@ -68,3 +68,30 @@ a:hover { color: #FFE9A8; }
   .legal-table td:last-child { border-bottom: 0; }
   .legal-table td::before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--lg-gold); }
 }
+
+/* ── Verificación de contratos (verificar.html) ── */
+.hidden { display: none !important; }
+.verify-form { margin: 28px 0 18px; }
+.verify-form label { display: block; margin-bottom: 8px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--lg-gold); }
+.verify-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.verify-row input {
+  flex: 1 1 200px; min-width: 0; padding: 14px 16px; font: inherit; font-size: 20px; letter-spacing: .3em; text-transform: uppercase; text-align: center;
+  color: var(--lg-text); background: rgba(255,255,255,0.04); border: 1px solid var(--lg-line); border-radius: 12px;
+}
+.verify-row input:focus { outline: 0; border-color: var(--lg-gold-light); box-shadow: 0 0 0 4px rgba(241,191,70,0.14); }
+.verify-btn {
+  padding: 0 28px; min-height: 52px; font-family: 'Conso', Georgia, serif; font-size: 16px; letter-spacing: .04em; cursor: pointer; border-radius: 999px;
+  color: var(--lg-gold-light); border: 1px solid transparent;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.25)) padding-box, linear-gradient(180deg, rgba(28,26,21,0.85), rgba(11,11,10,0.85)) padding-box, linear-gradient(135deg, #FBE6A6 0%, #C9922E 35%, #F1BF46 55%, #8C6A22 80%, #FBE6A6 100%) border-box;
+}
+.verify-btn:disabled { opacity: .6; cursor: wait; }
+.verify-card { margin: 8px 0 24px; padding: 24px 26px; border-radius: 16px; border: 1px solid var(--lg-line); background: var(--lg-bg-2); }
+.verify-card h2 { margin: 0 0 8px; font-size: 26px; }
+.verify-card p { margin: 0; }
+.verify-card.is-ok { border-color: rgba(126,226,160,0.5); }
+.verify-card.is-ok h2 { color: #8FD9A8; }
+.verify-card.is-bad { border-color: rgba(196,85,63,0.55); }
+.verify-card.is-bad h2 { color: #F2A596; }
+.verify-card dl { display: grid; gap: 12px; margin: 14px 0 0; }
+.verify-card dt { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--lg-gold); }
+.verify-card dd { margin: 2px 0 0; font-size: 17px; }

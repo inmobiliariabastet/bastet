@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verificar contrato — Bastet</title>
+<meta name="description" content="Comprueba que un contrato generado en bastet.uno es auténtico con su código de verificación.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A09">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-uno-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-uno-192.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon-uno.png">
+<link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261010b">
+<link rel="stylesheet" href="assets/css/legal.css?v=20261010b">
+</head>
+<body>
+
+<header class="legal-header">
+  <div class="legal-header-inner">
+    <a class="legal-logo" href="index.html" aria-label="UNO · Bastet — ir al inicio">
+      <img src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449">
+    </a>
+    <a class="legal-back" href="index.html">← Volver al sitio</a>
+  </div>
+</header>
+
+<main class="legal-main">
+  <p class="legal-eyebrow">Verificación</p>
+  <h1>Verificar un contrato</h1>
+  <p class="legal-lead">Cada contrato generado en bastet.uno lleva un código de verificación de 8 caracteres (también en el código QR al pie de cada página). Escríbelo aquí para comprobar que el documento existe.</p>
+
+  <form class="verify-form" id="verify-form" autocomplete="off">
+    <label for="verify-code">Código de verificación</label>
+    <div class="verify-row">
+      <input id="verify-code" name="code" type="text" inputmode="text" maxlength="8" minlength="8" required placeholder="K7M2QX9A" autocapitalize="characters" spellcheck="false">
+      <button type="submit" class="verify-btn" id="verify-submit">Verificar</button>
+    </div>
+  </form>
+
+  <div class="verify-card hidden" id="verify-result" role="status" aria-live="polite"></div>
+
+  <p class="legal-updated">Por privacidad, esta página solo confirma que el contrato existe: no muestra datos del propietario ni del inmueble.</p>
+</main>
+
+<footer class="legal-footer">
+  <p>© 2026 Bastet Real State. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a></p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/supabase-config.js?v=20261010b"></script>
+<script>
+(function () {
+  'use strict';
+  var form = document.getElementById('verify-form');
+  var input = document.getElementById('verify-code');
+  var btn = document.getElementById('verify-submit');
+  var box = document.getElementById('verify-result');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  function show(cls, html) { box.className = 'verify-card ' + cls; box.innerHTML = html; }
+
+  async function verify(code) {
+    code = String(code || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{8}$/.test(code)) { show('is-bad', '<h2>Código inválido</h2><p>El código tiene 8 letras y números. Revisa que esté bien escrito.</p>'); return; }
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    var res = await supabaseClient.rpc('verify_exclusivity_contract', { p_code: code });
+    btn.disabled = false; btn.textContent = 'Verificar';
+    if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>Inténtalo de nuevo en unos minutos.</p>'); return; }
+    var row = res.data && res.data[0];
+    if (!row) { show('is-bad', '<h2>No encontramos este contrato</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ningún contrato generado en bastet.uno. Si lo recibiste en un documento, verifica que no haya sido alterado.</p>'); return; }
+    var fecha = new Date(row.created_at).toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' });
+    show('is-ok', '<h2>✓ Contrato auténtico</h2>' +
+      '<dl><div><dt>Nº de contrato</dt><dd>' + esc(row.contract_number) + '</dd></div>' +
+      '<div><dt>Generado el</dt><dd>' + esc(fecha) + '</dd></div>' +
+      '<div><dt>Agente</dt><dd>' + esc(row.agent_name) + '</dd></div>' +
+      '<div><dt>Tipo</dt><dd>Contrato de corretaje con exclusividad</dd></div></dl>');
+  }
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); verify(input.value); });
+  input.addEventListener('input', function () { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+  var q = new URLSearchParams(location.search).get('c');
+  if (q) { input.value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); verify(input.value); }
+})();
+</script>
+</body>
+</html>

@@ -148,7 +148,7 @@ a.btn { text-decoration: none; }
 .admin-tab:hover { background: #1a140b; color: var(--brillo); }
 .admin-tab.is-active { background: linear-gradient(90deg, rgba(217,164,65,.18), rgba(217,164,65,.04)); color: var(--brillo); }
 .admin-tab.is-active::before { content: ''; position: absolute; left: -18px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--oro); }
-.tab-count { margin-left: auto; font-size: 11px; font-weight: 500; line-height: 1.5; padding: 1px 8px; border-radius: 99px; background: var(--oro); color: var(--noche); }
+.tab-count { margin-left: auto; white-space: nowrap; font-size: 11px; font-weight: 500; line-height: 1.5; padding: 1px 8px; border-radius: 99px; background: var(--oro); color: var(--noche); }
 
 .admin-side-foot { margin-top: 12px; padding-top: 14px; border-top: 1px solid #2a2114; }
 .admin-landing-link { display: block; padding: 8px 12px; margin-bottom: 8px; border-radius: 8px; font-size: 13.5px; color: #CDBF9F; text-decoration: none; }
