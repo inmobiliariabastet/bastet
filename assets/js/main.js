@@ -730,7 +730,7 @@ function buildTileAgentHtml(property) {
         '<span class="prop-tile-agent-who"><span class="prop-tile-agent-label">Publicado por</span><span class="prop-tile-agent-name">' + escapeHtml(name) + '</span></span>' +
         (socials ? '<span class="prop-tile-socials">' + socials + '</span>' : '') +
       '</div>' +
-      '<button type="button" class="prop-tile-wa" data-tile-wa aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '">' + WHATSAPP_ICON_SVG + '<span>Consultar por WhatsApp</span></button>' +
+      '<button type="button" class="cta-button cta-button--glass prop-tile-wa" data-tile-wa aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '"><span>' + WHATSAPP_ICON_SVG + 'Consultar por WhatsApp</span></button>' +
     '</div>'
   );
 }
