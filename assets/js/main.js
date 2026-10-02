@@ -650,7 +650,7 @@ function placeholderImgHtml(title) {
 
 function buildPropertyCard(property) {
   const card = document.createElement('div');
-  card.className = 'ring-card' + (property.featured ? ' ring-card--featured' : '');
+  card.className = 'ring-card' + (isFeatured(property) ? ' ring-card--featured' : '');
   card.setAttribute('data-ring-card', '');
   const firstPhoto = (property.photos && property.photos[0]) || null;
   card.innerHTML = firstPhoto
@@ -659,7 +659,7 @@ function buildPropertyCard(property) {
   const priceLine = property.price
     ? '<span class="ring-card-price">' + formatPriceUSD(property.price) + (property.exchange_rate ? ' · ' + escapeHtml(property.exchange_rate) : '') + '</span>'
     : '';
-  const featuredIcon = property.featured
+  const featuredIcon = isFeatured(property)
     ? '<img class="ring-card-featured-icon" src="assets/img/uno-destacada.png" alt="Destacada">'
     : '';
   const metaLine = [PROPERTY_TYPE_LABELS[property.property_type], formatPropertyCode(property)].filter(Boolean).join(' · ');
@@ -749,16 +749,21 @@ const propertyRing = createRingCarousel({
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
 const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
 
 async function loadProperties() {
-  const { data, error } = await supabaseClient
+  const fetchProperties = (columns) => supabaseClient
     .from('properties')
-    .select(PUBLIC_PROPERTY_COLUMNS)
+    .select(columns)
     .eq('status', 'available')
     .order('sort_order', { ascending: true });
+  let { data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS);
+  // Si el SQL de créditos aún no se corrió, featured_until no existe (42703): reintenta sin esa columna.
+  if (error && error.code === '42703') {
+    ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS.replace('featured_until,', '')));
+  }
 
   if (error) {
     console.error('Error cargando propiedades:', error);
@@ -880,12 +885,17 @@ function filteredProperties() {
   return filtered.length ? filtered : base;
 }
 
+// Destacada = marcada por un admin (featured) o con créditos vigentes (featured_until en el futuro).
+function isFeatured(p) {
+  return !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
+}
+
 const FEATURED_WEIGHT = 3; // una propiedad destacada aparece ~3x más seguido en el carrusel
 
 function buildRingPool(list) {
   const pool = [];
   list.forEach((p) => {
-    const copies = p.featured ? FEATURED_WEIGHT : 1;
+    const copies = isFeatured(p) ? FEATURED_WEIGHT : 1;
     for (let i = 0; i < copies; i++) pool.push(p);
   });
   for (let i = pool.length - 1; i > 0; i--) {

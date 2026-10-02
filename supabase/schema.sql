@@ -615,3 +615,239 @@ $$;
 
 revoke all on function public.admin_delete_user(uuid) from public, anon;
 grant execute on function public.admin_delete_user(uuid) to authenticated;
+
+-- =====================================================================
+-- UNO · Créditos para agentes  (agregar al final de supabase/schema.sql)
+-- Idempotente: se puede correr completo más de una vez.
+-- Supone que existen: public.profiles(id = auth.users.id), public.properties,
+-- public.is_admin() y public.is_active_user() (según HANDOFF.md).
+-- =====================================================================
+
+-- 1) Catálogo (precios editables por el admin, nunca se confían al navegador)
+create table if not exists public.credit_packs (
+  code        text primary key,
+  name        text not null,
+  credits     integer not null check (credits > 0),
+  bonus       integer not null default 0 check (bonus >= 0),
+  price_usd   numeric(10,2) not null check (price_usd >= 0),
+  perks       text[] not null default '{}',
+  highlighted boolean not null default false,
+  active      boolean not null default true
+);
+
+create table if not exists public.credit_services (
+  code   text primary key,
+  name   text not null,
+  cost   integer not null check (cost > 0),
+  days   integer not null check (days > 0),
+  active boolean not null default true
+);
+
+-- Valores de partida: AJUSTAR a los precios reales.
+insert into public.credit_packs (code, name, credits, bonus, price_usd, perks, highlighted) values
+  ('esencial',    'Esencial',    50,  0,  45,  array['Soporte por correo'], false),
+  ('profesional', 'Profesional', 150, 10, 120, array['+10 créditos de regalo','Soporte prioritario'], true),
+  ('exclusivo',   'Exclusivo',   400, 40, 290, array['+40 créditos de regalo','Gestor de cuenta dedicado'], false)
+on conflict (code) do nothing;
+
+insert into public.credit_services (code, name, cost, days) values
+  ('destacar_7',  'Destacar propiedad · 7 días',  10, 7),
+  ('destacar_30', 'Destacar propiedad · 30 días', 25, 30)
+on conflict (code) do nothing;
+
+-- 2) Saldo, historial y solicitudes de compra
+create table if not exists public.credit_wallets (
+  user_id    uuid primary key references public.profiles(id) on delete cascade,
+  balance    integer not null default 0 check (balance >= 0),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.credit_ledger (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  kind        text not null check (kind in ('purchase','spend','bonus','adjustment')),
+  amount      integer not null check (amount <> 0),
+  description text not null,
+  created_by  uuid default auth.uid(),
+  created_at  timestamptz not null default now()
+);
+create index if not exists credit_ledger_user_idx on public.credit_ledger (user_id, created_at desc);
+
+-- property_id con el mismo tipo que properties.id (uuid o bigint), sin asumirlo.
+do $$
+declare t text;
+begin
+  select format_type(atttypid, atttypmod) into t
+  from pg_attribute where attrelid = 'public.properties'::regclass and attname = 'id';
+  execute format('alter table public.credit_ledger add column if not exists property_id %s', t);
+end $$;
+
+create table if not exists public.credit_requests (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  pack_code   text not null,
+  pack_name   text not null,
+  credits     integer not null,      -- créditos + bonificación, congelados al pedir
+  price_usd   numeric(10,2) not null,
+  method      text not null check (method in ('transferencia','qr','efectivo')),
+  status      text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at  timestamptz not null default now(),
+  resolved_at timestamptz,
+  resolved_by uuid
+);
+create index if not exists credit_requests_status_idx on public.credit_requests (status, created_at desc);
+
+-- 3) Destacado con vencimiento (no se toca la columna "featured" del admin)
+alter table public.properties add column if not exists featured_until timestamptz;
+
+-- Solo la función feature_property (o un admin) puede cambiar featured_until.
+create or replace function public.protect_featured_until()
+returns trigger language plpgsql as $$
+begin
+  if coalesce(current_setting('uno.credit_rpc', true), '') = '1' or public.is_admin() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.featured_until := null;              -- un agente no puede crear una propiedad ya "destacada"
+  elsif new.featured_until is distinct from old.featured_until then
+    new.featured_until := old.featured_until;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists protect_featured_until on public.properties;
+create trigger protect_featured_until
+  before insert or update on public.properties
+  for each row execute function public.protect_featured_until();
+
+-- 4) RLS: lectura propia (o admin). Ninguna escritura directa desde el navegador.
+alter table public.credit_packs    enable row level security;
+alter table public.credit_services enable row level security;
+alter table public.credit_wallets  enable row level security;
+alter table public.credit_ledger   enable row level security;
+alter table public.credit_requests enable row level security;
+
+drop policy if exists credit_packs_read    on public.credit_packs;
+drop policy if exists credit_packs_admin   on public.credit_packs;
+drop policy if exists credit_services_read  on public.credit_services;
+drop policy if exists credit_services_admin on public.credit_services;
+drop policy if exists credit_wallets_read  on public.credit_wallets;
+drop policy if exists credit_ledger_read   on public.credit_ledger;
+drop policy if exists credit_requests_read on public.credit_requests;
+
+create policy credit_packs_read     on public.credit_packs    for select to authenticated using (public.is_active_user());
+create policy credit_packs_admin    on public.credit_packs    for all    to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy credit_services_read  on public.credit_services for select to authenticated using (public.is_active_user());
+create policy credit_services_admin on public.credit_services for all    to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy credit_wallets_read   on public.credit_wallets  for select to authenticated using (user_id = auth.uid() or public.is_admin());
+create policy credit_ledger_read    on public.credit_ledger   for select to authenticated using (user_id = auth.uid() or public.is_admin());
+create policy credit_requests_read  on public.credit_requests for select to authenticated using (user_id = auth.uid() or public.is_admin());
+
+revoke insert, update, delete on public.credit_wallets, public.credit_ledger, public.credit_requests from anon, authenticated;
+revoke all on public.credit_packs, public.credit_services, public.credit_wallets, public.credit_ledger, public.credit_requests from anon;
+grant select on public.credit_wallets, public.credit_ledger, public.credit_requests to authenticated;
+grant select, insert, update, delete on public.credit_packs, public.credit_services to authenticated; -- las políticas limitan la escritura al admin
+
+-- 5) Funciones (security definer): único camino para mover créditos.
+
+-- 5a) El agente pide un pack. El precio y los créditos salen de credit_packs.
+create or replace function public.request_credit_pack(p_pack text, p_method text)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare pk public.credit_packs; rid bigint;
+begin
+  if auth.uid() is null or not public.is_active_user() then
+    raise exception 'No autorizado' using errcode = '42501';
+  end if;
+  select * into pk from public.credit_packs where code = p_pack and active;
+  if not found then raise exception 'Pack no disponible'; end if;
+  if exists (select 1 from public.credit_requests where user_id = auth.uid() and status = 'pending') then
+    raise exception 'Ya tienes una solicitud pendiente de confirmación';
+  end if;
+  insert into public.credit_requests (user_id, pack_code, pack_name, credits, price_usd, method)
+  values (auth.uid(), pk.code, pk.name, pk.credits + pk.bonus, pk.price_usd, p_method)
+  returning id into rid;
+  return rid;
+end $$;
+
+-- 5b) El admin confirma el pago (acredita) o rechaza.
+create or replace function public.admin_resolve_credit_request(p_id bigint, p_approve boolean)
+returns void language plpgsql security definer set search_path = public as $$
+declare rq public.credit_requests;
+begin
+  if not public.is_admin() then raise exception 'Solo administradores' using errcode = '42501'; end if;
+  select * into rq from public.credit_requests where id = p_id and status = 'pending' for update;
+  if not found then raise exception 'Solicitud no encontrada o ya resuelta'; end if;
+
+  update public.credit_requests
+     set status = case when p_approve then 'approved' else 'rejected' end,
+         resolved_at = now(), resolved_by = auth.uid()
+   where id = p_id;
+
+  if p_approve then
+    insert into public.credit_wallets (user_id, balance) values (rq.user_id, rq.credits)
+    on conflict (user_id) do update set balance = public.credit_wallets.balance + excluded.balance, updated_at = now();
+    insert into public.credit_ledger (user_id, kind, amount, description)
+    values (rq.user_id, 'purchase', rq.credits, 'Pack ' || rq.pack_name || ' · ' || rq.method);
+  end if;
+end $$;
+
+-- 5c) Bonos o ajustes manuales del admin (monto negativo = descuento).
+create or replace function public.admin_grant_credits(p_user uuid, p_amount integer, p_description text)
+returns integer language plpgsql security definer set search_path = public as $$
+declare bal integer;
+begin
+  if not public.is_admin() then raise exception 'Solo administradores' using errcode = '42501'; end if;
+  if p_amount = 0 then raise exception 'El monto no puede ser 0'; end if;
+  insert into public.credit_wallets (user_id, balance) values (p_user, greatest(p_amount, 0))
+  on conflict (user_id) do update set balance = public.credit_wallets.balance + p_amount, updated_at = now()
+  returning balance into bal;   -- si queda negativo, el CHECK de la tabla aborta
+  insert into public.credit_ledger (user_id, kind, amount, description)
+  values (p_user, case when p_amount > 0 then 'bonus' else 'adjustment' end, p_amount,
+          coalesce(nullif(trim(p_description), ''), 'Ajuste del administrador'));
+  return bal;
+end $$;
+
+-- 5d) El agente gasta créditos en destacar SU propiedad.
+create or replace function public.feature_property(p_property_id text, p_service text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  uid uuid := auth.uid();
+  svc public.credit_services;
+  prop record;
+  bal integer;
+  new_until timestamptz;
+begin
+  if uid is null or not public.is_active_user() then
+    raise exception 'No autorizado' using errcode = '42501';
+  end if;
+  select * into svc from public.credit_services where code = p_service and active;
+  if not found then raise exception 'Servicio no disponible'; end if;
+
+  select p.id, p.owner_id, p.featured_until into prop
+    from public.properties p where p.id::text = p_property_id for update;
+  if not found or prop.owner_id is distinct from uid then
+    raise exception 'Propiedad no encontrada';
+  end if;
+
+  update public.credit_wallets w set balance = w.balance - svc.cost, updated_at = now()
+   where w.user_id = uid and w.balance >= svc.cost
+   returning w.balance into bal;
+  if not found then raise exception 'Saldo insuficiente'; end if;
+
+  new_until := greatest(now(), coalesce(prop.featured_until, now())) + make_interval(days => svc.days);
+  perform set_config('uno.credit_rpc', '1', true);
+  update public.properties set featured_until = new_until where id = prop.id;
+  insert into public.credit_ledger (user_id, kind, amount, description, property_id)
+  values (uid, 'spend', -svc.cost, svc.name, prop.id);
+
+  return jsonb_build_object('balance', bal, 'featured_until', new_until);
+end $$;
+
+revoke all on function public.request_credit_pack(text, text)            from public, anon;
+revoke all on function public.admin_resolve_credit_request(bigint, boolean) from public, anon;
+revoke all on function public.admin_grant_credits(uuid, integer, text)   from public, anon;
+revoke all on function public.feature_property(text, text)               from public, anon;
+grant execute on function public.request_credit_pack(text, text)            to authenticated;
+grant execute on function public.admin_resolve_credit_request(bigint, boolean) to authenticated;
+grant execute on function public.admin_grant_credits(uuid, integer, text)   to authenticated;
+grant execute on function public.feature_property(text, text)               to authenticated;
