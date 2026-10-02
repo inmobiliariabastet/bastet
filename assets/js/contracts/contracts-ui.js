@@ -14,6 +14,15 @@
   const asset = (p) => '../assets/' + p + (SCRIPT_V ? '?v=' + SCRIPT_V : '');
   const TEMPLATE_VERSION = 'exclusividad-v1';
   const TOOL_CODE = 'contrato_exclusividad';
+  const CONTRACT_COLS = 'id,agent_id,contract_number,verification_code,data,created_at,voided_at,void_reason';
+  const CONTRACT_COLS_BASE = 'id,agent_id,contract_number,verification_code,data,created_at';
+  // Si el SQL de anulación aún no se corrió, las columnas voided_* no existen (42703): se reintenta sin ellas y la herramienta sigue funcionando.
+  async function contractsQuery(own, limit) {
+    const run = (cols) => { let q = supabaseClient.from('exclusivity_contracts').select(cols); if (own) q = q.eq('agent_id', state.uid); return q.order('created_at', { ascending: false }).limit(limit); };
+    let r = await run(CONTRACT_COLS);
+    if (r.error && r.error.code === '42703') r = await run(CONTRACT_COLS_BASE);
+    return r;
+  }
 
   const root = () => document.getElementById('contracts-root');
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -48,6 +57,7 @@
     editAgent: false, balance: 0, cost: 5, template: null, contracts: [], search: '',
     form: null, errors: {}, touchedMoneda: false, previewOpen: false, draft: null,
     idem: null, busy: false, success: null, previewTimer: null, saveTimer: null,
+    isAdmin: false, allContracts: [], people: {}, fa: { q: '', agent: '', op: '', status: '' },
   };
 
   const draftKey = () => 'uno-contract-draft-v1-' + state.uid;
@@ -313,8 +323,9 @@
     const head = '<div class="ct-bar"><div class="ct-seg" role="tablist">' +
         '<button type="button" role="tab" aria-selected="' + (state.view === 'new') + '" class="ct-seg-btn' + (state.view === 'new' ? ' is-on' : '') + '" data-ct="view-new">Nuevo contrato</button>' +
         '<button type="button" role="tab" aria-selected="' + (state.view === 'history') + '" class="ct-seg-btn' + (state.view === 'history' ? ' is-on' : '') + '" data-ct="view-history">Mis contratos <span class="ct-count">' + state.contracts.length + '</span></button>' +
+        (state.isAdmin ? '<button type="button" role="tab" aria-selected="' + (state.view === 'all') + '" class="ct-seg-btn' + (state.view === 'all' ? ' is-on' : '') + '" data-ct="view-all">Todos los contratos <span class="ct-count">' + state.allContracts.length + '</span></button>' : '') +
       '</div>' + balanceChip() + '</div>';
-    host.innerHTML = head + (state.view === 'new' ? newViewHtml() : historyHtml(thisMonth));
+    host.innerHTML = head + (state.view === 'new' ? newViewHtml() : state.view === 'all' && state.isAdmin ? allHtml() : historyHtml(thisMonth));
     if (state.view === 'new') schedulePreview(0);
   }
 
@@ -356,6 +367,7 @@
 
   /* ───────── Historial ───────── */
   function expiry(c) {
+    if (c.voided_at) return { text: 'Anulado', cls: 'b-bad', end: '' };
     try {
       const end = H.addDays(c.data.fecha_inicio, c.data.plazo_dias);
       const days = Math.round((H.parseISO(end) - H.parseISO(H.todayBolivia())) / 86400000);
@@ -365,6 +377,7 @@
     } catch (e) { return { text: '—', cls: 'b-mute', end: '' }; }
   }
   const OP_LABEL = { venta: 'Venta', alquiler: 'Alquiler', anticretico: 'Anticrético' };
+  const fdate = (d) => new Date(d).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
 
   function historyHtml(thisMonth) {
     const q = state.search.trim().toLowerCase();
@@ -372,7 +385,8 @@
     const body = list.length ? '<div class="ct-history">' + list.map((c) => {
       const ex = expiry(c);
       return '<article class="ct-hrow"><div class="ct-hmain"><b>' + esc(c.data.propietario_nombre) + '</b><span class="ct-hnum">' + esc(c.contract_number) + '</span>' +
-        '<span class="credits-muted">' + esc(c.data.inmueble_tipo) + ' · ' + esc(c.data.inmueble_direccion) + (c.data.inmueble_zona ? ', ' + esc(c.data.inmueble_zona) : '') + '</span></div>' +
+        '<span class="credits-muted">' + esc(c.data.inmueble_tipo) + ' · ' + esc(c.data.inmueble_direccion) + (c.data.inmueble_zona ? ', ' + esc(c.data.inmueble_zona) : '') + '</span>' +
+        (c.voided_at ? '<span class="ct-void-note">Anulado el ' + fdate(c.voided_at) + (c.void_reason ? ' · ' + esc(c.void_reason) : '') + '</span>' : '') + '</div>' +
         '<div class="ct-hmeta"><span class="badge b-gold">' + esc(OP_LABEL[c.data.operacion] || c.data.operacion) + '</span><span class="badge ' + ex.cls + '" title="' + esc(ex.end ? 'Hasta el ' + H.dateToLong(ex.end) : '') + '">' + esc(ex.text) + '</span>' +
         '<span class="credits-muted">' + new Date(c.created_at).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }) + '</span></div>' +
         '<div class="ct-hactions"><button type="button" class="btn btn-accent btn-sm" data-ct="redownload" data-id="' + c.id + '">Descargar PDF</button>' +
@@ -380,6 +394,81 @@
     }).join('') + '</div>' : '<p class="property-empty">' + (state.contracts.length ? 'No hay contratos que coincidan con tu búsqueda.' : 'Todavía no has generado contratos. Crea el primero con “Nuevo contrato”.') + '</p>';
     return '<div class="ct-hhead"><p class="credits-muted">Este mes: <b>' + thisMonth + '</b> ' + (thisMonth === 1 ? 'contrato generado' : 'contratos generados') + '. Descargar de nuevo es gratis.</p>' +
       '<input type="search" class="ct-search" id="ct-search" placeholder="Buscar por propietario, dirección o Nº…" value="' + esc(state.search) + '" aria-label="Buscar contratos"></div>' + body;
+  }
+
+  /* ───────── Administrador: todos los contratos ───────── */
+  const agentLabel = (id) => { const u = state.people[id]; return u ? (u.display_name || u.email) : 'Sin agente'; };
+
+  function adminStatus(c) {
+    if (c.voided_at) return 'anulado';
+    const ex = expiry(c);
+    if (ex.text === 'Vencido') return 'vencido';
+    if (ex.cls === 'b-warn') return 'por_vencer';
+    return 'vigente';
+  }
+
+  function allHtml() {
+    const f = state.fa;
+    const q = f.q.trim().toLowerCase();
+    const list = state.allContracts.filter((c) =>
+      (!f.agent || c.agent_id === f.agent) && (!f.op || c.data.operacion === f.op) && (!f.status || adminStatus(c) === f.status) &&
+      (!q || [c.contract_number, c.data.propietario_nombre, c.data.inmueble_direccion, c.data.inmueble_zona, agentLabel(c.agent_id)].join(' ').toLowerCase().includes(q)));
+    const count = (s) => state.allContracts.filter((c) => adminStatus(c) === s).length;
+    const agentIds = [...new Set(state.allContracts.map((c) => c.agent_id))];
+    const opt = (v, l, cur) => '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(l) + '</option>';
+    const filters = '<div class="ct-filters">' +
+      '<input type="search" class="ct-search" id="ct-asearch" placeholder="Buscar por propietario, dirección, agente o Nº…" value="' + esc(f.q) + '" aria-label="Buscar contratos">' +
+      '<select data-fa="agent" aria-label="Agente">' + opt('', 'Todos los agentes', f.agent) + agentIds.map((id) => opt(id || '', agentLabel(id), f.agent)).join('') + '</select>' +
+      '<select data-fa="op" aria-label="Operación">' + opt('', 'Todas las operaciones', f.op) + OPS.map((o) => opt(o[0], o[1], f.op)).join('') + '</select>' +
+      '<select data-fa="status" aria-label="Estado">' + opt('', 'Todos los estados', f.status) + opt('vigente', 'Vigentes', f.status) + opt('por_vencer', 'Por vencer (15 días)', f.status) + opt('vencido', 'Vencidos', f.status) + opt('anulado', 'Anulados', f.status) + '</select></div>';
+    const summary = '<p class="credits-muted ct-asummary"><b>' + state.allContracts.length + '</b> contratos en total · <b>' + count('vigente') + '</b> vigentes · <b>' + count('por_vencer') + '</b> por vencer · <b>' + count('vencido') + '</b> vencidos · <b>' + count('anulado') + '</b> anulados' +
+      (list.length !== state.allContracts.length ? ' · mostrando <b>' + list.length + '</b>' : '') + '</p>';
+    const body = list.length ? '<div class="ct-history">' + list.map((c) => {
+      const ex = expiry(c);
+      return '<article class="ct-hrow ct-arow' + (c.voided_at ? ' is-void' : '') + '"><div class="ct-hmain"><b>' + esc(c.data.propietario_nombre) + '</b><span class="ct-hnum">' + esc(c.contract_number) + '</span>' +
+        '<span class="credits-muted">' + esc(c.data.inmueble_tipo) + ' · ' + esc(c.data.inmueble_direccion) + (c.data.inmueble_zona ? ', ' + esc(c.data.inmueble_zona) : '') + '</span>' +
+        '<span class="ct-agentline">Agente: <b>' + esc(agentLabel(c.agent_id)) + '</b></span>' +
+        (c.voided_at ? '<span class="ct-void-note">Anulado el ' + fdate(c.voided_at) + ' · ' + esc(c.void_reason || '') + '</span>' : '') + '</div>' +
+        '<div class="ct-hmeta"><span class="badge b-gold">' + esc(OP_LABEL[c.data.operacion] || c.data.operacion) + '</span><span class="badge ' + ex.cls + '" title="' + esc(ex.end ? 'Hasta el ' + H.dateToLong(ex.end) : '') + '">' + esc(ex.text) + '</span>' +
+        '<span class="credits-muted">' + fdate(c.created_at) + '</span></div>' +
+        '<div class="ct-hactions"><button type="button" class="btn btn-accent btn-sm" data-ct="redownload" data-id="' + c.id + '">Descargar PDF</button>' +
+        (c.voided_at ? '' : '<button type="button" class="btn btn-ghost btn-sm ct-btn-void" data-ct="void" data-id="' + c.id + '">Anular</button>') + '</div></article>';
+    }).join('') + '</div>' : '<p class="property-empty">No hay contratos que coincidan con los filtros.</p>';
+    return '<p class="credits-muted ct-ahint">Contratos de todos los agentes. Descargar es gratis; un contrato anulado sigue existiendo, pero la página de verificación lo muestra como “Anulado” y su PDF sale con la marca ANULADO.</p>' + summary + filters + body;
+  }
+
+  function voidModal(id) {
+    const c = state.allContracts.find((x) => x.id === id);
+    if (!c) return;
+    openOverlay('<h2>Anular contrato</h2>' +
+      '<p><b>' + esc(c.contract_number) + '</b> · ' + esc(c.data.propietario_nombre) + '<br><span class="credits-muted">Agente: ' + esc(agentLabel(c.agent_id)) + '</span></p>' +
+      '<div class="ct-warn">Esto <b>no se puede deshacer</b> desde el panel. No devuelve los créditos. La página de verificación mostrará “Anulado” y el PDF saldrá con la marca ANULADO. El agente verá el motivo.</div>' +
+      '<div class="field"><label for="ct-void-reason">Motivo de la anulación</label><textarea id="ct-void-reason" rows="3" maxlength="300" placeholder="Ej: Datos del propietario incorrectos; se emitió uno nuevo"></textarea></div>' +
+      '<p id="ct-modal-error" class="form-error hidden"></p>' +
+      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cancelar</button><button type="button" class="btn btn-danger" id="ct-confirm-void" data-ct="confirm-void" data-id="' + esc(id) + '">Anular contrato</button></div>');
+    const ta = document.getElementById('ct-void-reason'); if (ta) ta.focus();
+  }
+
+  async function confirmVoid(id) {
+    if (state.busy) return;
+    const reason = (document.getElementById('ct-void-reason').value || '').trim();
+    const err = document.getElementById('ct-modal-error');
+    const btn = document.getElementById('ct-confirm-void');
+    err.classList.add('hidden');
+    if (reason.length < 5) { err.textContent = 'Escribe el motivo de la anulación (mínimo 5 caracteres).'; err.classList.remove('hidden'); return; }
+    state.busy = true; btn.disabled = true; btn.innerHTML = '<span class="ct-spin"></span> Anulando…';
+    try {
+      const { error } = await supabaseClient.rpc('admin_void_exclusivity_contract', { p_id: id, p_reason: reason });
+      if (error) throw new Error(error.message || 'No se pudo anular el contrato.');
+      closeOverlay();
+      await loadContractsOnly();
+      render();
+      toast('Contrato anulado.');
+    } catch (e) {
+      err.textContent = (e && e.message) || 'No se pudo anular el contrato.';
+      err.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Anular contrato';
+    } finally { state.busy = false; }
   }
 
   /* ───────── Vista previa en vivo ───────── */
@@ -431,11 +520,11 @@
       state.uid = auth && auth.user && auth.user.id;
       if (!state.uid) { host.innerHTML = '<p class="property-empty">Inicia sesión para usar esta herramienta.</p>'; return; }
       const [prof, legal, wallet, price, list, tpl] = await Promise.all([
-        supabaseClient.from('profiles').select('display_name,email').eq('id', state.uid).maybeSingle(),
+        supabaseClient.from('profiles').select('display_name,email,role').eq('id', state.uid).maybeSingle(),
         supabaseClient.from('agent_legal_profiles').select('ci,phone,registration').eq('user_id', state.uid).maybeSingle(),
         supabaseClient.from('credit_wallets').select('balance').eq('user_id', state.uid).maybeSingle(),
         supabaseClient.from('credit_tool_prices').select('cost').eq('code', TOOL_CODE).maybeSingle(),
-        supabaseClient.from('exclusivity_contracts').select('id,contract_number,verification_code,data,created_at').eq('agent_id', state.uid).order('created_at', { ascending: false }).limit(300),
+        contractsQuery(true, 300),
         state.template ? Promise.resolve(null) : fetch(asset('contracts/exclusividad-v1.md')).then((r) => { if (!r.ok) throw new Error('No se pudo cargar la plantilla del contrato'); return r.text(); }),
       ]);
       if (list.error) throw list.error;
@@ -443,6 +532,8 @@
       state.balance = (wallet.data && wallet.data.balance) || 0;
       state.cost = (price.data && price.data.cost) || 5;
       state.contracts = list.data || [];
+      state.isAdmin = !!(prof.data && prof.data.role === 'admin');
+      if (state.isAdmin) await loadAdminData();
       const costEl = document.getElementById('ct-cost'); if (costEl) costEl.textContent = state.cost;
       if (!state.ready) {
         const saved = (() => { try { return JSON.parse(localStorage.getItem(agencyKey()) || 'null') || {}; } catch (e) { return {}; } })();
@@ -558,11 +649,11 @@
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Comprar créditos</button></div>');
   }
 
-  async function prepareDoc(data, number, code) {
+  async function prepareDoc(data, number, code, voided) {
     await P.ensureLibs(asset('js/contracts/contract-fonts.js'));
     const logo = await P.fetchDataUrl(asset('img/uno-logo-bastet.png'));
     const blocks = T.renderBlocks(state.template, data, { numero_contrato: number, codigo_verificacion: code });
-    return P.build({ blocks, number, code, agentName: data.agente_nombre, logoDataUrl: logo });
+    return P.build({ blocks, number, code, agentName: data.agente_nombre, logoDataUrl: logo, voided: !!voided });
   }
 
   async function confirmGenerate() {
@@ -613,16 +704,28 @@
   }
 
   async function loadContractsOnly() {
-    const { data } = await supabaseClient.from('exclusivity_contracts').select('id,contract_number,verification_code,data,created_at').eq('agent_id', state.uid).order('created_at', { ascending: false }).limit(300);
+    const { data } = await contractsQuery(true, 300);
     if (data) state.contracts = data;
+    if (state.isAdmin) await loadAdminData();
+  }
+
+  // Administrador: todos los contratos de todos los agentes (la base ya lo permite por RLS) y los nombres de los agentes
+  async function loadAdminData() {
+    const [all, people] = await Promise.all([
+      contractsQuery(false, 1000),
+      supabaseClient.from('profiles').select('id,display_name,email'),
+    ]);
+    if (all.data) state.allContracts = all.data;
+    state.people = {};
+    (people.data || []).forEach((u) => { state.people[u.id] = u; });
   }
 
   async function redownload(id, btn) {
-    const c = state.contracts.find((x) => x.id === id);
+    const c = state.contracts.find((x) => x.id === id) || state.allContracts.find((x) => x.id === id);
     if (!c || (btn && btn.disabled)) return;
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.innerHTML = '<span class="ct-spin"></span>'; }
     try {
-      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code);
+      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code, !!c.voided_at);
       await P.download(doc, P.fileName(c.contract_number, c.data.propietario_nombre));
     } catch (e) { toast('No se pudo preparar el PDF: ' + ((e && e.message) || 'error'), true); }
     finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Descargar PDF'; } }
@@ -640,6 +743,7 @@
   function onInput(e) {
     const t = e.target;
     if (t.dataset.a) { state.agent[t.dataset.a] = t.value; const k = 'agent_' + t.dataset.a; if (state.errors[k]) { delete state.errors[k]; t.closest('.field').classList.remove('has-error'); const p = t.closest('.field').querySelector('.ct-error'); if (p) p.remove(); } schedulePreview(); return; }
+    if (t.id === 'ct-asearch') { state.fa.q = t.value; const pos = t.selectionStart; render(); const s = document.getElementById('ct-asearch'); if (s) { s.focus(); s.setSelectionRange(pos, pos); } return; }
     if (t.id === 'ct-search') { state.search = t.value; const pos = t.selectionStart; render(); const s = document.getElementById('ct-search'); if (s) { s.focus(); s.setSelectionRange(pos, pos); } return; }
     const key = t.dataset.f;
     if (!key) return;
@@ -649,6 +753,7 @@
 
   function onChange(e) {
     const t = e.target;
+    if (t.dataset.fa) { state.fa[t.dataset.fa] = t.value; render(); return; }
     const key = t.dataset.f;
     if (!key) return;
     const value = t.type === 'checkbox' ? t.checked : t.value;
@@ -686,6 +791,9 @@
     switch (act) {
       case 'view-new': state.success = null; state.view = 'new'; render(); break;
       case 'view-history': state.success = null; state.view = 'history'; render(); break;
+      case 'view-all': if (state.isAdmin) { state.success = null; state.view = 'all'; render(); } break;
+      case 'void': voidModal(b.dataset.id); break;
+      case 'confirm-void': confirmVoid(b.dataset.id); break;
       case 'next': nextStep(); break;
       case 'prev': goStep(state.step - 1); break;
       case 'go-step': { const n = Number(b.dataset.step); if (n < state.step) goStep(n); break; }

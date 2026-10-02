@@ -88,8 +88,8 @@ a:hover { color: #FFE9A8; }
 .verify-card { margin: 8px 0 24px; padding: 24px 26px; border-radius: 16px; border: 1px solid var(--lg-line); background: var(--lg-bg-2); }
 .verify-card h2 { margin: 0 0 8px; font-size: 26px; }
 .verify-card p { margin: 0; }
-.verify-card.is-ok { border-color: rgba(126,226,160,0.5); }
-.verify-card.is-ok h2 { color: #8FD9A8; }
+.verify-card.is-ok { border-color: rgba(241,191,70,0.6); background: linear-gradient(180deg, rgba(241,191,70,0.08), rgba(255,255,255,0.01)), var(--lg-bg-2); }
+.verify-card.is-ok h2 { color: var(--lg-gold-light); }
 .verify-card.is-bad { border-color: rgba(196,85,63,0.55); }
 .verify-card.is-bad h2 { color: #F2A596; }
 .verify-card dl { display: grid; gap: 12px; margin: 14px 0 0; }

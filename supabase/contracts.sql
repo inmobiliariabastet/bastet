@@ -211,7 +211,8 @@ begin
 end $$;
 
 -- 7) Verificación pública: confirma que el contrato existe SIN mostrar datos del propietario
-create or replace function public.verify_exclusivity_contract(p_code text)
+drop function if exists public.verify_exclusivity_contract(text);
+create function public.verify_exclusivity_contract(p_code text)
 returns table (contract_number text, created_at timestamptz, agent_name text, template_version text)
 language sql security definer set search_path = public stable as $$
   select c.contract_number, c.created_at, coalesce(nullif(btrim(p.display_name), ''), 'Agente de Bastet'), c.template_version
