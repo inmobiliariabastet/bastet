@@ -4,10 +4,12 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function formatPriceUSD(price) {
+// Precio con su moneda: "185.000 USD" o "Bs.- 1.200.000" (propiedades en bolivianos)
+function formatPrice(price, currency) {
   const digits = (price || '').toString().replace(/[^0-9]/g, '');
   if (!digits) return escapeHtml(price || '');
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' USD';
+  const n = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return currency === 'BOB' ? 'Bs.- ' + n : n + ' USD';
 }
 
 const citySelectEl = document.getElementById('field-city');
@@ -296,7 +298,7 @@ function renderPropertyList() {
         '<span class="prop-eyebrow">' + [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location].filter(Boolean).map(escapeHtml).join(' · ') + '</span>' +
         '<h3 class="prop-title">' + (isPropertyFeatured(property) ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</h3>' +
         (code ? '<span><span class="property-code-tag">' + code + '</span></span>' : '') +
-        '<div class="prop-price">' + formatPriceUSD(property.price) + '</div>' +
+        '<div class="prop-price">' + formatPrice(property.price, property.currency) + '</div>' +
         (facts ? '<p class="prop-facts">' + facts + '</p>' : '') +
         '<div class="prop-row-actions">' +
           '<button class="btn btn-primary btn-sm" data-action="view">Ver detalle</button>' +
@@ -403,8 +405,8 @@ async function openPropertyDetail(property) {
     '<div class="detail-grid">' +
       (formatPropertyCode(property) ? '<div><p class="detail-label">Código</p><p class="detail-value">' + formatPropertyCode(property) + '</p></div>' : '') +
       '<div><p class="detail-label">Estado</p><p class="detail-value">' + propertyStatusLabel(property) + '</p></div>' +
-      '<div><p class="detail-label">Precio</p><p class="detail-value">' + formatPriceUSD(property.price) + '</p></div>' +
-      (property.exchange_rate ? '<div><p class="detail-label">Tipo de cambio aceptado</p><p class="detail-value">' + escapeHtml(property.exchange_rate) + '</p></div>' : '') +
+      '<div><p class="detail-label">Precio</p><p class="detail-value">' + formatPrice(property.price, property.currency) + '</p></div>' +
+      (property.exchange_rate && property.currency !== 'BOB' ? '<div><p class="detail-label">Tipo de cambio aceptado</p><p class="detail-value">' + escapeHtml(property.exchange_rate) + '</p></div>' : '') +
       '<div><p class="detail-label">Ciudad</p><p class="detail-value">' + escapeHtml(property.location) + '</p></div>' +
       (property.address ? '<div><p class="detail-label">Dirección</p><p class="detail-value">' + escapeHtml(property.address) + '</p></div>' : '') +
       '<div><p class="detail-label">Área</p><p class="detail-value">' + escapeHtml(property.area) + '</p></div>' +
@@ -469,7 +471,7 @@ function openPropertyForm(property) {
     isNewProperty = true;
     formState = {
       id: crypto.randomUUID(),
-      title: '', location: '', address: '', price: '', exchange_rate: '', area: '', rooms: '', baths: '',
+      title: '', location: '', address: '', price: '', currency: 'USD', exchange_rate: '', area: '', rooms: '', baths: '',
       description: '', whatsapp: '', owner_whatsapp: '', photos: [], status: 'available', featured: false,
       property_type: '', operation: '', floors: null, has_garage: null, garage_spots: null,
       has_storage: null, pets_allowed: null, kids_allowed: null,
@@ -489,6 +491,7 @@ function openPropertyForm(property) {
   citySelectEl.value = currentCity;
   document.getElementById('field-price').value = formState.price;
   document.getElementById('field-exchange-rate').value = formState.exchange_rate || '';
+  setPropertyCurrency(formState.currency === 'BOB' ? 'BOB' : 'USD');
   document.getElementById('field-area').value = formState.area;
   roomsSelect.value = formState.rooms;
   bathsSelect.value = formState.baths;
@@ -608,6 +611,21 @@ function updatePropertyTypeFields() {
 document.getElementById('field-type').addEventListener('change', updatePropertyTypeFields);
 document.getElementById('field-garage').addEventListener('change', updatePropertyTypeFields);
 
+// Moneda del precio: en bolivianos no hay tipo de cambio que indicar y el símbolo es Bs.-
+function currentCurrency() {
+  const r = document.querySelector('input[name="field-currency"]:checked');
+  return r && r.value === 'BOB' ? 'BOB' : 'USD';
+}
+function setPropertyCurrency(cur) {
+  const radio = document.querySelector('input[name="field-currency"][value="' + cur + '"]');
+  if (radio) radio.checked = true;
+  const bob = cur === 'BOB';
+  document.getElementById('field-price-label').textContent = bob ? 'Precio (en Bs.-)' : 'Precio (en USD)';
+  document.getElementById('field-price').placeholder = bob ? 'Ej: 1,200,000' : 'Ej: 185,000';
+  document.getElementById('field-exchange-rate-wrap').classList.toggle('hidden', bob);
+}
+document.querySelectorAll('input[name="field-currency"]').forEach((r) => r.addEventListener('change', () => setPropertyCurrency(currentCurrency())));
+
 propertyForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   formError.classList.add('hidden');
@@ -618,7 +636,7 @@ propertyForm.addEventListener('submit', async (e) => {
     location: cityValue ? cityValue + ', Bolivia' : '',
     address: document.getElementById('location-search').value.trim() || null,
     price: document.getElementById('field-price').value.trim(),
-    exchange_rate: document.getElementById('field-exchange-rate').value.trim() || null,
+    exchange_rate: currentCurrency() === 'BOB' ? null : (document.getElementById('field-exchange-rate').value.trim() || null),
     area: document.getElementById('field-area').value.trim(),
     rooms: document.getElementById('field-rooms').value.trim(),
     baths: document.getElementById('field-baths').value.trim(),
@@ -631,6 +649,7 @@ propertyForm.addEventListener('submit', async (e) => {
     property_type: document.getElementById('field-type').value || null,
     operation: document.getElementById('field-operation').value || null,
   };
+  payload.currency = currentCurrency();
   // La opción de renovación automática solo se envía si la base de datos ya la tiene (SQL de publicaciones corrido)
   if (window.UnoPublications && window.UnoPublications.supportsAutoRenew) payload.auto_renew = document.getElementById('field-auto-renew').checked;
   const isLand = payload.property_type === 'terreno';
@@ -656,12 +675,24 @@ propertyForm.addEventListener('submit', async (e) => {
   const submitBtn = document.getElementById('property-form-submit');
   submitBtn.disabled = true;
 
-  let error;
-  if (isNewProperty) {
-    const sortOrder = properties.length ? Math.max(...properties.map((p) => p.sort_order)) + 1 : 0;
-    ({ error } = await supabaseClient.from('properties').insert({ id: formState.id, ...payload, owner_id: currentSession.user.id, sort_order: sortOrder }));
-  } else {
-    ({ error } = await supabaseClient.from('properties').update(payload).eq('id', formState.id));
+  const save = (body) => {
+    if (isNewProperty) {
+      const sortOrder = properties.length ? Math.max(...properties.map((p) => p.sort_order)) + 1 : 0;
+      return supabaseClient.from('properties').insert({ id: formState.id, ...body, owner_id: currentSession.user.id, sort_order: sortOrder });
+    }
+    return supabaseClient.from('properties').update(body).eq('id', formState.id);
+  };
+  let { error } = await save(payload);
+  // Si el SQL de moneda (supabase/property-currency.sql) aún no se corrió, la columna no existe: los precios en dólares se guardan igual.
+  if (error && /currency/i.test(error.message || '')) {
+    if (payload.currency === 'BOB') {
+      submitBtn.disabled = false;
+      formError.textContent = 'Para publicar precios en bolivianos hay que activar la moneda en la base de datos (correr supabase/property-currency.sql). Mientras tanto, usa dólares.';
+      formError.classList.remove('hidden');
+      return;
+    }
+    const { currency, ...withoutCurrency } = payload;
+    ({ error } = await save(withoutCurrency));
   }
 
   submitBtn.disabled = false;
@@ -1483,7 +1514,7 @@ async function openUserProperties(user) {
         '<p class="property-info-title">' + escapeHtml(property.title) + '</p>' +
         '<p class="property-info-meta">' + escapeHtml(property.location) + ' · ' + escapeHtml(property.area) + ' · ' + escapeHtml(property.rooms) + '</p>' +
       '</div>' +
-      '<span class="property-price">' + formatPriceUSD(property.price) + '</span>';
+      '<span class="property-price">' + formatPrice(property.price, property.currency) + '</span>';
     row.addEventListener('click', () => { closeUserProperties(); openPropertyDetail(property); });
     list.appendChild(row);
   });
