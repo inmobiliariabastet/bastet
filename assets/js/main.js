@@ -678,7 +678,7 @@ function buildPropertyTile(property) {
         : '<div class="prop-tile-noimg">' + escapeHtml(property.title || 'BASTET') + '</div>') +
       '<div class="prop-tile-badges">' +
         (operation ? '<span class="prop-tile-badge">' + operation + '</span>' : '') +
-        (featured ? '<span class="prop-tile-badge prop-tile-badge--gold"><img src="assets/img/uno-destacada.png" alt="" width="14" height="14">Destacada</span>' : '') +
+        (featured ? '<span class="prop-tile-badge prop-tile-badge--gold"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 6.4L21 11l-6.4 2.6L12 20l-2.6-6.4L3 11l6.4-2.6z"/></svg>Destacada</span>' : '') +
       '</div>' +
     '</div>' +
     '<div class="prop-tile-body">' +

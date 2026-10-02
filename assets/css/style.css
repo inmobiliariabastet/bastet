@@ -877,7 +877,6 @@ html { scrollbar-color: rgba(var(--accent-rgb),0.35) var(--lux-black); }
 .property-modal-agent, .property-modal-feature { background: rgba(255,255,255,0.035); border: 1px solid var(--lux-border); }
 .property-modal-agent-avatar-placeholder { background: #15140f; }
 .property-modal-code { background: rgba(var(--accent-rgb),0.14); color: var(--lux-gold-light); border: 1px solid rgba(var(--accent-rgb),0.35); }
-.property-modal-tag { background: rgba(255,255,255,0.05); color: var(--lux-text); border-color: rgba(255,255,255,0.12); }
 
 .agent-modal-title, .agent-success-title {
   background: var(--lux-gold-text);
@@ -980,15 +979,45 @@ body.menu-open { overflow: hidden; }
   font-family: var(--font-serif); font-size: 18px; color: var(--lux-gold-light, #F8DA8C);
   background: linear-gradient(135deg, #1b160c, #3a2a12);
 }
-.prop-tile-badges { position: absolute; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
-.prop-tile-badge {
-  display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px;
-  font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
-  background: rgba(10,10,9,0.72); color: var(--lux-text, #EDE3D1); border: 1px solid rgba(255,255,255,0.14);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+/* Etiquetas de la tarjeta: operación = vidrio negro con borde en degradado dorado; Destacada = oro metálico con destello */
+.prop-tile-badges { position: absolute; left: 14px; top: 14px; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; }
+.prop-tile-badge, .property-modal-tag {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px 6px;
+  font-family: var(--font-serif); font-size: 12.5px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; line-height: 1;
+  color: var(--lux-gold-light, #F8DA8C); text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.45);
+  border: 1px solid transparent; border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.28) 100%) padding-box,
+    linear-gradient(180deg, rgba(30,27,20,0.82), rgba(10,10,9,0.82)) padding-box,
+    var(--lux-gold-border, linear-gradient(135deg, #FBE6A6, #C9922E 45%, #F1BF46 70%, #8C6A22)) border-box;
+  -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,236,180,0.28), 0 8px 20px -8px rgba(0,0,0,0.8);
 }
-.prop-tile-badge--gold { color: #15130e; background: linear-gradient(180deg, #F8DA8C, var(--color-accent)); border-color: transparent; }
-.prop-tile-badge img { display: block; width: 14px; height: 14px; object-fit: contain; }
+/* rombo dorado, ornamento de la marca */
+.prop-tile-badge::before, .property-modal-tag::before {
+  content: ''; flex: none; width: 5px; height: 5px; transform: rotate(45deg);
+  background: linear-gradient(135deg, #FBE6A6, #C9922E); box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.75);
+}
+.prop-tile-badge--gold {
+  color: #1a1305; text-shadow: 0 1px 0 rgba(255,244,205,0.7);
+  border: 1px solid rgba(255,244,205,0.7);
+  background: linear-gradient(135deg, #FBE6A6 0%, #F1BF46 32%, #C9922E 64%, #F8DA8C 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.75), inset 0 -1px 0 rgba(120,80,0,0.35),
+    0 8px 22px -6px rgba(var(--accent-rgb), 0.7), 0 0 0 1px rgba(0,0,0,0.25);
+}
+.prop-tile-badge--gold::before { display: none; }
+.prop-tile-badge--gold svg { flex: none; width: 13px; height: 13px; fill: currentColor; filter: drop-shadow(0 1px 0 rgba(255,244,205,0.6)); }
+/* destello que cruza la etiqueta de vez en cuando */
+.prop-tile-badge--gold::after {
+  content: ''; position: absolute; inset: -1px; z-index: 1; pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.5) 50%, transparent 62%);
+  transform: translateX(-130%); animation: badgeSheen 5s ease-in-out infinite;
+}
+@keyframes badgeSheen { 0%, 62% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+@media (prefers-reduced-motion: reduce) { .prop-tile-badge--gold::after { animation: none; display: none; } }
+@media (max-width: 400px) { .prop-tile-badge, .property-modal-tag { padding: 6px 12px 5px; font-size: 11.5px; letter-spacing: .16em; } }
 
 .prop-tile-body { display: flex; flex-direction: column; gap: 6px; padding: 20px 22px 18px; flex: 1; }
 .prop-tile-eyebrow { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--lux-gold, #E3BE66); }
