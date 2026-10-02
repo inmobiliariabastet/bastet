@@ -327,6 +327,7 @@ function renderPropertyList() {
       if (dragSrcId && dragSrcId !== property.id) reorderProperties(dragSrcId, property.id);
     });
 
+    if (window.UnoPublications) window.UnoPublications.decorateCard(card, property);
     propertyListEl.appendChild(card);
   });
 }
@@ -496,6 +497,7 @@ function openPropertyForm(property) {
   document.getElementById('field-owner-whatsapp').value = formState.owner_whatsapp || '';
   document.getElementById('field-status').value = formState.status;
   document.getElementById('field-featured').checked = !!formState.featured;
+  document.getElementById('field-auto-renew').checked = !!formState.auto_renew;
   document.getElementById('field-type').value = formState.property_type || '';
   document.getElementById('field-operation').value = formState.operation || '';
   document.getElementById('field-floors').value = formState.floors ? String(Math.min(formState.floors, 5)) : '';
@@ -629,6 +631,8 @@ propertyForm.addEventListener('submit', async (e) => {
     property_type: document.getElementById('field-type').value || null,
     operation: document.getElementById('field-operation').value || null,
   };
+  // La opción de renovación automática solo se envía si la base de datos ya la tiene (SQL de publicaciones corrido)
+  if (window.UnoPublications && window.UnoPublications.supportsAutoRenew) payload.auto_renew = document.getElementById('field-auto-renew').checked;
   const isLand = payload.property_type === 'terreno';
   const hasGarage = !isLand && selectToBool(document.getElementById('field-garage').value);
   Object.assign(payload, {
@@ -660,13 +664,18 @@ propertyForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = false;
 
   if (error) {
-    formError.textContent = 'Error al guardar: ' + error.message;
+    // El cobro de la publicación lo hace la base de datos: si no alcanza el saldo, la propiedad no se crea
+    formError.textContent = /Saldo insuficiente/i.test(error.message || '') && window.UnoPublications
+      ? window.UnoPublications.insufficientMessage()
+      : 'Error al guardar: ' + error.message;
     formError.classList.remove('hidden');
+    if (window.UnoPublications) window.UnoPublications.refresh();
     return;
   }
 
   closePropertyForm();
   loadProperties();
+  if (window.UnoPublications) window.UnoPublications.refresh();
 });
 
 /* ── Ubicación: mapa OpenStreetMap + búsqueda Nominatim (gratis, sin API key) ── */

@@ -10,11 +10,11 @@
 <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon-uno.png">
 <link rel="preload" href="../assets/fonts/CormorantGaramond-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/Jost-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/admin-fonts.css?v=20261012b">
+<link rel="stylesheet" href="../assets/css/admin-fonts.css?v=20261014a">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261012b">
-<link rel="stylesheet" href="../assets/css/credits.css?v=20261012b">
-<link rel="stylesheet" href="../assets/css/contracts.css?v=20261012b">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261014a">
+<link rel="stylesheet" href="../assets/css/credits.css?v=20261014a">
+<link rel="stylesheet" href="../assets/css/contracts.css?v=20261014a">
 </head>
 <body>
 
@@ -143,6 +143,8 @@
         </div>
         <button id="new-property-btn" class="btn btn-accent">+ Nueva propiedad</button>
       </div>
+
+      <div id="pub-quota" class="pub-quota hidden" aria-live="polite"></div>
 
       <div id="property-list" class="property-list"></div>
     </div>
@@ -375,6 +377,7 @@
   <div class="modal-panel">
     <h2 id="property-form-title-heading">Nueva propiedad</h2>
     <p class="property-form-code hidden" id="property-form-code"></p>
+    <div id="property-form-pub" class="pub-banner hidden" role="status"></div>
     <div id="property-form-error" class="form-error hidden"></div>
     <form id="property-form">
       <div class="field">
@@ -491,6 +494,10 @@
           </select>
         </div>
       </div>
+      <div class="field hidden" id="field-auto-renew-wrap">
+        <label class="checkbox-label"><input type="checkbox" id="field-auto-renew"> Renovar automáticamente cada 30 días</label>
+        <p class="field-hint">Se renueva sola 1 hora antes de vencer, con una de tus publicaciones gratis del mes o, si no te quedan, con créditos. Si no alcanzan, la publicación vence y se oculta del sitio.</p>
+      </div>
       <div class="field admin-only-field hidden" id="field-featured-wrap">
         <label class="checkbox-label">
           <input type="checkbox" id="field-featured">
@@ -593,18 +600,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../assets/js/supabase-config.js?v=20261012b"></script>
-<script src="../assets/js/bolivia-cities.js?v=20261012b"></script>
-<script src="../assets/js/password-toggle.js?v=20261012b"></script>
-<script src="../assets/js/property-fields.js?v=20261012b"></script>
-<script src="../assets/js/credits.js?v=20261012b"></script>
-<script src="../assets/js/leads.js?v=20261012b"></script>
-<script src="../assets/js/collections.js?v=20261012b"></script>
-<script src="../assets/js/contracts/contract-helpers.js?v=20261012b"></script>
-<script src="../assets/js/contracts/contract-template.js?v=20261012b"></script>
-<script src="../assets/js/contracts/contract-pdf.js?v=20261012b"></script>
-<script src="../assets/js/contracts/contracts-ui.js?v=20261012b"></script>
-<script src="../assets/js/admin-nav.js?v=20261012b"></script>
-<script src="../assets/js/admin.js?v=20261012b"></script>
+<script src="../assets/js/supabase-config.js?v=20261014a"></script>
+<script src="../assets/js/bolivia-cities.js?v=20261014a"></script>
+<script src="../assets/js/password-toggle.js?v=20261014a"></script>
+<script src="../assets/js/property-fields.js?v=20261014a"></script>
+<script src="../assets/js/credits.js?v=20261014a"></script>
+<script src="../assets/js/publications.js?v=20261014a"></script>
+<script src="../assets/js/leads.js?v=20261014a"></script>
+<script src="../assets/js/collections.js?v=20261014a"></script>
+<script src="../assets/js/contracts/contract-helpers.js?v=20261014a"></script>
+<script src="../assets/js/contracts/contract-template.js?v=20261014a"></script>
+<script src="../assets/js/contracts/contract-pdf.js?v=20261014a"></script>
+<script src="../assets/js/contracts/contracts-ui.js?v=20261014a"></script>
+<script src="../assets/js/admin-nav.js?v=20261014a"></script>
+<script src="../assets/js/admin.js?v=20261014a"></script>
 </body>
 </html>

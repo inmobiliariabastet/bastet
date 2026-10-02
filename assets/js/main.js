@@ -755,11 +755,15 @@ async function loadProperties() {
     .select(columns)
     .eq('status', 'available')
     .order('sort_order', { ascending: true });
-  let { data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS);
-  // Si el SQL de créditos aún no se corrió, featured_until no existe (42703): reintenta sin esa columna.
-  if (error && error.code === '42703') {
-    ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS.replace('featured_until,', '')));
-  }
+  // Renovaciones automáticas pendientes (la base de datos lo limita a una corrida cada 5 minutos); sin el SQL simplemente no hace nada.
+  try { await Promise.race([supabaseClient.rpc('process_auto_renewals'), new Promise((r) => setTimeout(r, 1500))]); } catch (e) { /* sin el SQL */ }
+
+  // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
+  const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
+  let { data, error } = await fetchActive(PUBLIC_PROPERTY_COLUMNS);
+  // Si algún SQL aún no se corrió, la columna no existe (42703): se reintenta sin el filtro de vigencia y/o sin featured_until.
+  if (error && error.code === '42703') ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS));
+  if (error && error.code === '42703') ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS.replace('featured_until,', '')));
 
   if (error) {
     console.error('Error cargando propiedades:', error);
