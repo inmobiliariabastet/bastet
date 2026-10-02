@@ -444,6 +444,7 @@ a.btn { text-decoration: none; }
 .pub-modal { max-width: 460px; }
 .pub-modal h2 { margin-bottom: 10px; }
 .pub-modal-new { padding: 10px 12px; background: #FFF3D1; border: 1px solid rgba(217,164,65,.5); border-radius: 10px; }
+.pub-modal-fine { margin: 6px 0 0; font-size: 13px; color: var(--tinta-2); }
 .pub-modal-low { padding: 10px 12px; background: #F5DDD8; color: #6f2a1f; border-radius: 10px; }
 
 .admin-bottombar { display: none; }

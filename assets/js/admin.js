@@ -650,6 +650,9 @@ propertyForm.addEventListener('submit', async (e) => {
     return;
   }
 
+  // Propiedad nueva sin cupo gratis: el agente debe aprobar el descuento de créditos antes de publicar
+  if (isNewProperty && window.UnoPublications && !(await window.UnoPublications.confirmPublish(payload.title))) return;
+
   const submitBtn = document.getElementById('property-form-submit');
   submitBtn.disabled = true;
 

@@ -211,6 +211,38 @@
     });
   }
 
+  /* Confirmación antes de publicar una propiedad NUEVA que ya no entra en el cupo gratis: pide aprobar el descuento de créditos.
+     Devuelve una promesa: true = seguir con la publicación, false = el agente canceló (o no le alcanzan los créditos). */
+  async function confirmPublish(title) {
+    await refresh();
+    const q = state.quota;
+    if (!q || q.exempt || q.free_left > 0) return true;       // sin el SQL, administrador o con cupo gratis: no hay nada que aprobar
+    const days = q.validity_days || 30;
+    const enough = q.balance >= q.cost;
+    closeOverlay();
+    return new Promise((resolve) => {
+      const o = document.createElement('div');
+      o.className = 'modal-overlay'; o.id = 'pub-overlay';
+      o.innerHTML = '<div class="modal-panel pub-modal" role="dialog" aria-modal="true" aria-labelledby="pub-confirm-title"><h2 id="pub-confirm-title">Confirmar publicación</h2>' +
+        '<p><b>' + esc(title) + '</b></p>' +
+        '<p>Ya usaste tus ' + q.free_total + ' publicaciones gratis de este mes, por eso esta propiedad se publica con créditos.</p>' +
+        (enough
+          ? '<p class="pub-modal-new">Se descontarán <b>' + q.cost + ' créditos</b> de tu saldo (' + q.balance + ' → ' + (q.balance - q.cost) + ') y la publicación durará <b>' + days + ' días</b>.</p>' +
+            '<p class="pub-modal-fine">El descuento no se devuelve si luego eliminas la propiedad.</p>'
+          : '<p class="pub-modal-low">Tu saldo (' + q.balance + ') no alcanza para los ' + q.cost + ' créditos que cuesta publicar. Compra créditos para continuar.</p>') +
+        '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-pub-cancel>Cancelar</button>' +
+        (enough ? '<button type="button" class="btn btn-accent" id="pub-confirm-ok">Publicar por ' + q.cost + ' créditos</button>'
+                : '<button type="button" class="btn btn-accent" data-pub-buy>Comprar créditos</button>') + '</div></div>';
+      document.body.appendChild(o);
+      const done = (ok) => { document.removeEventListener('keydown', onKey, true); closeOverlay(); resolve(ok); };
+      const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } };
+      document.addEventListener('keydown', onKey, true);
+      o.addEventListener('click', (e) => { if (e.target === o || e.target.closest('[data-pub-cancel]')) done(false); else if (e.target.closest('[data-pub-buy]')) { document.removeEventListener('keydown', onKey, true); resolve(false); } });
+      const ok = o.querySelector('#pub-confirm-ok');
+      if (ok) { ok.addEventListener('click', () => done(true)); ok.focus(); }
+    });
+  }
+
   function insufficientMessage(action) {
     const q = state.quota;
     const verb = action === 'renovar' ? 'No se renovó' : 'No se publicó';
@@ -250,5 +282,5 @@
     if (session && session.user) setTimeout(async () => { try { await supabaseClient.rpc('process_auto_renewals'); } catch (e) { /* sin el SQL */ } refresh(); if (typeof loadProperties === 'function' && document.getElementById('property-list')) loadProperties(); }, 0);
   });
 
-  window.UnoPublications = { refresh, fillLine, decorateCard, insufficientMessage: () => insufficientMessage('publicar'), get quota() { return state.quota; }, get supportsAutoRenew() { return state.supported; } };
+  window.UnoPublications = { refresh, fillLine, decorateCard, confirmPublish, insufficientMessage: () => insufficientMessage('publicar'), get quota() { return state.quota; }, get supportsAutoRenew() { return state.supported; } };
 })();
