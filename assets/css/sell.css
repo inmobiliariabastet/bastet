@@ -23,6 +23,8 @@
 .sell-map-wrap.has-error { border-color: #C4553F; box-shadow: 0 0 0 3px rgba(196,85,63,.25); }
 .sell-map { height: 320px; background: #0d0c09; }
 .sell-map .leaflet-container { background: #0d0c09; font-family: inherit; }
+/* Mosaicos de OpenStreetMap en ébano y dorado: grises invertidos con un tinte cálido (sin verdes de parques) */
+.sell-map .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.82) contrast(1.05) sepia(.45) hue-rotate(-8deg); }
 .sell-map-fail { margin: 0; padding: 40px 20px; text-align: center; color: rgba(237,227,209,.75); font-size: 14px; }
 .sell-map-status { margin: 0; font-size: 13.5px; line-height: 1.5; color: rgba(237,227,209,.7); }
 .sell-map-status.is-set { color: #F4DDA0; }
