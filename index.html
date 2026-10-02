@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0A0A09">
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/css/fonts.css?v=20261006b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261006b">
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261007b">
+<link rel="stylesheet" href="assets/css/style.css?v=20261007b">
 </head>
 <body>
 
@@ -29,7 +29,7 @@
 
     <div class="navbar-links">
       <a href="#hero" class="navbar-link">Inicio</a>
-      <a href="#propiedades" class="navbar-link">Propiedades</a>
+      <a href="marketplace.html" class="navbar-link">Marketplace Inmobiliario</a>
       <a href="#garantias" class="navbar-link">Garantías</a>
       <a href="#pricing" class="navbar-link">Honorarios</a>
       <a href="#footer" class="navbar-link">Contacto</a>
@@ -40,7 +40,7 @@
 
   <div class="navbar-mobile-panel">
     <a href="#hero" class="navbar-mobile-link">Inicio</a>
-    <a href="#propiedades" class="navbar-mobile-link">Propiedades</a>
+    <a href="marketplace.html" class="navbar-mobile-link">Marketplace Inmobiliario</a>
     <a href="#garantias" class="navbar-mobile-link">Garantías</a>
     <a href="#pricing" class="navbar-mobile-link">Honorarios</a>
     <a href="#footer" class="navbar-mobile-link">Contacto</a>
@@ -61,7 +61,7 @@
       <p class="hero-subtext">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
       <div class="hero-cta-wrap">
         <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button cta-button--arrow"><span>Vender mi inmueble</span></a>
-        <a href="#propiedades" class="cta-button cta-button--glass"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar un inmueble</span></a>
+        <a href="marketplace.html" class="cta-button cta-button--glass"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar un inmueble</span></a>
       </div>
     </div>
   </div>
@@ -69,36 +69,12 @@
 
 <section id="propiedades" class="propiedades-section">
   <div class="propiedades-inner reveal">
-    <h2 class="section-heading section-heading--light">Propiedades disponibles</h2>
-    <p class="section-sub section-sub--light">Seleccione un inmueble para conocer sus características y consultar directamente por WhatsApp.</p>
-    <div class="operation-filters" id="operation-filters" role="tablist" aria-label="Filtrar por operación"></div>
-    <div class="select-filters">
-      <div class="budget-filter">
-        <label for="type-filter-select" class="budget-filter-label">Tipo</label>
-        <select id="type-filter-select" class="budget-filter-select"></select>
-      </div>
-      <div class="budget-filter">
-        <label for="rooms-filter-select" class="budget-filter-label">Habitaciones</label>
-        <select id="rooms-filter-select" class="budget-filter-select"></select>
-      </div>
-      <div class="budget-filter">
-        <label for="baths-filter-select" class="budget-filter-label">Baños</label>
-        <select id="baths-filter-select" class="budget-filter-select"></select>
-      </div>
-      <div class="budget-filter">
-        <label for="budget-filter-select" class="budget-filter-label">Presupuesto</label>
-        <select id="budget-filter-select" class="budget-filter-select"></select>
-      </div>
-    </div>
-    <div class="city-filters" id="city-filters"></div>
-    <div class="clear-filters-wrap">
-      <button type="button" class="clear-filters hidden" id="clear-filters">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        Limpiar filtros
-      </button>
-    </div>
+    <h2 class="section-heading section-heading--light">Propiedades en el Marketplace</h2>
+    <p class="section-sub section-sub--light">Una selección de nuestras propiedades. Explore todas, con filtros, en el Marketplace Inmobiliario.</p>
     <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
-    <div class="prop-more-wrap" id="prop-more-wrap"></div>
+    <div class="prop-cta-wrap">
+      <a href="marketplace.html" class="cta-button cta-button--glass"><span>Ver todo el Marketplace Inmobiliario</span></a>
+    </div>
   </div>
 </section>
 
@@ -244,10 +220,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="assets/js/supabase-config.js?v=20261006b"></script>
-<script src="assets/js/bolivia-cities.js?v=20261006b"></script>
-<script src="assets/js/password-toggle.js?v=20261006b"></script>
-<script src="assets/js/property-fields.js?v=20261006b"></script>
-<script src="assets/js/main.js?v=20261006b"></script>
+<script src="assets/js/supabase-config.js?v=20261007b"></script>
+<script src="assets/js/bolivia-cities.js?v=20261007b"></script>
+<script src="assets/js/password-toggle.js?v=20261007b"></script>
+<script src="assets/js/property-fields.js?v=20261007b"></script>
+<script src="assets/js/main.js?v=20261007b"></script>
 </body>
 </html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketplace Inmobiliario — UNO · Bastet</title>
+<meta name="description" content="Marketplace Inmobiliario de UNO · Bastet: casas, departamentos y terrenos en venta, alquiler y anticrético en Bolivia. Filtre por ciudad, tipo y presupuesto y contacte al agente por WhatsApp.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-uno-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-uno-192.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon-uno.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0A09">
+<link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261007b">
+<link rel="stylesheet" href="assets/css/style.css?v=20261007b">
+</head>
+<body class="marketplace-page">
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo" aria-label="UNO · Marketplace Inmobiliario by Bastet — inicio">
+      <img class="navbar-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449">
+    </a>
+
+    <button class="navbar-burger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="navbar-links">
+      <a href="index.html" class="navbar-link">Inicio</a>
+      <a href="marketplace.html" class="navbar-link is-active" aria-current="page">Marketplace Inmobiliario</a>
+      <a href="index.html#garantias" class="navbar-link">Garantías</a>
+      <a href="index.html#pricing" class="navbar-link">Honorarios</a>
+      <a href="#footer" class="navbar-link">Contacto</a>
+      <button type="button" data-install-app class="cta-button cta-button--glass cta-button--sm" hidden><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Instalar app</span></button>
+      <button type="button" data-agent-access class="cta-button cta-button--glass cta-button--sm"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+    </div>
+  </div>
+
+  <div class="navbar-mobile-panel">
+    <a href="index.html" class="navbar-mobile-link">Inicio</a>
+    <a href="marketplace.html" class="navbar-mobile-link is-active" aria-current="page">Marketplace Inmobiliario</a>
+    <a href="index.html#garantias" class="navbar-mobile-link">Garantías</a>
+    <a href="index.html#pricing" class="navbar-mobile-link">Honorarios</a>
+    <a href="#footer" class="navbar-mobile-link">Contacto</a>
+    <button type="button" data-install-app class="cta-button cta-button--glass" style="width:100%;margin-top:12px;" hidden><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Instalar app</span></button>
+    <button type="button" data-agent-access class="cta-button cta-button--glass" style="width:100%;margin-top:12px;"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+  </div>
+</nav>
+
+<main>
+<section id="propiedades" class="propiedades-section marketplace-section">
+  <div class="propiedades-inner reveal">
+    <h1 class="section-heading section-heading--light">Marketplace Inmobiliario</h1>
+    <p class="section-sub section-sub--light">Seleccione un inmueble para conocer sus características y consultar directamente por WhatsApp.</p>
+    <div class="operation-filters" id="operation-filters" role="tablist" aria-label="Filtrar por operación"></div>
+    <div class="select-filters">
+      <div class="budget-filter">
+        <label for="type-filter-select" class="budget-filter-label">Tipo</label>
+        <select id="type-filter-select" class="budget-filter-select"></select>
+      </div>
+      <div class="budget-filter">
+        <label for="rooms-filter-select" class="budget-filter-label">Habitaciones</label>
+        <select id="rooms-filter-select" class="budget-filter-select"></select>
+      </div>
+      <div class="budget-filter">
+        <label for="baths-filter-select" class="budget-filter-label">Baños</label>
+        <select id="baths-filter-select" class="budget-filter-select"></select>
+      </div>
+      <div class="budget-filter">
+        <label for="budget-filter-select" class="budget-filter-label">Presupuesto</label>
+        <select id="budget-filter-select" class="budget-filter-select"></select>
+      </div>
+    </div>
+    <div class="city-filters" id="city-filters"></div>
+    <div class="clear-filters-wrap">
+      <button type="button" class="clear-filters hidden" id="clear-filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        Limpiar filtros
+      </button>
+    </div>
+    <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
+    <div class="prop-more-wrap" id="prop-more-wrap"></div>
+  </div>
+</section>
+</main>
+
+<footer id="footer" class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo-row">
+          <img class="footer-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449" loading="lazy">
+        </div>
+      </div>
+      <div class="footer-contact">
+        <span class="footer-contact-label">CONTACTO</span>
+        <a href="mailto:inmobiliaria@bastet.uno" class="footer-link">inmobiliaria@bastet.uno</a>
+        <a href="tel:+59177666205" class="footer-link">+591 77666205</a>
+        <span class="footer-city">Calle Yanacocha, Edif. Cristal, Piso 7, Of. 706 — La Paz, Bolivia</span>
+      </div>
+    </div>
+    <p class="footer-copy">© 2026 Bastet Real State. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a></p>
+  </div>
+</footer>
+
+<div class="property-modal-backdrop hidden" id="property-modal-backdrop">
+  <div class="property-modal" id="property-modal" onclick="event.stopPropagation()"></div>
+</div>
+
+<div class="property-modal-backdrop hidden" id="agent-modal-backdrop">
+  <div class="property-modal agent-modal" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title">
+    <button type="button" class="property-modal-close" id="agent-modal-close" aria-label="Cerrar">✕</button>
+    <div class="agent-modal-body">
+      <h2 class="agent-modal-title" id="agent-modal-title">Acceso agentes</h2>
+      <div class="agent-tabs" role="tablist">
+        <button type="button" class="agent-tab is-active" data-agent-tab="login">Ya tengo cuenta</button>
+        <button type="button" class="agent-tab" data-agent-tab="request">Quiero una cuenta</button>
+      </div>
+
+      <form id="agent-login-form" class="agent-form" data-agent-panel="login">
+        <p class="agent-form-hint">Ingresa con el correo y la contraseña de tu cuenta Bastet para gestionar tus propiedades.</p>
+        <label class="agent-field"><span>Correo</span><input type="email" id="agent-login-email" required autocomplete="username"></label>
+        <label class="agent-field"><span>Contraseña</span><input type="password" id="agent-login-password" required autocomplete="current-password"></label>
+        <p class="agent-form-error hidden" id="agent-login-error"></p>
+        <button type="submit" class="cta-button" id="agent-login-submit"><span>Ingresar</span></button>
+        <p class="agent-form-note hidden" id="agent-forgot-note"></p>
+        <button type="button" class="agent-form-link" id="agent-forgot">¿Olvidaste tu contraseña?</button>
+      </form>
+
+      <form id="agent-request-form" class="agent-form hidden" data-agent-panel="request">
+        <p class="agent-form-hint">Déjanos tus datos y nos pondremos en contacto contigo para habilitar tu cuenta de agente en Bastet.</p>
+        <label class="agent-field"><span>Nombre completo *</span><input type="text" id="req-name" required minlength="3" maxlength="120" autocomplete="name"></label>
+        <div class="agent-field-row">
+          <label class="agent-field"><span>WhatsApp *</span><input type="tel" id="req-whatsapp" required minlength="7" maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>
+          <label class="agent-field"><span>Correo electrónico *</span><input type="email" id="req-email" required maxlength="160" autocomplete="email"></label>
+        </div>
+        <div class="agent-field-row">
+          <label class="agent-field"><span>Ciudad</span><select id="req-city"><option value="">Selecciona…</option></select></label>
+          <label class="agent-field"><span>Experiencia</span>
+            <select id="req-experience">
+              <option value="">Selecciona…</option>
+              <option>Recién empiezo</option>
+              <option>Menos de 1 año</option>
+              <option>1 a 3 años</option>
+              <option>3 a 5 años</option>
+              <option>Más de 5 años</option>
+            </select>
+          </label>
+        </div>
+        <label class="agent-field"><span>Inmobiliaria o empresa (si trabajas con una)</span><input type="text" id="req-company" maxlength="120" placeholder="Independiente"></label>
+        <label class="agent-field"><span>Cuéntanos sobre ti</span><textarea id="req-message" rows="3" maxlength="1000" placeholder="Zonas en las que trabajas, tipo de inmuebles, cuántas propiedades manejas…"></textarea></label>
+        <p class="agent-form-hint">Usaremos tus datos solo para evaluar tu solicitud y contactarte. Más información en nuestra <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</p>
+        <p class="agent-form-error hidden" id="agent-request-error"></p>
+        <button type="submit" class="cta-button" id="agent-request-submit"><span>Enviar solicitud</span></button>
+      </form>
+
+      <div class="agent-success hidden" id="agent-request-success">
+        <p class="agent-success-title">¡Solicitud enviada!</p>
+        <p class="agent-form-hint">Gracias. Revisaremos tus datos y te contactaremos por WhatsApp o correo para darte acceso.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="install-modal" id="install-modal" hidden>
+  <div class="install-modal-card" role="dialog" aria-modal="true" aria-labelledby="install-modal-title">
+    <h3 id="install-modal-title">Instalar UNO en tu dispositivo</h3>
+    <p id="install-modal-text"></p>
+    <button type="button" class="cta-button cta-button--glass cta-button--sm" id="install-modal-close"><span>Entendido</span></button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/supabase-config.js?v=20261007b"></script>
+<script src="assets/js/bolivia-cities.js?v=20261007b"></script>
+<script src="assets/js/password-toggle.js?v=20261007b"></script>
+<script src="assets/js/property-fields.js?v=20261007b"></script>
+<script src="assets/js/main.js?v=20261007b"></script>
+</body>
+</html>

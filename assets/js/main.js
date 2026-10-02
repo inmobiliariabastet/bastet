@@ -319,7 +319,9 @@ function createRingCarousel({ stage, radius, size = 12, cull = 50, speed = 5, bu
 }
 
 /* ── Propiedades: fetch + filtros + grilla de tarjetas + modal ── */
-const PROP_PAGE_SIZE = 9; // tarjetas que se muestran de entrada; "Ver más" agrega otra tanda
+// Este script corre en el inicio (vista previa de 3 propiedades, sin filtros) y en marketplace.html (todas, con filtros).
+const HAS_FILTERS = !!document.getElementById('operation-filters');
+const PROP_PAGE_SIZE = HAS_FILTERS ? 12 : 3; // tarjetas de entrada; en el Marketplace "Ver más" agrega otra tanda
 let propVisibleCount = PROP_PAGE_SIZE;
 
 const propGridEl = document.getElementById('prop-grid');
@@ -493,7 +495,7 @@ function enhanceSelect(selectEl) {
 document.addEventListener('pointerdown', (e) => {
   if (openBrandSelect && !e.target.closest('.brand-select.is-open')) openBrandSelect.close(false);
 });
-[typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].forEach(enhanceSelect);
+[typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].filter(Boolean).forEach(enhanceSelect);
 
 // Rangos de presupuesto (USD) según la operación: un alquiler mensual no se busca
 // con los mismos montos que una compra o un anticrético. [mínimo exclusivo, máximo inclusivo]
@@ -543,7 +545,7 @@ function buildTypeFilter() {
   typeSelectEl.classList.toggle('is-set', typeFilter !== '');
 }
 
-typeSelectEl.addEventListener('change', () => {
+typeSelectEl?.addEventListener('change', () => {
   typeFilter = typeSelectEl.value;
   cityFilter = 'Todas';
   typeSelectEl.classList.toggle('is-set', typeFilter !== '');
@@ -574,7 +576,7 @@ function buildRoomsFilter() {
   roomsSelectEl.classList.toggle('is-set', roomsFilter !== '');
 }
 
-roomsSelectEl.addEventListener('change', () => {
+roomsSelectEl?.addEventListener('change', () => {
   roomsFilter = roomsSelectEl.value;
   cityFilter = 'Todas';
   roomsSelectEl.classList.toggle('is-set', roomsFilter !== '');
@@ -604,7 +606,7 @@ function buildBathsFilter() {
   bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
 }
 
-bathsSelectEl.addEventListener('change', () => {
+bathsSelectEl?.addEventListener('change', () => {
   bathsFilter = bathsSelectEl.value;
   cityFilter = 'Todas';
   bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
@@ -634,7 +636,7 @@ function buildBudgetFilter() {
   budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
 }
 
-budgetSelectEl.addEventListener('change', () => {
+budgetSelectEl?.addEventListener('change', () => {
   budgetFilter = budgetSelectEl.value;
   cityFilter = 'Todas';
   budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
@@ -767,12 +769,14 @@ async function loadProperties() {
     await attachAgentInfo(allProperties);
   }
 
-  buildOperationFilters();
-  buildTypeFilter();
-  buildRoomsFilter();
-  buildBathsFilter();
-  buildBudgetFilter();
-  buildCityFilters();
+  if (HAS_FILTERS) {
+    buildOperationFilters();
+    buildTypeFilter();
+    buildRoomsFilter();
+    buildBathsFilter();
+    buildBudgetFilter();
+    buildCityFilters();
+  }
   renderPropertyGrid();
 }
 
@@ -890,7 +894,7 @@ function anyFilterActive() {
   return operationFilter !== 'todas' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || budgetFilter !== '' || cityFilter !== 'Todas';
 }
 
-clearFiltersBtn.addEventListener('click', () => {
+clearFiltersBtn?.addEventListener('click', () => {
   operationFilter = 'todas';
   typeFilter = '';
   roomsFilter = '';
@@ -908,7 +912,7 @@ clearFiltersBtn.addEventListener('click', () => {
 
 function renderPropertyGrid(resetPage = true) {
   if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
-  clearFiltersBtn.classList.toggle('hidden', !anyFilterActive());
+  clearFiltersBtn?.classList.toggle('hidden', !anyFilterActive());
   const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '')
     ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
     : operationFilter !== 'todas'
@@ -924,11 +928,12 @@ function renderPropertyGrid(resetPage = true) {
   propGridEl.innerHTML = '';
   if (!list.length) {
     propGridEl.innerHTML = '<p class="prop-grid-empty">' + escapeHtml(emptyMessage) + '</p>';
-    propMoreWrapEl.innerHTML = '';
+    if (propMoreWrapEl) propMoreWrapEl.innerHTML = '';
     return;
   }
   list.slice(0, propVisibleCount).forEach((p) => propGridEl.appendChild(buildPropertyTile(p)));
 
+  if (!propMoreWrapEl) return; // en el inicio no hay "Ver más": el botón al Marketplace es fijo
   const remaining = list.length - propVisibleCount;
   propMoreWrapEl.innerHTML = remaining > 0
     ? '<button type="button" class="cta-button cta-button--glass" id="prop-more-btn"><span>Ver más propiedades (' + remaining + ')</span></button>'
@@ -1201,6 +1206,7 @@ loadTestimonials();
 /* ── Franja de logos de empresas aliadas ── */
 async function loadPartners() {
   const track = document.getElementById('partners-track');
+  if (!track) return; // marketplace.html no tiene la franja de aliados
   const { data, error } = await supabaseClient
     .from('partners')
     .select('*')

@@ -69,6 +69,10 @@ La pestaña "Comisiones" lee la tabla `collections`. Para activarla, corre [`sup
 
 La página pública es `privacidad.html` (estilos en `assets/css/legal.css`). Está enlazada desde el pie del landing, el formulario "Quiero que me contacten" y la solicitud de cuenta de agente. Si cambias qué datos recoge el sitio (formularios, analítica, proveedores), actualiza esa página y su fecha de última actualización, y valídala con asesoría legal.
 
+## Páginas del sitio
+
+`index.html` (inicio con vista previa de propiedades), `marketplace.html` (Marketplace Inmobiliario completo, con filtros), `privacidad.html` (política de privacidad) y `admin/` (panel). El inicio y el Marketplace comparten `assets/js/main.js` y `assets/css/style.css`. `marketplace.html` repite a mano el menú, el pie y las ventanas de `index.html`: si cambias uno, actualiza el otro.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.
