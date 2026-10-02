@@ -1110,3 +1110,11 @@ html { scrollbar-color: rgba(var(--accent-rgb),0.35) var(--lux-black); }
 }
 .navbar-mobile-link { border-bottom: 1px solid rgba(var(--accent-rgb),0.12); }
 body.menu-open { overflow: hidden; }
+
+/* ── Formulario "Quiero que me contacten" en la ficha de propiedad ── */
+.lead-form { margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(var(--accent-rgb), 0.28); gap: 14px; }
+.lead-form-title { margin: 0; font-family: var(--font-serif); font-size: 24px; font-weight: 400; color: var(--lux-text-strong, #F4EBDD); }
+.lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.lead-consent { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--lux-text, #EDE3D1); cursor: pointer; }
+.lead-consent input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--color-accent); }
+

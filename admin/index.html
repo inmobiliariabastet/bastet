@@ -10,10 +10,10 @@
 <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon-uno.png">
 <link rel="preload" href="../assets/fonts/CormorantGaramond-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/Jost-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/css/admin-fonts.css?v=20261002a">
+<link rel="stylesheet" href="../assets/css/admin-fonts.css?v=20261003a">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261002a">
-<link rel="stylesheet" href="../assets/css/credits.css?v=20261002a">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261003a">
+<link rel="stylesheet" href="../assets/css/credits.css?v=20261003a">
 </head>
 <body>
 
@@ -99,6 +99,7 @@
     <nav class="admin-nav" aria-label="Secciones">
       <div class="admin-nav-group">Ventas</div>
       <button type="button" class="admin-tab is-active" data-tab="properties"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg>Propiedades</button>
+      <button type="button" class="admin-tab" data-tab="leads"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Clientes interesados <span class="tab-count hidden" id="leads-count"></span></button>
       <div class="admin-nav-group">Cuenta</div>
       <button type="button" class="admin-tab" data-tab="credits"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5C9.5 8.5 10.6 8 12 8s2.5.6 2.5 1.7c0 2.4-5 1.4-5 4 0 1.1 1.1 1.8 2.5 1.8s2.5-.6 2.5-1.6"/></svg>Créditos</button>
       <button type="button" class="admin-tab" data-tab="analytics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analítica</button>
@@ -139,6 +140,16 @@
       </div>
 
       <div id="property-list" class="property-list"></div>
+    </div>
+
+    <div id="tab-panel-leads" class="tab-panel hidden">
+      <div class="admin-toolbar">
+        <div>
+          <h1>Clientes interesados</h1>
+          <p class="admin-toolbar-hint" id="leads-hint">Personas interesadas en tus propiedades. Toca un cliente para ver su WhatsApp y darle seguimiento.</p>
+        </div>
+      </div>
+      <div id="leads-board" class="leads-board"></div>
     </div>
 
     <div id="tab-panel-analytics" class="tab-panel hidden">
@@ -314,6 +325,11 @@
       </form>
     </div>
   </div>
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div id="lead-modal" class="modal-overlay hidden">
+  <div class="modal-panel" id="lead-modal-panel"></div>
 </div>
 
 <!-- FORM MODAL -->
@@ -539,12 +555,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../assets/js/supabase-config.js?v=20261002a"></script>
-<script src="../assets/js/bolivia-cities.js?v=20261002a"></script>
-<script src="../assets/js/password-toggle.js?v=20261002a"></script>
-<script src="../assets/js/property-fields.js?v=20261002a"></script>
-<script src="../assets/js/credits.js?v=20261002a"></script>
-<script src="../assets/js/admin-nav.js?v=20261002a"></script>
-<script src="../assets/js/admin.js?v=20261002a"></script>
+<script src="../assets/js/supabase-config.js?v=20261003a"></script>
+<script src="../assets/js/bolivia-cities.js?v=20261003a"></script>
+<script src="../assets/js/password-toggle.js?v=20261003a"></script>
+<script src="../assets/js/property-fields.js?v=20261003a"></script>
+<script src="../assets/js/credits.js?v=20261003a"></script>
+<script src="../assets/js/leads.js?v=20261003a"></script>
+<script src="../assets/js/admin-nav.js?v=20261003a"></script>
+<script src="../assets/js/admin.js?v=20261003a"></script>
 </body>
 </html>

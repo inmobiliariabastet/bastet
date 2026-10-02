@@ -363,6 +363,27 @@ a.btn { text-decoration: none; }
 .request-feedback.is-error { color: var(--bad); }
 .request-feedback.is-ok { color: var(--ok); }
 
+/* ── Clientes interesados: tablero por etapas ── */
+.leads-board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.lead-col { min-height: 140px; padding: 14px; background: var(--marfil-2); border-radius: 14px; }
+.lead-col-title {
+  display: flex; justify-content: space-between; margin: 2px 4px 12px; font-family: var(--sans);
+  font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro-p);
+}
+.lead-col-empty { margin: 8px 4px; color: var(--tinta-2); }
+.lead-card {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; margin-bottom: 10px; padding: 12px 14px; text-align: left;
+  background: #fff; border: 1px solid var(--linea); border-radius: 10px; color: var(--tinta); font-size: 14px;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.lead-card:hover { border-color: var(--oro); transform: translateY(-1px); }
+.lead-card b { font-weight: 500; font-size: 15px; overflow-wrap: anywhere; }
+.lead-card small { color: var(--tinta-2); font-size: 12.5px; overflow-wrap: anywhere; }
+.lead-card-date { margin-top: 2px; color: var(--oro-p) !important; }
+.lead-col--lost { opacity: .75; }
+@media (max-width: 1100px) { .leads-board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .leads-board { grid-template-columns: 1fr; } }
+
 /* ── Responsive: tablet y celular ── */
 @media (max-width: 1100px) {
   .field-row-3 { grid-template-columns: 1fr 1fr; }
