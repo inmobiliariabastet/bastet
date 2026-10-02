@@ -9,6 +9,9 @@
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const usd = (n) => Number(n).toLocaleString('es-BO', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' USD';
+  // Precios en bolivianos (4 Bs por crédito comprado). Las solicitudes antiguas, hechas en dólares, se siguen mostrando como estaban.
+  const bs = (n) => Number(n).toLocaleString('es-BO', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' Bs';
+  const priceOf = (x) => (x.price_bs != null ? bs(x.price_bs) : x.price_usd != null ? usd(x.price_usd) : '—');
   const fdate = (d) => new Date(d).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
   const KIND = { purchase: 'Compra', spend: 'Uso', bonus: 'Bono', adjustment: 'Ajuste' };
   const METHOD = { transferencia: 'Transferencia', qr: 'QR', efectivo: 'Efectivo' };
@@ -87,7 +90,7 @@
         <p class="credits-hero-note">Usa tus créditos para destacar tus propiedades en el carrusel del landing.</p>
       </section>
 
-      ${pending ? `<p class="auth-banner">Tu solicitud del pack <b>${esc(pending.pack_name)}</b> (${usd(pending.price_usd)}) está pendiente de confirmación de pago.</p>` : ''}
+      ${pending ? `<p class="auth-banner">Tu solicitud del pack <b>${esc(pending.pack_name)}</b> (${priceOf(pending)}) está pendiente de confirmación de pago.</p>` : ''}
 
       <h2 class="admin-subheading">Destacar una propiedad</h2>
       <div class="property-list credits-props">
@@ -110,7 +113,8 @@
             <h3>${esc(p.name)}</h3>
             <div class="credits-pack-n">${p.credits + p.bonus}</div>
             <span class="credits-muted">créditos${p.bonus ? ' (incluye +' + p.bonus + ' de regalo)' : ''}</span>
-            <div class="credits-pack-price">${usd(p.price_usd)}</div>
+            <div class="credits-pack-price">${priceOf(p)}</div>
+            ${p.price_bs != null && p.credits > 0 ? `<span class="credits-muted">${bs(p.price_bs / p.credits)} por crédito</span>` : ''}
             <ul>${(p.perks || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul>
             <button type="button" class="btn ${p.highlighted ? 'btn-accent' : 'btn-primary'} btn-sm" data-pack="${esc(p.code)}" ${pending ? 'disabled' : ''}>Solicitar ${esc(p.name)}</button>
           </article>`).join('')}
@@ -149,7 +153,7 @@
           <div class="property-row credits-prop">
             <div class="credits-prop-info">
               <strong>${esc((r.profiles && (r.profiles.display_name || r.profiles.email)) || 'Agente')}</strong>
-              <span class="credits-muted">${esc(r.pack_name)} · ${r.credits} cr. · ${usd(r.price_usd)} · ${METHOD[r.method] || esc(r.method)} · ${fdate(r.created_at)}</span>
+              <span class="credits-muted">${esc(r.pack_name)} · ${r.credits} cr. · ${priceOf(r)} · ${METHOD[r.method] || esc(r.method)} · ${fdate(r.created_at)}</span>
             </div>
             <div class="credits-prop-actions">
               <button type="button" class="btn btn-accent btn-sm" data-resolve="${r.id}" data-approve="1">Confirmar pago</button>
