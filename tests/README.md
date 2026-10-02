@@ -8,3 +8,4 @@
 - `python tests/contracts_sql_test.py` — seguridad del cobro de contratos en un Postgres local desechable (requiere `pip install pgserver psycopg2-binary`). No toca Supabase.
 
 Estas carpetas se publican con el sitio (es un sitio estático) pero no son enlazadas ni usadas por las páginas.
+- `credit_pack_ledger_sql_test.py` — el historial desglosa el regalo de cada pack (Esencial, Profesional, Exclusivo) y el saldo suma créditos + regalo.

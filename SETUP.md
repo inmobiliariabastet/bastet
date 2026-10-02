@@ -129,3 +129,5 @@ supabase/email-templates/           → plantillas de correo en español (paso 3
 - Un administrador puede **desactivar** o **eliminar** usuarios desde **Usuarios**; al eliminar, sus propiedades quedan "Sin asignar" (no se borran).
 - Los visitantes pueden pedir una cuenta de agente desde **Acceso agentes → Quiero una cuenta**; la solicitud llega a la pestaña **Solicitudes**, donde el admin la aprueba (envía la invitación) o la rechaza.
 - Al eliminar una propiedad, un logo o una foto, también se borra el archivo del bucket de Storage.
+
+**Regalo de créditos en el historial.** Para que el historial de compras muestre "400 + 40 de regalo", corre [`supabase/credit-pack-ledger.sql`](supabase/credit-pack-ledger.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Solo cambia el texto de los movimientos nuevos.
