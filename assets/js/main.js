@@ -962,6 +962,7 @@ function buildLeadForm(property) {
     // Campo trampa: las personas no lo ven; los bots suelen llenarlo.
     '<div class="lead-hp" aria-hidden="true"><label>Sitio web<input type="text" name="lead_website" tabindex="-1" autocomplete="off"></label></div>' +
     '<label class="lead-consent"><input type="checkbox" name="lead_consent" required><span>' + LEAD_CONSENT_TEXT + '</span></label>' +
+    '<p class="lead-privacy">Más información en nuestra <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</p>' +
     '<p class="agent-form-error hidden" role="alert" data-lead-error></p>' +
     '<button type="submit" class="cta-button cta-button--block" data-lead-submit><span>Enviar mis datos</span></button>';
 

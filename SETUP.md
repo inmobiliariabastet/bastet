@@ -65,6 +65,10 @@ El formulario "Quiero que me contacten" de la ficha de propiedad guarda contacto
 
 La pestaña "Comisiones" lee la tabla `collections`. Para activarla, corre [`supabase/collections.sql`](supabase/collections.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Solo los administradores cargan, editan y eliminan cobranzas; cada agente ve únicamente las suyas. Los porcentajes y montos los define el administrador en cada cobranza: el sistema no aplica ninguna política de honorarios.
 
+## Política de privacidad
+
+La página pública es `privacidad.html` (estilos en `assets/css/legal.css`). Está enlazada desde el pie del landing, el formulario "Quiero que me contacten" y la solicitud de cuenta de agente. Si cambias qué datos recoge el sitio (formularios, analítica, proveedores), actualiza esa página y su fecha de última actualización, y valídala con asesoría legal.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.
