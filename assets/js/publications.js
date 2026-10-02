@@ -24,21 +24,48 @@
   }
 
   /* ───────── Contador de gratis ───────── */
-  function dots(q) {
+  /* Tarjeta "Publicaciones gratis este mes" (panel > Propiedades). Datos reales de my_publication_quota():
+     free_left / free_total (cupo), resets_on (renovación), validity_days (duración), cost (créditos por publicar o renovar), balance (saldo). */
+  const ICON = {
+    doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9.5 15.5V12l2.5-2 2.5 2v3.5zM9 18h6"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/></svg>',
+    info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.01"/></svg>',
+    renew: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4"/></svg>',
+    coins: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  };
+
+  function circles(q) {
     let h = '';
-    for (let i = 0; i < q.free_total; i++) h += '<i class="pub-dot' + (i < q.free_left ? ' is-free' : '') + '"></i>';
-    return '<span class="pub-dots" aria-hidden="true">' + h + '</span>';
+    for (let i = 0; i < q.free_total; i++) h += '<i class="pq-dot' + (i < q.free_left ? ' is-on' : '') + '"></i>';
+    return '<span class="pq-dots" aria-hidden="true">' + h + '</span>';
   }
 
   function chipHtml(q) {
-    if (q.exempt) return '<div class="pub-quota-main"><div><b>Administrador</b><span>Publicas y renuevas sin límite y sin costo en créditos.</span></div></div>';
-    const left = q.free_left;
-    const main = '<div class="pub-quota-main">' + dots(q) +
-      '<div><b>Publicaciones gratis este mes: ' + left + ' de ' + q.free_total + '</b>' +
-      '<span>Se renuevan el ' + esc(dayOfMonth(q.resets_on)) + ' y vuelven a ' + q.free_total + '. Cada publicación dura ' + (q.validity_days || 30) + ' días y se renueva con una gratis' +
-      (left > 0 ? '' : ' (ya no te quedan)') + ' o con ' + q.cost + ' créditos' + (left > 0 ? '' : ' — tu saldo: ' + q.balance) + '.</span></div></div>';
-    const buy = left === 0 && q.balance < q.cost ? '<button type="button" class="btn btn-accent btn-sm" data-pub-buy>Comprar créditos</button>' : '';
-    return main + buy;
+    const days = q.validity_days || 30;
+    if (q.exempt) {
+      return '<div class="pq-main"><div class="pq-top"><span class="pq-badge">' + ICON.doc + '</span><div class="pq-text"><h2 class="pq-title">Administrador</h2>' +
+        '<p class="pq-renew">Publicas y renuevas propiedades <b>sin límite y sin costo en créditos</b>.</p></div></div>' +
+        '<div class="pq-notes"><p class="pq-note"><span class="pq-note-ico">' + ICON.info + '</span><span>Cada publicación dura ' + days + ' días en UNO Marketplace Inmobiliario.</span></p></div></div>';
+    }
+    const credits = q.balance === 1 ? 'crédito disponible' : 'créditos disponibles';
+    return '<div class="pq-main">' +
+        '<div class="pq-top">' +
+          '<span class="pq-badge">' + ICON.doc + '</span>' +
+          '<div class="pq-count" aria-label="' + q.free_left + ' de ' + q.free_total + ' publicaciones gratis disponibles"><div class="pq-num"><b>' + q.free_left + '</b><span>/ ' + q.free_total + '</span></div>' + circles(q) + '</div>' +
+          '<div class="pq-text"><h2 class="pq-title">Publicaciones gratis este mes</h2>' +
+            '<p class="pq-renew"><span class="pq-ico">' + ICON.calendar + '</span><span>Tus <b>' + q.free_total + ' publicaciones gratis</b> se renuevan el ' + esc(dayOfMonth(q.resets_on)) + '.</span></p></div>' +
+        '</div>' +
+        '<div class="pq-notes">' +
+          '<p class="pq-note"><span class="pq-note-ico">' + ICON.info + '</span><span>Cada publicación dura ' + days + ' días en UNO Marketplace Inmobiliario.</span></p>' +
+          '<p class="pq-note"><span class="pq-note-ico">' + ICON.renew + '</span><span>Puedes renovar una publicación con un cupo gratis o con ' + q.cost + ' créditos.</span></p>' +
+        '</div>' +
+      '</div>' +
+      '<aside class="pq-credits" aria-label="Créditos">' +
+        '<div class="pq-credits-top"><span class="pq-coin">' + ICON.coins + '</span><div><b class="pq-balance">' + q.balance + '</b><span>' + credits + '</span></div></div>' +
+        '<p class="pq-cost">Renueva una publicación por <b>' + q.cost + ' créditos</b>.</p>' +
+        '<button type="button" class="pq-btn" data-pub-buy><span>Ver opciones</span>' + ICON.arrow + '</button>' +
+      '</aside>';
   }
 
   function renderChip() {
