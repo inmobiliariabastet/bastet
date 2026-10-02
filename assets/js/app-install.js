@@ -33,11 +33,6 @@
     document.getElementById('ap-installed').hidden = false;
     document.querySelectorAll('[data-install]').forEach((b) => { b.hidden = true; });
   }
-  // Las maquetas miden 600 px de ancho: se reducen para que quepan en pantallas angostas
-  const art = document.querySelector('.ap-hero-art');
-  function fit() { if (art) art.style.setProperty('--s', Math.min(1, art.clientWidth / 600).toFixed(3)); }
-  fit(); window.addEventListener('resize', fit);
-
   if (standalone) { markInstalled(); return; }
 
   let deferred = null;
