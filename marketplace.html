@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0A0A09">
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/css/fonts.css?v=20261007b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261007b">
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261008a">
+<link rel="stylesheet" href="assets/css/style.css?v=20261008a">
 </head>
 <body class="marketplace-page">
 
@@ -57,6 +57,10 @@
     <div class="operation-filters" id="operation-filters" role="tablist" aria-label="Filtrar por operación"></div>
     <div class="select-filters">
       <div class="budget-filter">
+        <label for="city-filter-select" class="budget-filter-label">Departamento</label>
+        <select id="city-filter-select" class="budget-filter-select"></select>
+      </div>
+      <div class="budget-filter">
         <label for="type-filter-select" class="budget-filter-label">Tipo</label>
         <select id="type-filter-select" class="budget-filter-select"></select>
       </div>
@@ -73,7 +77,6 @@
         <select id="budget-filter-select" class="budget-filter-select"></select>
       </div>
     </div>
-    <div class="city-filters" id="city-filters"></div>
     <div class="clear-filters-wrap">
       <button type="button" class="clear-filters hidden" id="clear-filters">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -173,10 +176,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="assets/js/supabase-config.js?v=20261007b"></script>
-<script src="assets/js/bolivia-cities.js?v=20261007b"></script>
-<script src="assets/js/password-toggle.js?v=20261007b"></script>
-<script src="assets/js/property-fields.js?v=20261007b"></script>
-<script src="assets/js/main.js?v=20261007b"></script>
+<script src="assets/js/supabase-config.js?v=20261008a"></script>
+<script src="assets/js/bolivia-cities.js?v=20261008a"></script>
+<script src="assets/js/password-toggle.js?v=20261008a"></script>
+<script src="assets/js/property-fields.js?v=20261008a"></script>
+<script src="assets/js/main.js?v=20261008a"></script>
 </body>
 </html>

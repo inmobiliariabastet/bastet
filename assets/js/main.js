@@ -326,7 +326,7 @@ let propVisibleCount = PROP_PAGE_SIZE;
 
 const propGridEl = document.getElementById('prop-grid');
 const propMoreWrapEl = document.getElementById('prop-more-wrap');
-const cityFiltersEl = document.getElementById('city-filters');
+const citySelectEl = document.getElementById('city-filter-select');
 const modalBackdrop = document.getElementById('property-modal-backdrop');
 const modal = document.getElementById('property-modal');
 
@@ -495,7 +495,7 @@ function enhanceSelect(selectEl) {
 document.addEventListener('pointerdown', (e) => {
   if (openBrandSelect && !e.target.closest('.brand-select.is-open')) openBrandSelect.close(false);
 });
-[typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].filter(Boolean).forEach(enhanceSelect);
+[citySelectEl, typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].filter(Boolean).forEach(enhanceSelect);
 
 // Rangos de presupuesto (USD) según la operación: un alquiler mensual no se busca
 // con los mismos montos que una compra o un anticrético. [mínimo exclusivo, máximo inclusivo]
@@ -552,7 +552,7 @@ typeSelectEl?.addEventListener('change', () => {
   buildRoomsFilter();  // las cantidades de habitaciones, baños y presupuesto dependen del tipo
   buildBathsFilter();
   buildBudgetFilter();
-  buildCityFilters();
+  buildCityFilter();
   renderPropertyGrid();
 });
 
@@ -582,7 +582,7 @@ roomsSelectEl?.addEventListener('change', () => {
   roomsSelectEl.classList.toggle('is-set', roomsFilter !== '');
   buildBathsFilter();  // las cantidades de baños y de presupuesto dependen de las habitaciones
   buildBudgetFilter();
-  buildCityFilters();
+  buildCityFilter();
   renderPropertyGrid();
 });
 
@@ -611,7 +611,7 @@ bathsSelectEl?.addEventListener('change', () => {
   cityFilter = 'Todas';
   bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
   buildBudgetFilter(); // las cantidades por rango dependen de los baños
-  buildCityFilters();
+  buildCityFilter();
   renderPropertyGrid();
 });
 
@@ -640,7 +640,7 @@ budgetSelectEl?.addEventListener('change', () => {
   budgetFilter = budgetSelectEl.value;
   cityFilter = 'Todas';
   budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
-  buildCityFilters();
+  buildCityFilter();
   renderPropertyGrid();
 });
 const operationFiltersEl = document.getElementById('operation-filters');
@@ -775,7 +775,7 @@ async function loadProperties() {
     buildRoomsFilter();
     buildBathsFilter();
     buildBudgetFilter();
-    buildCityFilters();
+    buildCityFilter();
   }
   renderPropertyGrid();
 }
@@ -818,7 +818,7 @@ function buildOperationFilters() {
       buildRoomsFilter();
       buildBathsFilter();
       buildBudgetFilter();
-      buildCityFilters();
+      buildCityFilter();
       renderPropertyGrid();
     });
     operationFiltersEl.appendChild(btn);
@@ -855,26 +855,32 @@ function propertiesForOperationAndBudget() {
   return range ? base.filter((p) => inBudgetRange(p, range)) : base;
 }
 
-function buildCityFilters() {
-  const presentCities = new Set(propertiesForOperationAndBudget().map((p) => (p.location || '').split(',')[0].trim()));
-  const cities = ['Todas'].concat(BOLIVIA_CITIES.filter((c) => presentCities.has(c)));
-
-  cityFiltersEl.innerHTML = '';
-  if (cities.length <= 1) return;
-
-  cities.forEach((city) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'city-pill' + (city === cityFilter ? ' is-active' : '');
-    btn.textContent = city;
-    btn.addEventListener('click', () => {
-      cityFilter = city;
-      buildCityFilters();
-      renderPropertyGrid();
-    });
-    cityFiltersEl.appendChild(btn);
+// Selector de departamento, con la cantidad de propiedades de cada uno según los demás filtros.
+// Solo aparecen los departamentos que tienen propiedades.
+function buildCityFilter() {
+  const base = propertiesForOperationAndBudget();
+  const presentCities = new Set(base.map((p) => (p.location || '').split(',')[0].trim()));
+  citySelectEl.innerHTML = '';
+  const any = document.createElement('option');
+  any.value = 'Todas';
+  any.textContent = 'Todos los departamentos';
+  citySelectEl.appendChild(any);
+  BOLIVIA_CITIES.filter((c) => presentCities.has(c)).forEach((city) => {
+    const count = base.filter((p) => (p.location || '').startsWith(city)).length;
+    const opt = document.createElement('option');
+    opt.value = city;
+    opt.textContent = city + ' (' + count + ')';
+    citySelectEl.appendChild(opt);
   });
+  citySelectEl.value = cityFilter;
+  citySelectEl.classList.toggle('is-set', cityFilter !== 'Todas');
 }
+
+citySelectEl?.addEventListener('change', () => {
+  cityFilter = citySelectEl.value;
+  citySelectEl.classList.toggle('is-set', cityFilter !== 'Todas');
+  renderPropertyGrid();
+});
 
 function filteredProperties() {
   const base = propertiesForOperationAndBudget();
@@ -906,7 +912,7 @@ clearFiltersBtn?.addEventListener('click', () => {
   buildRoomsFilter();
   buildBathsFilter();
   buildBudgetFilter();
-  buildCityFilters();
+  buildCityFilter();
   renderPropertyGrid();
 });
 
