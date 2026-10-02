@@ -82,12 +82,25 @@
     root().innerHTML = `
       <div id="credits-flash" hidden></div>
 
-      <section class="credits-hero">
-        <div>
-          <span class="credits-eyebrow">Saldo disponible</span>
-          <div class="credits-balance">${d.balance}<small>créditos</small></div>
+      <section class="cr-card" aria-label="Saldo disponible">
+        <div class="cr-left">
+          <span class="cr-eyebrow">Saldo disponible</span>
+          <div class="cr-balance-row">
+            <span class="cr-coin" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>
+            <div>
+              <div class="cr-figure"><b>${d.balance}</b><span>${d.balance === 1 ? 'Crédito' : 'Créditos'}</span></div>
+              <p class="cr-sub">Disponibles para usar</p>
+            </div>
+          </div>
         </div>
-        <p class="credits-hero-note">Usa tus créditos para destacar tus propiedades y para publicar más allá de tus propiedades gratis del mes.<br><span id="credits-pub-line"></span></p>
+        <div class="cr-right">
+          <span class="cr-eyebrow cr-eyebrow--soft">Úsalos para:</span>
+          <div class="cr-uses">
+            <div class="cr-use"><span class="cr-use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg></span><div><b>Destacar propiedades</b><span>Mayor visibilidad para tus inmuebles.</span></div></div>
+            <div class="cr-use"><span class="cr-use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><div><b>Publicar o renovar</b><span>Usa créditos cuando no tengas cupo gratuito.</span></div></div>
+          </div>
+          <div class="cr-foot"><div id="credits-pub-line" class="cr-free"></div><div id="credits-cost" class="cr-cost"></div></div>
+        </div>
       </section>
 
       ${pending ? `<p class="auth-banner">Tu solicitud del pack <b>${esc(pending.pack_name)}</b> (${priceOf(pending)}) está pendiente de confirmación de pago.</p>` : ''}
