@@ -48,7 +48,7 @@
       return;
     }
     selectOS('android', true);
-    if (isIOS) note(noteAndroid, 'Estás en un iPhone o iPad: usa la pestaña "iPhone y iPad".');
+    if (isIOS) note(noteAndroid, 'Estás en un iPhone o iPad: usa la pestaña "iOS".');
     else if (isAndroid) note(noteAndroid, 'Si no aparece el aviso de instalación, abre el menú del navegador (⋮) y elige "Instalar aplicación" o "Añadir a pantalla de inicio". Recuerda abrir esta página en Chrome.');
     else note(noteAndroid, 'Para instalarla desde una computadora, usa Chrome o Edge: toca el ícono de instalar en la barra de direcciones o, en el menú (⋮), "Instalar UNO". Desde tu celular Android abre bastet.uno/app.html.');
   }
