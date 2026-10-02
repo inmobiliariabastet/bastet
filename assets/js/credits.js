@@ -212,6 +212,16 @@
     });
 
     host.querySelectorAll('[data-feature]').forEach((b) => b.addEventListener('click', async () => {
+      // Todo cobro en créditos pide aprobación del agente antes de descontar
+      const svc = d.services.find((s) => s.code === b.dataset.service);
+      const prop = d.props.find((x) => String(x.id) === String(b.dataset.feature));
+      if (svc && window.UnoPublications && window.UnoPublications.confirmSpend) {
+        const ok = await window.UnoPublications.confirmSpend({
+          title: 'Confirmar compra', what: svc.name + (prop ? ' — ' + prop.title : ''), cost: svc.cost, balance: d.balance,
+          note: 'El descuento no se devuelve una vez activada la destacada.', button: 'Destacar',
+        });
+        if (!ok) return;
+      }
       b.disabled = true;
       const { error } = await supabaseClient.rpc('feature_property', { p_property_id: b.dataset.feature, p_service: b.dataset.service });
       if (error) { await reload(errText(error), true); return; }

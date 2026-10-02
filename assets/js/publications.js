@@ -276,6 +276,30 @@
     });
   }
 
+  /* Aprobación genérica de un cobro en créditos (destacar, etc.): muestra qué se compra, el costo y el saldo antes/después.
+     Devuelve una promesa: true = el agente aprobó, false = canceló. */
+  function confirmSpend(o) {
+    closeOverlay();
+    return new Promise((resolve) => {
+      const after = o.balance - o.cost;
+      const ov = document.createElement('div');
+      ov.className = 'modal-overlay'; ov.id = 'pub-overlay';
+      ov.innerHTML = '<div class="modal-panel pub-modal" role="dialog" aria-modal="true" aria-labelledby="pub-spend-title"><h2 id="pub-spend-title">' + esc(o.title) + '</h2>' +
+        '<p><b>' + esc(o.what) + '</b></p>' +
+        '<p class="pub-modal-new">Se descontarán <b>' + o.cost + ' créditos</b> de tu saldo (' + o.balance + ' → ' + after + ').</p>' +
+        (o.note ? '<p class="pub-modal-fine">' + esc(o.note) + '</p>' : '') +
+        '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-pub-cancel>Cancelar</button>' +
+        '<button type="button" class="btn btn-accent" id="pub-spend-ok">' + esc(o.button || 'Confirmar') + ' · ' + o.cost + ' créditos</button></div></div>';
+      document.body.appendChild(ov);
+      const done = (ok) => { document.removeEventListener('keydown', onKey, true); closeOverlay(); resolve(ok); };
+      const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } };
+      document.addEventListener('keydown', onKey, true);
+      ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-pub-cancel]')) done(false); });
+      const ok = ov.querySelector('#pub-spend-ok');
+      ok.addEventListener('click', () => done(true)); ok.focus();
+    });
+  }
+
   function insufficientMessage(action) {
     const q = state.quota;
     const verb = action === 'renovar' ? 'No se renovó' : 'No se publicó';
@@ -315,5 +339,5 @@
     if (session && session.user) setTimeout(async () => { try { await supabaseClient.rpc('process_auto_renewals'); } catch (e) { /* sin el SQL */ } refresh(); if (typeof loadProperties === 'function' && document.getElementById('property-list')) loadProperties(); }, 0);
   });
 
-  window.UnoPublications = { refresh, fillLine, decorateCard, confirmPublish, insufficientMessage: () => insufficientMessage('publicar'), get quota() { return state.quota; }, get supportsAutoRenew() { return state.supported; } };
+  window.UnoPublications = { refresh, fillLine, decorateCard, confirmPublish, confirmSpend, insufficientMessage: () => insufficientMessage('publicar'), get quota() { return state.quota; }, get supportsAutoRenew() { return state.supported; } };
 })();
