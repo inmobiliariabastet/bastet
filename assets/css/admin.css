@@ -421,6 +421,31 @@ a.btn { text-decoration: none; }
 .pub-banner .ct-link { color: inherit; }
 .credits-pub-line, #credits-pub-line { color: #D9C79A; }
 
+/* ── Vigencia de la publicación: cuenta regresiva y renovación ── */
+.prop-life { margin-top: 10px; padding: 12px 14px; background: #FFFCF4; border: 1px solid rgba(217,164,65,.45); border-radius: 12px; }
+.prop-life-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.prop-life-label { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--oro-p); font-weight: 500; }
+.prop-life-time { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--oro-p); font-variant-numeric: tabular-nums; }
+.prop-life-bar { height: 6px; margin: 8px 0 6px; background: #F0E4C4; border-radius: 99px; overflow: hidden; }
+.prop-life-bar i { display: block; height: 100%; background: var(--gold-grad); border-radius: 99px; transition: width .6s ease; }
+.prop-life-date { font-size: 12.5px; color: var(--tinta-2); }
+.prop-life[data-level="warn"] { background: #FFF3D6; border-color: #D9A441; }
+.prop-life[data-level="warn"] .prop-life-time { color: #8A5A12; }
+.prop-life[data-level="warn"] .prop-life-bar i { background: linear-gradient(90deg, #B7791F, #D9A441); }
+.prop-life[data-level="bad"] { background: #FBEDE9; border-color: rgba(166,61,47,.5); }
+.prop-life[data-level="bad"] .prop-life-time { color: var(--bad); }
+.prop-life[data-level="bad"] .prop-life-bar i { width: 0 !important; }
+.pub-auto { margin: 10px 0 0; }
+.pub-auto .ct-toggle-text small { font-size: 12px; }
+.pub-auto-fail { margin: 8px 0 0; font-size: 12.5px; color: var(--bad); }
+.prop-card.is-expired .prop-ph img.prop-photo { filter: grayscale(1) brightness(.75); }
+.prop-card.is-expired { border-color: rgba(166,61,47,.35); }
+.pub-expired-badge { position: relative; z-index: 2; margin-left: 6px; }
+.pub-modal { max-width: 460px; }
+.pub-modal h2 { margin-bottom: 10px; }
+.pub-modal-new { padding: 10px 12px; background: #FFF3D1; border: 1px solid rgba(217,164,65,.5); border-radius: 10px; }
+.pub-modal-low { padding: 10px 12px; background: #F5DDD8; color: #6f2a1f; border-radius: 10px; }
+
 /* ── Responsive: tablet y celular ── */
 @media (max-width: 1100px) {
   .field-row-3 { grid-template-columns: 1fr 1fr; }

@@ -151,4 +151,110 @@ cur.execute("reset role"); cur.execute("update profiles set is_active=true where
 # editar una propiedad no gasta cupo ni cobra
 b0 = bal(a4); p0 = one("select count(*) from property_publications where user_id=%s", (a4,))
 as_(a4, "update properties set title='cambio' where owner_id=%s", (a4,)); eq("editar no cobra ni gasta cupo", (bal(a4), one("select count(*) from property_publications where user_id=%s", (a4,))), (b0, p0))
+
+# ══════════ Vigencia de 30 días, renovación manual y renovación automática ══════════
+def su():
+    cur.execute('reset role'); cur.execute("select set_config('request.jwt.claim.sub','',false)")
+su()
+cur.execute("insert into auth.users(email,invited_at) values ('b1@x','2026-01-01'),('b2@x','2026-01-01'),('b3@x','2026-01-01') returning id")
+b1, b2, b3 = [r[0] for r in cur.fetchall()]
+cur.execute("insert into credit_wallets(user_id,balance) values (%s,40),(%s,0)", (b1, b2))
+def su():
+    cur.execute('reset role'); cur.execute("select set_config('request.jwt.claim.sub','',false)")
+def exp(pid): return one("select expires_at from properties where id=%s", (pid,))
+def days_from_now(ts): return round((ts - one("select now()")).total_seconds() / 86400, 1)
+def newprop(u, title='V'):
+    r = as_(u, "insert into properties(id,title,location,price,area,rooms,baths,owner_id) values (gen_random_uuid(),%s,'SC','1','1','1','1',%s) returning id", (title, u))
+    return r[1][0][0] if r[0] == 'ok' else None
+
+# ── vigencia fijada por el servidor
+pid = newprop(b1, 'V1')
+eq("al crear: vence a los 30 días", days_from_now(exp(pid)), 30.0)
+r = as_(b1, "insert into properties(id,title,location,price,area,rooms,baths,owner_id,expires_at) values (gen_random_uuid(),'Tramposa','SC','1','1','1','1',%s,'2099-01-01') returning id", (b1,))
+eq("el navegador no puede elegir la vigencia al crear", days_from_now(exp(r[1][0][0])), 30.0)
+as_(b1, "update properties set expires_at='2099-01-01' where id=%s", (pid,)); eq("agente no puede alargar el vencimiento", days_from_now(exp(pid)), 30.0)
+as_(adm, "update properties set expires_at = now() + interval '5 days' where id=%s", (pid,)); eq("admin sí puede cambiar el vencimiento", days_from_now(exp(pid)), 5.0)
+su(); cur.execute("update properties set expires_at = now() + interval '30 days' where id=%s", (pid,))
+cur.execute("update properties set expires_at = null where id=%s", (pid,)); cur.execute(open(R_ + "publications.sql", encoding='utf-8').read())
+eq("las propiedades ya existentes reciben 30 días al activar", days_from_now(exp(pid)), 30.0)
+
+# ── el público solo ve propiedades vigentes
+su(); cur.execute("update properties set expires_at = now() - interval '1 day' where id=%s", (pid,))
+eq("anon NO ve una propiedad vencida", as_(None, "select count(*) from properties where id=%s", (pid,))[1][0][0], 0)
+eq("el dueño sí la ve en su panel", as_(b1, "select count(*) from properties where id=%s", (pid,))[1][0][0], 1)
+eq("anon ve las vigentes", as_(None, "select count(*) from properties where owner_id=%s and title='V1'", (b1,))[1][0][0], 0)
+
+# ── renovación manual: cupo gratis primero, luego créditos
+su(); cur.execute("delete from property_publications where user_id=%s", (b1,))
+bal0 = bal(b1)
+r = as_(b1, "select renew_property(%s)", (pid,)); chk("renovar una vencida (con cupo gratis)", r, False); res = r[1][0][0]
+eq("usó una gratis, sin cobro", (res['kind'], bal(b1)), ('free', bal0))
+eq("30 días completos desde hoy (estaba vencida)", days_from_now(exp(pid)), 30.0)
+eq("vuelve a verse para el público", as_(None, "select count(*) from properties where id=%s", (pid,))[1][0][0], 1)
+eq("la renovación consumió un cupo del mes", quota(b1)['free_left'], 2)
+su(); cur.execute("select is_renewal from property_publications where user_id=%s and kind='free'", (b1,)); eq("queda registrada como renovación", cur.fetchone()[0], True)
+# sin cupo gratis: 8 créditos
+su(); cur.execute("insert into property_publications(user_id,month,kind) select %s, bolivia_month_start(), 'free' from generate_series(1,2)", (b1,))
+eq("sin cupo gratis", quota(b1)['free_left'], 0)
+su(); cur.execute("update properties set expires_at = now() + interval '10 days' where id=%s", (pid,))
+r = as_(b1, "select renew_property(%s)", (pid,)); chk("renovar con créditos", r, False)
+eq("cobró 8 créditos", bal(b1), bal0 - 8)
+eq("renovar antes de vencer suma 30 días al vencimiento (10 + 30)", days_from_now(exp(pid)), 40.0)
+su(); cur.execute("select description from credit_ledger where user_id=%s order by id desc limit 1", (b1,)); eq("movimiento de renovación", cur.fetchone()[0].startswith('Renovación de propiedad: V1'), True)
+# sin saldo: rechaza sin tocar nada
+pid2 = newprop(b2, 'W1'); su(); cur.execute("insert into property_publications(user_id,month,kind) select %s, bolivia_month_start(), 'free' from generate_series(1,3)", (b2,))
+cur.execute("update properties set expires_at = now() - interval '1 day' where id=%s", (pid2,)); e0 = exp(pid2)
+chk("renovar sin saldo ni cupo: rechazada", as_(b2, "select renew_property(%s)", (pid2,)), True); eq("sin cambios en el vencimiento ni en el saldo", (exp(pid2), bal(b2)), (e0, 0))
+# permisos
+chk("otro agente no renueva lo ajeno", as_(b1, "select renew_property(%s)", (pid2,)), True)
+chk("anon no renueva", as_(None, "select renew_property(%s)", (pid2,)), True)
+r = as_(adm, "select renew_property(%s)", (pid2,)); chk("admin renueva cualquiera, gratis", r, False); eq("admin: sin cobro y sin cupo", (r[1][0][0]['kind'], bal(b2)), ('admin', 0))
+
+# ── renovación automática
+su(); cur.execute("delete from property_publications where user_id in (%s,%s)", (b1, b3))
+cur.execute("insert into credit_wallets(user_id,balance) values (%s,16)", (b3,))
+pa = newprop(b3, 'AUTO1'); pb = newprop(b3, 'AUTO2'); pc = newprop(b3, 'NOAUTO')
+su(); cur.execute("update property_publications set kind='free' where user_id=%s", (b3,))
+cur.execute("insert into property_publications(user_id,month,kind) select %s, bolivia_month_start(), 'free' from generate_series(1,3)", (b3,))   # cupo gratis agotado
+eq("el agente activa la renovación automática de la suya", as_(b3, "update properties set auto_renew=true where id in (%s,%s) returning id", (pa, pb))[0], 'ok')
+su(); eq("quedan activadas", one("select count(*) from properties where owner_id=%s and auto_renew", (b3,)), 2)
+chk("no activa la de otro", as_(b1, "update properties set auto_renew=true where id=%s", (pa,)), False); eq("…y no cambió", one("select auto_renew from properties where id=%s", (pa,)), True)
+su(); cur.execute("update properties set auto_renew=false where owner_id=%s and title='NOAUTO'", (b3,))
+# vencen: AUTO1 en 30 minutos, AUTO2 dentro de 5 días, NOAUTO ayer
+cur.execute("update properties set expires_at = now() + interval '30 minutes' where id=%s", (pa,))
+cur.execute("update properties set expires_at = now() + interval '5 days' where id=%s", (pb,))
+cur.execute("update properties set expires_at = now() - interval '1 day' where id=%s", (pc,))
+eq("anon puede lanzar el proceso (sin parámetros)", as_(None, "select process_auto_renewals()")[0], 'ok')
+su()
+eq("renovó solo la que vencía en la próxima hora", (days_from_now(exp(pa)), days_from_now(exp(pb))), (30.0, 5.0))
+eq("30 días completos desde su vencimiento (30 min + 30 días)", float(one("select extract(epoch from (expires_at - now()))/86400 from properties where id=%s", (pa,))) > 30.0, True)
+eq("cobró 8 (sin cupo gratis)", bal(b3), 8)
+eq("la que no tiene la opción NO se renueva", days_from_now(exp(pc)) < 0, True)
+eq("sigue oculta para el público", as_(None, "select count(*) from properties where id=%s", (pc,))[1][0][0], 0)
+su(); cur.execute("select description from credit_ledger where user_id=%s order by id desc limit 1", (b3,)); eq("movimiento 'Renovación automática'", cur.fetchone()[0].startswith('Renovación automática: AUTO1'), True)
+eq("limitado: otra corrida inmediata no hace nada", as_(None, "select process_auto_renewals()")[1][0][0], 0)
+# fuerza (como pg_cron) y saldo insuficiente: no cobra y marca el fallo
+su(); cur.execute("update credit_wallets set balance=3 where user_id=%s", (b3,)); cur.execute("update properties set expires_at = now() - interval '2 days' where id=%s", (pb,))
+cur.execute("select _process_auto_renewals(true)"); n = cur.fetchone()[0]
+eq("sin saldo: no renueva", n, 0); eq("sin saldo: saldo intacto", bal(b3), 3)
+eq("sin saldo: queda marcado el intento fallido", one("select auto_renew_failed_at is not null from properties where id=%s", (pb,)), True)
+eq("sin saldo: sigue vencida y oculta", (days_from_now(exp(pb)) < 0, as_(None, "select count(*) from properties where id=%s", (pb,))[1][0][0]), (True, 0))
+# el dueño compra créditos -> la siguiente corrida renueva desde HOY (30 días completos)
+su(); cur.execute("update credit_wallets set balance=20 where user_id=%s", (b3,)); cur.execute("select _process_auto_renewals(true)")
+eq("con saldo vuelve: renovada", cur.fetchone()[0], 1); eq("desde hoy, 30 días completos", days_from_now(exp(pb)), 30.0)
+eq("se limpia la marca de fallo", one("select auto_renew_failed_at is null from properties where id=%s", (pb,)), True)
+eq("vuelve a verse", as_(None, "select count(*) from properties where id=%s", (pb,))[1][0][0], 1)
+# un administrador dueño con renovación automática: gratis
+su(); padm = newprop(adm, 'ADMAUTO'); su(); cur.execute("update properties set auto_renew=true, expires_at = now() + interval '10 minutes' where id=%s", (padm,)); cur.execute("select _process_auto_renewals(true)")
+eq("admin: renueva sin cobro ni cupo", (days_from_now(exp(padm)) > 29.9, one("select count(*) from property_publications where user_id=%s", (adm,))), (True, 0))
+# propiedad vendida o dueño desactivado no se renuevan
+su(); cur.execute("update properties set status='sold', expires_at = now() - interval '1 day' where id=%s", (pa,)); cur.execute("select _process_auto_renewals(true)")
+eq("vendida: no se renueva", days_from_now(exp(pa)) < 0, True)
+cur.execute("update properties set status='available', expires_at = now() - interval '1 day' where id=%s", (pa,)); cur.execute("update profiles set is_active=false where id=%s", (b3,)); cur.execute("select _process_auto_renewals(true)")
+eq("dueño desactivado: no se renueva", days_from_now(exp(pa)) < 0, True)
+cur.execute("update profiles set is_active=true where id=%s", (b3,))
+chk("el navegador no puede forzar el proceso", as_(None, "select _process_auto_renewals(true)"), True)
+chk("agente no llama al núcleo de renovación", as_(b3, "select _do_renew(%s, %s, true, true)", (pa, b3)), True)
+eq("la cuenta del cupo ya no cambia al editar", quota(b3)['free_total'], 3)
+
 print("\nFALLAS:", fails); sys.exit(1 if fails else 0)
