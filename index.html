@@ -13,7 +13,7 @@
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261015a">
+<link rel="stylesheet" href="assets/css/style.css?v=20261016a">
 <link rel="stylesheet" href="assets/css/sell.css?v=20261014d">
 </head>
 <body>
@@ -23,6 +23,8 @@
     <a href="#hero" class="navbar-logo" aria-label="UNO · Marketplace Inmobiliario by Bastet — inicio">
       <img class="navbar-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449">
     </a>
+
+    <a href="app.html" data-install-app class="navbar-install" hidden aria-label="Instalar app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Instalar app</span></a>
 
     <button class="navbar-burger" aria-label="Abrir menú">
       <span></span><span></span><span></span>
@@ -309,12 +311,20 @@
   </div>
 </div>
 
+<nav class="quick-bar" aria-label="Accesos rápidos">
+  <a href="#hero" class="qb-item is-active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg><span>Inicio</span></a>
+  <a href="marketplace.html" class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.500" height="7.500" rx="1.500"/><rect x="13.500" y="3" width="7.500" height="7.500" rx="1.500"/><rect x="3" y="13.500" width="7.500" height="7.500" rx="1.500"/><rect x="13.500" y="13.500" width="7.500" height="7.500" rx="1.500"/></svg><span>Marketplace</span></a>
+  <button type="button" data-sell-open class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M12 13v5M9.500 15.500h5"/></svg><span>Vender</span></button>
+  <a href="verificar.html" class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6l7-3zM9 12l2 2 4-4"/></svg><span>Verificar</span></a>
+  <button type="button" data-agent-access class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.600-7 8-7s8 3 8 7"/></svg><span>Agentes</span></button>
+</nav>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/js/supabase-config.js?v=20261014b"></script>
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261014b"></script>
-<script src="assets/js/main.js?v=20261015a"></script>
+<script src="assets/js/main.js?v=20261016a"></script>
 <script src="assets/js/sell.js?v=20261014d"></script>
 </body>
 </html>
