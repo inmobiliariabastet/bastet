@@ -1349,45 +1349,12 @@ loadPartners();
   video.play().catch(() => {});
 })();
 
-/* ── Instalar UNO como app (PWA): acceso directo a bastet.uno ── */
+/* ── Instalar UNO como app (PWA): los botones "Instalar app" llevan a la pantalla app.html (mockups, ventajas y descarga) ── */
 (function setupInstallApp() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  const buttons = document.querySelectorAll('[data-install-app]');
-  const modal = document.getElementById('install-modal');
-  const modalText = document.getElementById('install-modal-text');
-  if (!buttons.length || !modal) return;
-
+  // Si ya está instalada (abierta como app), el botón no se muestra.
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (isStandalone) return;
-
-  let deferredPrompt = null;
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-  window.addEventListener('appinstalled', () => { deferredPrompt = null; buttons.forEach((b) => { b.hidden = true; }); });
-
-  const ua = navigator.userAgent;
-  const isIOS = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-
-  function showHelp() {
-    modalText.textContent = isIOS
-      ? 'En Safari toca el botón Compartir (el cuadrado con la flecha hacia arriba) y elige "Añadir a pantalla de inicio".'
-      : 'Abre el menú de tu navegador (⋮ o ⋯) y elige "Instalar aplicación" o "Añadir a pantalla de inicio".';
-    modal.hidden = false;
-  }
-
-  buttons.forEach((btn) => {
-    btn.hidden = false;
-    btn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice.catch(() => {});
-        deferredPrompt = null;
-      } else {
-        showHelp();
-      }
-    });
-  });
-
-  document.getElementById('install-modal-close').addEventListener('click', () => { modal.hidden = true; });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
+  document.querySelectorAll('[data-install-app]').forEach((a) => { a.hidden = false; });
 })();

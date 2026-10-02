@@ -87,6 +87,10 @@ Para activar la regla corre [`supabase/publications.sql`](supabase/publications.
 
 El botón **Vender mi inmueble** del landing abre un formulario con los datos del propietario, los del inmueble, la ubicación en el mapa y los documentos de respaldo (o la opción "no tengo documentos / necesito apoyo legal"). Para activarlo corre [`supabase/sell-requests.sql`](supabase/sell-requests.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Crea la tabla `sell_requests`, la función `submit_sell_request` (única puerta de entrada, con validaciones y límite de 3 envíos por teléfono cada 24 h) y la carpeta privada `sell-documents` de Storage (10 MB por archivo; PDF, JPG, PNG o WEBP). Los administradores ven las solicitudes en la pestaña **Propietarios** del panel (estado, notas, WhatsApp, ubicación y documentos con enlace temporal de 10 minutos). El mapa usa Leaflet con mosaicos de OpenStreetMap (oscurecidos por CSS, sin clave) y búsqueda de direcciones de OpenStreetMap (Nominatim); no requiere claves.
 
+## Pantalla "Instalar app"
+
+Los botones "Instalar app" del menú llevan a `app.html` (mockups de la versión móvil, ventajas para usuarios y agentes, y botones de descarga para Android y iPhone/iPad). No requiere SQL ni claves. La instalación es la de una app web (PWA): usa `manifest.json` y `sw.js` de la raíz del sitio; para cambiar el ícono o el nombre de la app edita `manifest.json` (íconos en `assets/img/uno-app-192.png` y `uno-app-512.png`). Para actualizar los textos o las maquetas edita `app.html` y `assets/css/app.css`.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.
