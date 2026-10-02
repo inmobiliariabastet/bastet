@@ -87,7 +87,7 @@
           <span class="credits-eyebrow">Saldo disponible</span>
           <div class="credits-balance">${d.balance}<small>créditos</small></div>
         </div>
-        <p class="credits-hero-note">Usa tus créditos para destacar tus propiedades en el carrusel del landing.</p>
+        <p class="credits-hero-note">Usa tus créditos para destacar tus propiedades y para publicar más allá de tus propiedades gratis del mes.<br><span id="credits-pub-line"></span></p>
       </section>
 
       ${pending ? `<p class="auth-banner">Tu solicitud del pack <b>${esc(pending.pack_name)}</b> (${priceOf(pending)}) está pendiente de confirmación de pago.</p>` : ''}
@@ -142,6 +142,7 @@
       </div>`;
 
     bind(d);
+    if (window.UnoPublications) window.UnoPublications.refresh();
   }
 
   function renderAdmin(a) {

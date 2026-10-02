@@ -660,13 +660,18 @@ propertyForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = false;
 
   if (error) {
-    formError.textContent = 'Error al guardar: ' + error.message;
+    // El cobro de la publicación lo hace la base de datos: si no alcanza el saldo, la propiedad no se crea
+    formError.textContent = /Saldo insuficiente/i.test(error.message || '') && window.UnoPublications
+      ? window.UnoPublications.insufficientMessage()
+      : 'Error al guardar: ' + error.message;
     formError.classList.remove('hidden');
+    if (window.UnoPublications) window.UnoPublications.refresh();
     return;
   }
 
   closePropertyForm();
   loadProperties();
+  if (window.UnoPublications) window.UnoPublications.refresh();
 });
 
 /* ── Ubicación: mapa OpenStreetMap + búsqueda Nominatim (gratis, sin API key) ── */

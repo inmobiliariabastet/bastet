@@ -405,6 +405,22 @@ a.btn { text-decoration: none; }
 #collections-stats { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
 #collections-stats .analytics-stat-value { font-size: clamp(26px, 2.6vw, 34px); white-space: nowrap; }
 
+/* ── Publicaciones gratis del mes ── */
+.pub-quota {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; margin-bottom: 20px; padding: 16px 20px;
+  background: linear-gradient(135deg, #FFFCF4, #FFF3D1); border: 1px solid rgba(217,164,65,.55); border-radius: 14px;
+}
+.pub-quota-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.pub-quota-main b { display: block; font-weight: 500; font-size: 16px; }
+.pub-quota-main span:not(.pub-dots) { display: block; font-size: 13.5px; color: var(--tinta-2); }
+.pub-dots { display: inline-flex; gap: 6px; flex: none; }
+.pub-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--oro); background: transparent; }
+.pub-dot.is-free { background: var(--gold-grad); border-color: var(--oro-p); box-shadow: 0 0 10px -2px rgba(217,164,65,.8); }
+.pub-banner { margin: 0 0 16px; padding: 12px 14px; background: #FFF3D1; border: 1px solid rgba(217,164,65,.55); border-radius: 10px; font-size: 14px; line-height: 1.5; color: #5a3a08; }
+.pub-banner.is-low { background: #F5DDD8; border-color: rgba(166,61,47,.4); color: #6f2a1f; }
+.pub-banner .ct-link { color: inherit; }
+.credits-pub-line, #credits-pub-line { color: #D9C79A; }
+
 /* ── Responsive: tablet y celular ── */
 @media (max-width: 1100px) {
   .field-row-3 { grid-template-columns: 1fr 1fr; }
