@@ -133,8 +133,8 @@
         ${d.packs.map((p) => `
           <article class="credits-pack${p.highlighted ? ' is-top' : ''}">
             <h3>${esc(p.name)}</h3>
-            <div class="credits-pack-n">${p.credits + p.bonus}</div>
-            <span class="credits-muted">créditos${p.bonus ? ' (incluye +' + p.bonus + ' de regalo)' : ''}</span>
+            <div class="credits-pack-n">${p.credits}</div>
+            <span class="credits-muted">créditos</span>
             <div class="credits-pack-price">${priceOf(p)}</div>
             ${p.price_bs != null && p.credits > 0 ? `<span class="credits-muted">${bs(p.price_bs / p.credits)} por crédito</span>` : ''}
             <ul>${(p.perks || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul>
