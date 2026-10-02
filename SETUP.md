@@ -53,6 +53,18 @@ Crear cuentas requiere la clave `service_role`, que nunca debe estar en el naveg
 2. Pega el contenido completo de [`supabase/functions/invite-admin/index.ts`](supabase/functions/invite-admin/index.ts) y despliega. `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` ya están disponibles automáticamente.
 3. La función solo acepta invitaciones de un **administrador activo** (un agente recibe 403). Las personas invitadas entran como `agent` y reciben el correo de invitación para crear su contraseña.
 
+## Panel /admin: estructura y fuentes
+
+El panel usa un menú lateral (`<aside id="admin-side">` en `admin/index.html`): cada botón lleva `class="admin-tab"` y `data-tab="<nombre>"`, y `admin.js` muestra el panel `#tab-panel-<nombre>`. Para agregar una sección nueva: un botón en el menú, un `div#tab-panel-<nombre>` y, si es solo para administradores, la clase `admin-only-tab hidden`. Las fuentes del panel (Cormorant Garamond y Jost, libres) están en `assets/fonts/` y se declaran en `assets/css/admin-fonts.css`; el landing usa `fonts.css`. Si cambias un `.css`/`.js`/fuente, sube el `?v=` (ver abajo).
+
+## Clientes interesados (leads)
+
+El formulario "Quiero que me contacten" de la ficha de propiedad guarda contactos en `property_leads` mediante la función `submit_property_lead` (el visitante nunca escribe en la tabla). Para activarlo, corre [`supabase/leads.sql`](supabase/leads.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Cada agente ve solo los clientes de sus propiedades; los administradores ven todos, incluidos los de propiedades sin asignar. **Antes de publicar el formulario, valida con asesoría legal el texto de consentimiento y tu política de privacidad.**
+
+## Comisiones (cobranzas)
+
+La pestaña "Comisiones" lee la tabla `collections`. Para activarla, corre [`supabase/collections.sql`](supabase/collections.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Solo los administradores cargan, editan y eliminan cobranzas; cada agente ve únicamente las suyas. Los porcentajes y montos los define el administrador en cada cobranza: el sistema no aplica ninguna política de honorarios.
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.

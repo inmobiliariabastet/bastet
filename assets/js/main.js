@@ -944,10 +944,72 @@ function trackEvent(propertyId, eventType) {
     .then(() => {}, () => {});
 }
 
+/* ── Formulario "Quiero que me contacten" (clientes interesados) ──
+   El visitante nunca escribe en la tabla: llama a la función SQL submit_property_lead, que valida,
+   limita abusos y asigna el agente. Si el SQL aún no se corrió, muestra un error genérico. */
+const LEAD_CONSENT_TEXT = 'Acepto que mis datos se compartan con el agente de esta propiedad para que me contacte';
+
+function buildLeadForm(property) {
+  const form = document.createElement('form');
+  form.className = 'agent-form lead-form';
+  form.noValidate = false;
+  form.innerHTML =
+    '<h4 class="lead-form-title">Quiero que me contacten</h4>' +
+    '<p class="agent-form-hint">Déjanos tus datos y el agente de esta propiedad te escribirá por WhatsApp.</p>' +
+    '<label class="agent-field"><span>Nombre *</span><input type="text" name="lead_name" required minlength="3" maxlength="120" autocomplete="name"></label>' +
+    '<label class="agent-field"><span>WhatsApp *</span><input type="tel" name="lead_whatsapp" required minlength="7" maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>' +
+    '<label class="agent-field"><span>Mensaje (opcional)</span><textarea name="lead_message" rows="3" maxlength="500" placeholder="Ej: Quisiera agendar una visita"></textarea></label>' +
+    // Campo trampa: las personas no lo ven; los bots suelen llenarlo.
+    '<div class="lead-hp" aria-hidden="true"><label>Sitio web<input type="text" name="lead_website" tabindex="-1" autocomplete="off"></label></div>' +
+    '<label class="lead-consent"><input type="checkbox" name="lead_consent" required><span>' + LEAD_CONSENT_TEXT + '</span></label>' +
+    '<p class="agent-form-error hidden" role="alert" data-lead-error></p>' +
+    '<button type="submit" class="cta-button cta-button--block" data-lead-submit><span>Enviar mis datos</span></button>';
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = form.querySelector('[data-lead-error]');
+    const submitBtn = form.querySelector('[data-lead-submit]');
+    const field = (name) => form.elements[name];
+    errorEl.classList.add('hidden');
+
+    const showSent = () => {
+      form.innerHTML =
+        '<div class="agent-success"><p class="agent-success-title">¡Listo, recibimos tus datos!</p>' +
+        '<p class="agent-form-hint">El agente te contactará por WhatsApp lo antes posible.</p></div>';
+    };
+    if (field('lead_website').value) { showSent(); return; } // bot: se finge éxito y no se envía nada
+
+    submitBtn.disabled = true;
+    submitBtn.querySelector('span').textContent = 'Enviando…';
+    const { error } = await supabaseClient.rpc('submit_property_lead', {
+      p_property_id: property.id,
+      p_name: field('lead_name').value.trim(),
+      p_whatsapp: field('lead_whatsapp').value.trim(),
+      p_message: field('lead_message').value.trim() || null,
+      p_consent: field('lead_consent').checked,
+    });
+    if (error) {
+      submitBtn.disabled = false;
+      submitBtn.querySelector('span').textContent = 'Enviar mis datos';
+      // P0001 = mensaje propio de la función (ya viene en español); cualquier otra cosa, mensaje genérico.
+      errorEl.textContent = error.code === 'P0001' && error.message
+        ? error.message
+        : 'No pudimos enviar tus datos. Inténtalo de nuevo o escríbenos por WhatsApp.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    showSent();
+  });
+  return form;
+}
+
 /* ── Modal ── */
+let leadFormNode = null;
+
 function openProperty(property) {
   selectedProperty = property;
   selectedPhotoIndex = 0;
+  leadFormNode = buildLeadForm(property);
   renderModal();
   modalBackdrop.classList.remove('hidden');
   trackEvent(property.id, 'view');
@@ -955,6 +1017,7 @@ function openProperty(property) {
 
 function closeProperty() {
   selectedProperty = null;
+  leadFormNode = null;
   modalBackdrop.classList.add('hidden');
 }
 
@@ -1034,7 +1097,12 @@ function renderModal() {
       '<p class="property-modal-desc">' + escapeHtml(p.description) + '</p>' +
       buildAgentSectionHtml(p.agent) +
       '<a class="cta-button cta-button--block cta-button--arrow" id="modal-whatsapp-cta" style="margin-top:8px;" href="' + whatsappUrl(message, p.whatsapp) + '" target="_blank" rel="noopener"><span>Consultar por WhatsApp</span></a>' +
+      '<div id="lead-form-slot"></div>' +
     '</div>';
+
+  // El formulario vive fuera del innerHTML para no perder lo escrito al cambiar de foto.
+  const leadSlot = document.getElementById('lead-form-slot');
+  if (leadSlot && leadFormNode) leadSlot.appendChild(leadFormNode);
 
   document.getElementById('property-modal-close').addEventListener('click', closeProperty);
   document.getElementById('modal-whatsapp-cta').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));

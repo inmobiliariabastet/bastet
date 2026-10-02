@@ -1,0 +1,8 @@
+/* Tipografías del panel /admin (Manual de marca UNO 2026), solo para el panel; el landing sigue con fonts.css.
+   - Cormorant Garamond: titulares  → var(--serif)
+   - Jost: texto e interfaz         → var(--sans)
+   Ambas son libres (SIL OFL). Archivos variables en assets/fonts/, recortados a caracteres latinos
+   (español incluido) con pyftsubset. Si cambias los archivos, usa nombres nuevos (caché de 7 días). */
+
+@font-face { font-family: 'Cormorant Garamond'; src: url('../fonts/CormorantGaramond-Variable.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Jost'; src: url('../fonts/Jost-Variable.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
