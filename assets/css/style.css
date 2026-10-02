@@ -269,7 +269,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 .hero-inner {
   position: relative; z-index: 2;
   max-width: 1280px; margin: 0 auto;
-  padding: 140px clamp(20px,6vw,48px) 100px;
+  padding: 140px clamp(20px,6vw,48px) 40px;
   width: 100%;
 }
 .hero-content { max-width: 680px; display: flex; flex-direction: column; gap: 26px; }
@@ -335,7 +335,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 }
 
 /* ── Propiedades / Ring carousel ── */
-.propiedades-section { background: var(--color-primary); padding: 120px clamp(20px,6vw,48px) 96px; }
+.propiedades-section { background: var(--color-primary); padding: 48px clamp(20px,6vw,48px) 96px; }
 
 .propiedades-inner { max-width: 1200px; margin: 0 auto; }
 
@@ -1111,6 +1111,9 @@ body.menu-open { overflow: hidden; }
   -webkit-tap-highlight-color: transparent;
   transition: transform .28s var(--ease-out), box-shadow .28s ease, filter .28s ease, background-color .28s ease, border-color .28s ease;
 }
+/* Efecto vidrio: reflejo de luz en la mitad superior de la cápsula */
+.pa-btn::before { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.08) 46%, rgba(255,255,255,0) 52%); }
+.pa-btn--secondary::before { background: linear-gradient(180deg, rgba(248,218,140,.16) 0%, rgba(248,218,140,.04) 46%, rgba(248,218,140,0) 52%); }
 .pa-icon, .pa-label, .pa-arrow { display: inline-flex; align-items: center; position: relative; z-index: 1; }
 .pa-icon { margin-right: 12px; }
 .pa-icon svg { width: 24px; height: 24px; flex: none; }
@@ -1128,22 +1131,25 @@ body.menu-open { overflow: hidden; }
 
 /* Principal */
 .pa-btn--primary {
-  color: #0A0A09; border: 1px solid rgba(248,218,140,.55);
-  background: linear-gradient(110deg, #F8DA8C 0%, #F5CB5C 55%, #F1BF46 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 10px 26px -14px rgba(241,191,70,.7);
+  color: #0A0A09; border: 1px solid rgba(255,236,176,.62);
+  background: linear-gradient(110deg, rgba(248,218,140,.86) 0%, rgba(245,203,92,.78) 55%, rgba(241,191,70,.72) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(138,90,18,.28), 0 12px 30px -14px rgba(241,191,70,.75);
 }
-.pa-btn--primary .pa-arrow { background: linear-gradient(135deg, #D9A441 0%, #C8942F 100%); }
-.pa-btn--primary:hover { filter: brightness(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 12px 32px -10px rgba(241,191,70,.65), 0 0 0 1px rgba(248,218,140,.35); }
-.pa-btn--primary:hover .pa-arrow { background: linear-gradient(135deg, #E7B148 0%, #D9A441 100%); }
+.pa-btn--primary .pa-arrow { background: linear-gradient(135deg, rgba(217,164,65,.8) 0%, rgba(200,148,47,.72) 100%); }
+.pa-btn--primary:hover { filter: brightness(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 12px 32px -10px rgba(241,191,70,.65), 0 0 0 1px rgba(248,218,140,.35); }
+.pa-btn--primary:hover .pa-arrow { background: linear-gradient(135deg, rgba(231,177,72,.85) 0%, rgba(217,164,65,.78) 100%); }
 
 /* Secundario */
 .pa-btn--secondary {
-  color: #EDE3D1; border: 1.5px solid #D9A441; background: rgba(10,10,9,.58);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  color: #EDE3D1; border: 1.5px solid #D9A441;
+  background: linear-gradient(180deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.03) 50%, rgba(0,0,0,.18) 100%), rgba(10,10,9,.42);
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: inset 0 1px 0 rgba(248,218,140,.3), 0 12px 30px -16px rgba(0,0,0,.7);
 }
 .pa-btn--secondary .pa-icon, .pa-btn--secondary .pa-arrow { color: #D9A441; }
 .pa-btn--secondary .pa-arrow { background: linear-gradient(135deg, rgba(217,164,65,.2) 0%, rgba(217,164,65,.07) 100%); }
-.pa-btn--secondary:hover { background: rgba(217,164,65,.14); border-color: #F1BF46; box-shadow: 0 10px 28px -12px rgba(241,191,70,.55); }
+.pa-btn--secondary:hover { background: linear-gradient(180deg, rgba(248,218,140,.2) 0%, rgba(241,191,70,.06) 55%, rgba(0,0,0,.14) 100%), rgba(10,10,9,.42); border-color: #F1BF46; box-shadow: 0 10px 28px -12px rgba(241,191,70,.55); }
 .pa-btn--secondary:hover .pa-icon, .pa-btn--secondary:hover .pa-arrow { color: #F1BF46; }
 .pa-btn--secondary:hover .pa-arrow { background: linear-gradient(135deg, rgba(241,191,70,.28) 0%, rgba(241,191,70,.1) 100%); }
 
