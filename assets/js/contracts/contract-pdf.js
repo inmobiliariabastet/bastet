@@ -6,7 +6,8 @@
 
   const PDFMAKE_URL = 'https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/pdfmake.min.js';
   const VERIFY_BASE = 'https://bastet.uno/verificar.html?c=';
-  const C = { green: '#2C402D', greenGrey: '#627362', olive: '#8C7F3B', gold: '#F2B035', neutral: '#F2E4DF', ink: '#1A1A16', night: '#0F0C08', goldLight: '#F8DA8C' };
+  // Paleta sin verde: ébano para los títulos, oro profundo para los acentos, tonos cálidos para lo secundario.
+  const C = { ebony: '#1C160E', warmGrey: '#6B5E49', gold: '#F2B035', neutral: '#F8EBC8', ink: '#1A1A16', night: '#0F0C08', goldLight: '#F8DA8C', deepGold: '#8A5A12' };
   const MM = 72 / 25.4;
   const PAGE_W = 595.28;
   const MARGIN_X = 25 * MM; // 2,5 cm
@@ -101,8 +102,8 @@
       const o = { text: runs(segs), alignment: b.align[i] || 'left' };
       if (isSignature) {
         o.style = 'sig';
-        if (/^_{6,}$/.test(text)) { o.margin = [0, 58, 0, 0]; o.color = C.greenGrey; } // ≥ 2,5 cm de espacio real para firmar
-        else if (rowIdx === b.rows.length - 1) { o.bold = true; o.color = C.green; o.fontSize = 9.5; }  // cargo: EL PROPIETARIO / EL AGENTE
+        if (/^_{6,}$/.test(text)) { o.margin = [0, 58, 0, 0]; o.color = C.warmGrey; } // ≥ 2,5 cm de espacio real para firmar
+        else if (rowIdx === b.rows.length - 1) { o.bold = true; o.color = C.ebony; o.fontSize = 9.5; }  // cargo: EL PROPIETARIO / EL AGENTE
       } else if (isHead) {
         o.style = 'th';
       } else {
@@ -130,7 +131,7 @@
   }
 
   function build(opts) {
-    const { blocks, number, code, agentName, logoDataUrl } = opts;
+    const { blocks, number, code, agentName, logoDataUrl, voided } = opts;
     const verifyUrl = VERIFY_BASE + code;
     const content = [];
     blocks.forEach((b) => {
@@ -162,6 +163,8 @@
 
     return {
       pageSize: 'A4',
+      // Un contrato anulado se puede volver a descargar, pero siempre sale marcado
+      ...(voided ? { watermark: { text: 'ANULADO', color: '#A63D2F', opacity: 0.16, bold: true, fontSize: 120, font: 'Cormorant' } } : {}),
       pageMargins: [MARGIN_X, 86, MARGIN_X, 72],
       info: { title: 'Contrato de Exclusividad Nº ' + number, author: agentName, subject: 'Contrato de corretaje inmobiliario con exclusividad', creator: 'bastet.uno', producer: 'bastet.uno' },
       defaultStyle: { font: 'Jost', fontSize: 10.3, lineHeight: 1.4, color: C.ink },
@@ -186,23 +189,23 @@
           {
             width: '*',
             stack: [
-              { text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.greenGrey, lineHeight: 1.25 },
-              { text: 'Verificación: ' + code, fontSize: 7.5, color: C.olive, bold: true, lineHeight: 1.25 },
-              { text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.green, margin: [0, 3, 0, 0] },
+              { text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.warmGrey, lineHeight: 1.25 },
+              { text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.25 },
+              { text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 3, 0, 0] },
             ],
           },
-          { qr: verifyUrl, fit: 40, foreground: C.green, alignment: 'right', width: 40 },
+          { qr: verifyUrl, fit: 40, foreground: C.ebony, alignment: 'right', width: 40 },
         ],
       }),
       pageBreakBefore: (node, following) => node.headlineLevel === 1 && following.length === 0, // un título de cláusula nunca queda solo al final de página
       content: bound,
       styles: {
-        title: { font: 'Cormorant', bold: true, fontSize: 17, color: C.green, alignment: 'center', characterSpacing: 1.1, lineHeight: 1.15, margin: [0, 6, 0, 0] },
-        number: { fontSize: 10, color: C.olive, alignment: 'center', margin: [0, 2, 0, 14] },
-        clause: { font: 'Cormorant', bold: true, fontSize: 12.5, color: C.green, margin: [0, 12, 0, 4], characterSpacing: 0.3 },
+        title: { font: 'Cormorant', bold: true, fontSize: 17, color: C.ebony, alignment: 'center', characterSpacing: 1.1, lineHeight: 1.15, margin: [0, 6, 0, 0] },
+        number: { fontSize: 10, color: C.deepGold, alignment: 'center', margin: [0, 2, 0, 14] },
+        clause: { font: 'Cormorant', bold: true, fontSize: 12.5, color: C.deepGold, margin: [0, 12, 0, 4], characterSpacing: 0.3 },
         body: { alignment: 'justify', lineHeight: 1.4 },
-        note: { fontSize: 8.5, color: C.greenGrey, italics: true, alignment: 'center' },
-        th: { bold: true, fontSize: 9.5, color: C.green, characterSpacing: 0.8 },
+        note: { fontSize: 8.5, color: C.warmGrey, italics: true, alignment: 'center' },
+        th: { bold: true, fontSize: 9.5, color: C.deepGold, characterSpacing: 0.8 },
         td: { fontSize: 10.3 },
         sig: { fontSize: 10, alignment: 'center', lineHeight: 1.3 },
       },

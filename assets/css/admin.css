@@ -12,7 +12,7 @@
   --linea: #E4DCCB;
   --tinta: #1C160E;
   --tinta-2: #6B5E49;
-  --ok: #3F7D4E;
+  --ok: #8A5A12;   /* positivo = oro profundo (el sitio no usa verde) */
   --warn: #B7791F;
   --bad: #A63D2F;
   --gold-grad: linear-gradient(100deg, #8A5A12 0%, #D9A441 30%, #F3C969 50%, #D9A441 70%, #8A5A12 100%);
@@ -214,10 +214,10 @@ a.btn { text-decoration: none; }
 .badge, .status-badge, .role-tag {
   display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; white-space: nowrap;
 }
-.b-ok, .status-badge.available { background: #E4F0E6; color: var(--ok); }
+.b-ok, .status-badge.available { background: #FFF3D1; color: var(--oro-p); box-shadow: inset 0 0 0 1px rgba(217,164,65,.45); }
 .b-warn { background: #F8EBD0; color: var(--warn); }
 .b-bad, .status-badge.sold { background: #F5DDD8; color: var(--bad); }
-.b-gold, .role-tag.admin { background: #F8EBC8; color: var(--oro-p); }
+.b-gold, .role-tag.admin { background: linear-gradient(135deg, #FBE6A6, #F1BF46 60%, #D9A441); color: #1a1305; }
 .b-mute, .role-tag.agent { background: var(--marfil-2); color: var(--tinta-2); }
 .role-tag { text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 
