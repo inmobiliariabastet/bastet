@@ -198,6 +198,8 @@ async function handleSession(session) {
 
   currentProfile = profile;
   document.getElementById('admin-user-email').textContent = session.user.email;
+  const avatarEl = document.getElementById('admin-avatar');
+  if (avatarEl) avatarEl.textContent = ((profile.display_name || session.user.email || '?').trim()[0] || '?').toUpperCase();
   applyRoleUI();
   populateProfileForm();
   showView('dashboard');
@@ -214,7 +216,7 @@ function applyRoleUI() {
   document.getElementById('field-featured-wrap').classList.toggle('hidden', !isAdmin);
   document.getElementById('properties-panel-title').textContent = isAdmin ? 'Propiedades' : 'Mis propiedades';
   document.getElementById('properties-panel-hint').textContent = isAdmin
-    ? 'Arrastra las filas por el ícono ⠿ para reordenar cómo aparecen en el landing.'
+    ? 'Arrastra las tarjetas por el ícono ⠿ para reordenar cómo aparecen en el landing.'
     : 'Aquí solo ves y editas las propiedades que tú creaste.';
   // Si el agente estaba parado en una pestaña que ya no le corresponde, vuelve a Propiedades.
   const activeTab = document.querySelector('.admin-tab.is-active');
@@ -254,6 +256,10 @@ function propertyStatusLabel(property) {
   return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
 }
 
+function isPropertyFeatured(property) {
+  return !!property.featured || (!!property.featured_until && new Date(property.featured_until) > new Date());
+}
+
 function renderPropertyList() {
   if (!properties.length) {
     propertyListEl.innerHTML = '<p class="property-empty">Aún no hay propiedades. Crea la primera con "+ Nueva propiedad".</p>';
@@ -264,54 +270,64 @@ function renderPropertyList() {
 
   propertyListEl.innerHTML = '';
   properties.forEach((property) => {
-    const row = document.createElement('div');
-    row.className = 'property-row property-row-clickable';
-    row.draggable = isAdmin;
-    row.dataset.id = property.id;
+    const card = document.createElement('article');
+    card.className = 'prop-card';
+    card.draggable = isAdmin;
+    card.dataset.id = property.id;
 
     // El reordenar por drag&drop reescribe sort_order del subconjunto visible;
     // solo tiene sentido para el admin, que ve la lista completa. Si un agente
     // reordenara su propio subconjunto filtrado, pisaría sort_order de otros.
-    const thumb = (property.photos && property.photos[0])
-      ? '<img class="property-thumb" src="' + escapeHtml(property.photos[0]) + '" alt="">'
-      : '<div class="property-thumb-placeholder">BASTET</div>';
+    const photo = (property.photos && property.photos[0])
+      ? '<img class="prop-photo" src="' + escapeHtml(property.photos[0]) + '" alt="" loading="lazy">'
+      : '';
+    let badge;
+    if (property.status === 'sold') badge = '<span class="badge b-mute">' + propertyStatusLabel(property) + '</span>';
+    else if (isPropertyFeatured(property)) badge = '<span class="badge b-gold">Destacada</span>';
+    else badge = '<span class="badge b-ok">Disponible</span>';
+    const code = formatPropertyCode(property);
+    const facts = [property.area, property.rooms, property.baths].filter(Boolean).map(escapeHtml).join(' · ');
 
-    row.innerHTML =
-      (isAdmin ? '<span class="property-drag-handle" title="Arrastra para reordenar">⠿</span>' : '<span style="width:18px;flex-shrink:0;"></span>') +
-      thumb +
-      '<div class="property-info">' +
-        '<p class="property-info-title">' + (property.featured ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</p>' +
-        '<p class="property-info-meta">' + (formatPropertyCode(property) ? '<span class="property-code-tag">' + formatPropertyCode(property) + '</span>' : '') +
-          [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location, property.area, property.rooms].filter(Boolean).map(escapeHtml).join(' · ') + '</p>' +
+    card.innerHTML =
+      '<div class="prop-ph">' + photo + badge +
+        (isAdmin ? '<span class="property-drag-handle" title="Arrastra para reordenar">⠿</span>' : '') +
       '</div>' +
-      '<span class="property-price">' + formatPriceUSD(property.price) + '</span>' +
-      '<div class="property-actions">' +
-        '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
-        '<button class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar propiedad" aria-label="Eliminar propiedad">' + TRASH_ICON + '</button>' +
+      '<div class="prop-bd">' +
+        '<span class="prop-eyebrow">' + [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location].filter(Boolean).map(escapeHtml).join(' · ') + '</span>' +
+        '<h3 class="prop-title">' + (isPropertyFeatured(property) ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</h3>' +
+        (code ? '<span><span class="property-code-tag">' + code + '</span></span>' : '') +
+        '<div class="prop-price">' + formatPriceUSD(property.price) + '</div>' +
+        (facts ? '<p class="prop-facts">' + facts + '</p>' : '') +
+        '<div class="prop-row-actions">' +
+          '<button class="btn btn-primary btn-sm" data-action="view">Ver detalle</button>' +
+          '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
+          '<button class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar propiedad" aria-label="Eliminar propiedad">' + TRASH_ICON + '</button>' +
+        '</div>' +
       '</div>';
 
-    row.querySelector('[data-action="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyForm(property); });
-    row.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deleteProperty(property); });
-    row.addEventListener('click', (e) => {
+    card.querySelector('[data-action="view"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyDetail(property); });
+    card.querySelector('[data-action="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyForm(property); });
+    card.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deleteProperty(property); });
+    card.addEventListener('click', (e) => {
       if (e.target.closest('[data-action]') || e.target.closest('.property-drag-handle')) return;
       openPropertyDetail(property);
     });
 
-    row.addEventListener('dragstart', (e) => {
+    card.addEventListener('dragstart', (e) => {
       dragSrcId = property.id;
-      row.classList.add('is-dragging');
+      card.classList.add('is-dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
-    row.addEventListener('dragend', () => row.classList.remove('is-dragging'));
-    row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
-    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-    row.addEventListener('drop', (e) => {
+    card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
+    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', (e) => {
       e.preventDefault();
-      row.classList.remove('drag-over');
+      card.classList.remove('drag-over');
       if (dragSrcId && dragSrcId !== property.id) reorderProperties(dragSrcId, property.id);
     });
 
-    propertyListEl.appendChild(row);
+    propertyListEl.appendChild(card);
   });
 }
 
