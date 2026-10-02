@@ -1098,3 +1098,60 @@ body.menu-open { overflow: hidden; }
   .footer { padding-bottom: 28px; }
 }
 @media (max-width: 360px) { .qb-item { font-size: 9.5px; } .navbar-install span { display: none; } .navbar-install { padding: 10px; } }
+
+/* ── Botones del hero: "Estilo Premium con Flecha" (cápsula con zona de flecha de borde diagonal) ──
+   .pa-btn--primary = CTA principal (dorado); .pa-btn--secondary = hermano oscuro con borde dorado.
+   Solo se usan en el hero del landing; los demás botones (.cta-button) no cambian. */
+.hero-cta-wrap .pa-btn { flex: 0 1 auto; }
+.pa-btn {
+  --pa-h: 56px; --pa-zone: 66px; --pa-slant: 20px;
+  position: relative; display: inline-flex; align-items: stretch; box-sizing: border-box; height: var(--pa-h);
+  padding: 0 0 0 22px; border-radius: 999px; overflow: hidden; cursor: pointer; text-decoration: none; white-space: nowrap;
+  font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: .02em; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .28s var(--ease-out), box-shadow .28s ease, filter .28s ease, background-color .28s ease, border-color .28s ease;
+}
+.pa-icon, .pa-label, .pa-arrow { display: inline-flex; align-items: center; position: relative; z-index: 1; }
+.pa-icon { margin-right: 12px; }
+.pa-icon svg { width: 24px; height: 24px; flex: none; }
+.pa-label { padding-right: 16px; }
+.pa-arrow {
+  justify-content: center; width: var(--pa-zone); margin-left: 6px; flex: none;
+  clip-path: polygon(var(--pa-slant) 0, 100% 0, 100% 100%, 0 100%);  /* corte diagonal: la zona de la flecha "entra" en el botón */
+  transition: background .28s ease;
+}
+.pa-arrow svg { width: 20px; height: 20px; margin-left: 8px; flex: none; transition: transform .28s var(--ease-out); }
+.pa-btn:hover { transform: translateY(-1px); }
+.pa-btn:hover .pa-arrow svg { transform: translateX(4px); }
+.pa-btn:active { transform: scale(.98); transition-duration: .12s; }
+.pa-btn:focus-visible { outline: 2px solid #F8DA8C; outline-offset: 3px; }
+
+/* Principal */
+.pa-btn--primary {
+  color: #0A0A09; border: 1px solid rgba(248,218,140,.55);
+  background: linear-gradient(110deg, #F8DA8C 0%, #F5CB5C 55%, #F1BF46 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 10px 26px -14px rgba(241,191,70,.7);
+}
+.pa-btn--primary .pa-arrow { background: linear-gradient(135deg, #D9A441 0%, #C8942F 100%); }
+.pa-btn--primary:hover { filter: brightness(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 12px 32px -10px rgba(241,191,70,.65), 0 0 0 1px rgba(248,218,140,.35); }
+.pa-btn--primary:hover .pa-arrow { background: linear-gradient(135deg, #E7B148 0%, #D9A441 100%); }
+
+/* Secundario */
+.pa-btn--secondary {
+  color: #EDE3D1; border: 1.5px solid #D9A441; background: rgba(10,10,9,.58);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.pa-btn--secondary .pa-icon, .pa-btn--secondary .pa-arrow { color: #D9A441; }
+.pa-btn--secondary .pa-arrow { background: linear-gradient(135deg, rgba(217,164,65,.2) 0%, rgba(217,164,65,.07) 100%); }
+.pa-btn--secondary:hover { background: rgba(217,164,65,.14); border-color: #F1BF46; box-shadow: 0 10px 28px -12px rgba(241,191,70,.55); }
+.pa-btn--secondary:hover .pa-icon, .pa-btn--secondary:hover .pa-arrow { color: #F1BF46; }
+.pa-btn--secondary:hover .pa-arrow { background: linear-gradient(135deg, rgba(241,191,70,.28) 0%, rgba(241,191,70,.1) 100%); }
+
+@media (max-width: 520px) {
+  .hero-cta-wrap { flex-direction: column; gap: 12px; }
+  .hero-cta-wrap .pa-btn { width: 100%; }
+  .pa-label { flex: 1; }
+  .pa-arrow { margin-left: 0; }
+}
+@media (max-width: 360px) { .pa-btn { font-size: 15.5px; padding-left: 16px; } .pa-icon { margin-right: 9px; } .pa-label { padding-right: 8px; } }
+@media (prefers-reduced-motion: reduce) { .pa-btn, .pa-arrow svg { transition: none; } }
