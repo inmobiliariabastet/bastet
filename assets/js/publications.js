@@ -98,13 +98,19 @@
     }
   }
 
+  // Tarjeta "Saldo disponible" (pestaña Créditos): costo por publicación y cupo gratuito, con los datos reales de my_publication_quota()
   function fillLine(el) {
     if (!el) return;
     const q = state.quota;
-    if (!q) { el.textContent = ''; return; }
-    el.textContent = q.exempt
-      ? 'Como administrador publicas y renuevas propiedades sin límite.'
-      : 'Publicaciones gratis este mes: ' + q.free_left + ' de ' + q.free_total + ' (se renuevan el ' + dayOfMonth(q.resets_on) + '). Publicar o renovar más cuesta ' + q.cost + ' créditos.';
+    const cost = document.getElementById('credits-cost');
+    if (!q) { el.innerHTML = ''; if (cost) cost.innerHTML = ''; return; }
+    if (q.exempt) {
+      el.innerHTML = '<small>Administrador</small><span>Publicas y renuevas sin límite</span>';
+      if (cost) cost.innerHTML = '';
+      return;
+    }
+    el.innerHTML = '<small>Cupo gratuito</small><b>' + q.free_left + ' / ' + q.free_total + '</b><span>Se renueva el ' + esc(dayOfMonth(q.resets_on)) + '.</span>';
+    if (cost) cost.innerHTML = '<b>' + q.cost + ' CRÉDITOS</b><span>por publicación nueva</span>';
   }
 
   /* ───────── Cuenta regresiva de cada publicación ───────── */

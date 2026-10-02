@@ -469,7 +469,6 @@ a.btn { text-decoration: none; }
 .pub-banner { margin: 0 0 16px; padding: 12px 14px; background: #FFF3D1; border: 1px solid rgba(217,164,65,.55); border-radius: 10px; font-size: 14px; line-height: 1.5; color: #5a3a08; }
 .pub-banner.is-low { background: #F5DDD8; border-color: rgba(166,61,47,.4); color: #6f2a1f; }
 .pub-banner .ct-link { color: inherit; }
-.credits-pub-line, #credits-pub-line { color: #D9C79A; }
 
 /* ── Vigencia de la publicación: cuenta regresiva y renovación ── */
 .prop-life { margin-top: 10px; padding: 12px 14px; background: #FFFCF4; border: 1px solid rgba(217,164,65,.45); border-radius: 12px; }
