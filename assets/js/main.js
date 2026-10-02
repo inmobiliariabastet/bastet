@@ -186,10 +186,12 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function formatPriceUSD(price) {
+// Precio con su moneda: "185.000 USD" o "Bs.- 1.200.000" (propiedades en bolivianos)
+function formatPrice(price, currency) {
   const digits = (price || '').toString().replace(/[^0-9]/g, '');
   if (!digits) return escapeHtml(price || '');
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' USD';
+  const n = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return currency === 'BOB' ? 'Bs.- ' + n : n + ' USD';
 }
 
 const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -506,9 +508,13 @@ const BUDGET_RANGES = {
 };
 function budgetRanges() { return BUDGET_RANGES[operationFilter] || BUDGET_RANGES.venta; }
 
+// Los rangos del filtro están en dólares: una propiedad en bolivianos se compara convertida al tipo de cambio oficial.
+const BOB_PER_USD = 6.96;
 function propertyPriceNumber(p) {
   const digits = (p.price || '').toString().replace(/[^0-9]/g, '');
-  return digits ? parseInt(digits, 10) : null;
+  if (!digits) return null;
+  const n = parseInt(digits, 10);
+  return p.currency === 'BOB' ? Math.round(n / BOB_PER_USD) : n;
 }
 
 function formatUSDNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -684,7 +690,7 @@ function buildPropertyTile(property) {
     '<div class="prop-tile-body">' +
       (eyebrow ? '<span class="prop-tile-eyebrow">' + eyebrow + '</span>' : '') +
       '<h3 class="prop-tile-title">' + escapeHtml(property.title) + '</h3>' +
-      (property.price ? '<div class="prop-tile-price">' + formatPriceUSD(property.price) + (property.exchange_rate ? '<small> · T.C. ' + escapeHtml(property.exchange_rate) + '</small>' : '') + '</div>' : '') +
+      (property.price ? '<div class="prop-tile-price">' + formatPrice(property.price, property.currency) + (property.exchange_rate && property.currency !== 'BOB' ? '<small> · T.C. ' + escapeHtml(property.exchange_rate) + '</small>' : '') + '</div>' : '') +
       (facts.length || code ? '<p class="prop-tile-facts">' + facts.join(' · ') + (code ? '<span class="prop-tile-code">' + code + '</span>' : '') + '</p>' : '') +
     '</div>' +
     buildTileAgentHtml(property);
@@ -745,7 +751,7 @@ function socialIconLink(url, kind, label) {
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
 const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
 
@@ -760,10 +766,19 @@ async function loadProperties() {
 
   // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
   const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
-  let { data, error } = await fetchActive(PUBLIC_PROPERTY_COLUMNS);
-  // Si algún SQL aún no se corrió, la columna no existe (42703): se reintenta sin el filtro de vigencia y/o sin featured_until.
-  if (error && error.code === '42703') ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS));
-  if (error && error.code === '42703') ({ data, error } = await fetchProperties(PUBLIC_PROPERTY_COLUMNS.replace('featured_until,', '')));
+  // Si algún SQL aún no se corrió (moneda, vigencia, créditos), esa columna no existe (42703): se reintenta sin ella, de la más nueva a la más antigua.
+  const noCurrency = PUBLIC_PROPERTY_COLUMNS.replace('currency,', '');
+  const attempts = [
+    () => fetchActive(PUBLIC_PROPERTY_COLUMNS),
+    () => fetchActive(noCurrency),
+    () => fetchProperties(noCurrency),
+    () => fetchProperties(noCurrency.replace('featured_until,', '')),
+  ];
+  let data = null, error = null;
+  for (const attempt of attempts) {
+    ({ data, error } = await attempt());
+    if (!error || error.code !== '42703') break;
+  }
 
   if (error) {
     console.error('Error cargando propiedades:', error);
@@ -1116,8 +1131,8 @@ function renderModal() {
         '</div>' +
         '<p class="property-modal-location">' + escapeHtml(p.location) + '</p>' +
         '<h3 class="property-modal-title">' + escapeHtml(p.title) + '</h3>' +
-        '<p class="property-modal-price">' + formatPriceUSD(p.price) + '</p>' +
-        (p.exchange_rate ? '<p class="property-modal-rate">Tipo de cambio aceptado: ' + escapeHtml(p.exchange_rate) + '</p>' : '') +
+        '<p class="property-modal-price">' + formatPrice(p.price, p.currency) + '</p>' +
+        (p.exchange_rate && p.currency !== 'BOB' ? '<p class="property-modal-rate">Tipo de cambio aceptado: ' + escapeHtml(p.exchange_rate) + '</p>' : '') +
       '</div>' +
       '<div class="property-modal-specs">' +
         '<div><p class="property-modal-spec-label">Área</p><p class="property-modal-spec-value">' + escapeHtml(p.area) + '</p></div>' +

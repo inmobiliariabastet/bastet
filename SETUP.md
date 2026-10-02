@@ -91,6 +91,10 @@ El botón **Vender mi inmueble** del landing abre un formulario con los datos de
 
 Los botones "Instalar app" del menú llevan a `app.html` (mockups de la versión móvil, ventajas para usuarios y agentes, y botones de descarga para Android y iPhone/iPad). No requiere SQL ni claves. La instalación es la de una app web (PWA): usa `manifest.json` y `sw.js` de la raíz del sitio; para cambiar el ícono o el nombre de la app edita `manifest.json` (íconos en `assets/img/uno-app-192.png` y `uno-app-512.png`). Para actualizar los textos o las maquetas edita `app.html` y `assets/css/app.css`.
 
+## Precio en dólares o bolivianos
+
+Cada propiedad puede tener su precio en **USD** (por defecto) o en **bolivianos (Bs.-)**: se elige en el formulario con "Moneda del precio". Para activarlo corre [`supabase/property-currency.sql`](supabase/property-currency.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Las propiedades que ya existían quedan en USD. En bolivianos no se pide tipo de cambio. El filtro de presupuesto del landing está en dólares; las propiedades en bolivianos se convierten con el tipo de cambio oficial de 6,96 (constante `BOB_PER_USD` al inicio de la sección de presupuesto en `assets/js/main.js`).
+
 ## 6. Publicar el sitio
 
 El sitio se publica desde GitHub (`inmobiliariabastet/bastet`, rama `main`) con la integración de **Hostinger** → https://bastet.uno. No requiere build ni Node: son archivos HTML/CSS/JS servidos tal cual. `/admin` tiene `noindex, nofollow`.
