@@ -12,7 +12,7 @@
 <link rel="preload" href="../assets/fonts/Jost-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/css/admin-fonts.css?v=20261014a">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261014a">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261014c">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261014a">
 <link rel="stylesheet" href="../assets/css/contracts.css?v=20261014a">
 </head>
@@ -113,6 +113,7 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="partners"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h8"/></svg>Marcas</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="testimonials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Testimonios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="admins"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Usuarios</button>
+      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Propietarios <span class="tab-count hidden" id="sell-count"></span></button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="requests"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 14h5l1 2h4l1-2h5"/></svg>Solicitudes <span class="tab-count hidden" id="requests-count"></span></button>
     </nav>
     <div class="admin-side-foot">
@@ -157,6 +158,16 @@
         </div>
       </div>
       <div id="leads-board" class="leads-board"></div>
+    </div>
+
+    <div id="tab-panel-sell" class="tab-panel hidden">
+      <div class="admin-toolbar">
+        <div>
+          <h1>Propietarios que quieren vender</h1>
+          <p class="admin-toolbar-hint">Solicitudes del botón "Vender mi inmueble" del landing: datos del propietario, ubicación, documentos y si necesita apoyo legal. Toca una solicitud para ver el detalle y abrir sus documentos.</p>
+        </div>
+      </div>
+      <div id="sell-board" class="leads-board"></div>
     </div>
 
     <div id="tab-panel-collections" class="tab-panel hidden">
@@ -368,6 +379,10 @@
 </div>
 
 <!-- LEAD DETAIL MODAL -->
+<div id="sell-req-modal" class="modal-overlay hidden">
+  <div class="modal-panel" id="sell-req-panel"></div>
+</div>
+
 <div id="lead-modal" class="modal-overlay hidden">
   <div class="modal-panel" id="lead-modal-panel"></div>
 </div>
@@ -607,6 +622,7 @@
 <script src="../assets/js/credits.js?v=20261014a"></script>
 <script src="../assets/js/publications.js?v=20261014a"></script>
 <script src="../assets/js/leads.js?v=20261014a"></script>
+<script src="../assets/js/sell-admin.js?v=20261014c"></script>
 <script src="../assets/js/collections.js?v=20261014a"></script>
 <script src="../assets/js/contracts/contract-helpers.js?v=20261014a"></script>
 <script src="../assets/js/contracts/contract-template.js?v=20261014a"></script>
