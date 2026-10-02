@@ -1,7 +1,7 @@
 /* "Vender mi inmueble": formulario del landing para propietarios (datos, inmueble, ubicación en mapa y documentos).
    Autónomo: usa el cliente global `supabaseClient` y BOLIVIA_CITIES. El envío pasa por la función submit_sell_request()
    (supabase/sell-requests.sql); los documentos van a la carpeta privada `sell-documents` de Storage (solo un administrador los ve).
-   El mapa es Leaflet con mosaicos oscuros de CARTO (sin verde) y se carga solo al abrir el formulario. */
+   El mapa es Leaflet con mosaicos de OpenStreetMap (sin clave) oscurecidos por CSS para que no salga verde y se carga solo al abrir el formulario. */
 (function () {
   'use strict';
 
@@ -105,9 +105,9 @@
     }
     if (state.map) return;
     state.map = L.map('sell-map', { center: BOLIVIA_CENTER, zoom: 5, zoomControl: true, attributionControl: true });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, subdomains: 'abcd',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
     }).addTo(state.map);
     if (CITY_CENTER[$('sell-city').value]) state.map.setView(CITY_CENTER[$('sell-city').value], 13);
     state.map.on('click', (e) => setPoint(e.latlng.lat, e.latlng.lng, false));
