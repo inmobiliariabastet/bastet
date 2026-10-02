@@ -14,6 +14,7 @@
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="assets/css/style.css?v=20261014b">
+<link rel="stylesheet" href="assets/css/sell.css?v=20261014c">
 </head>
 <body>
 
@@ -58,7 +59,7 @@
       <p class="hero-tagline">Venda o Compre su inmueble en 30 días o menos.</p>
       <p class="hero-subtext">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
       <div class="hero-cta-wrap">
-        <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button cta-button--arrow"><span>Vender mi inmueble</span></a>
+        <button type="button" data-sell-open class="cta-button cta-button--arrow"><span>Vender mi inmueble</span></button>
         <a href="marketplace.html" class="cta-button cta-button--glass"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar un inmueble</span></a>
       </div>
     </div>
@@ -154,6 +155,105 @@
   </div>
 </footer>
 
+<div class="property-modal-backdrop hidden" id="sell-modal-backdrop">
+  <div class="property-modal sell-modal" role="dialog" aria-modal="true" aria-labelledby="sell-modal-title">
+    <button type="button" class="property-modal-close" id="sell-modal-close" aria-label="Cerrar">✕</button>
+    <div class="agent-modal-body">
+      <h2 class="agent-modal-title" id="sell-modal-title">Vender mi inmueble</h2>
+
+      <form id="sell-form" class="agent-form sell-form" novalidate>
+        <p class="agent-form-hint">Completa los datos de la propiedad y de su propietario. Un asesor de Bastet te contactará para hacer la evaluación gratuita y publicarla en el Marketplace.</p>
+
+        <fieldset class="sell-section">
+          <legend><span>1</span> Datos del propietario</legend>
+          <label class="agent-field"><span>Nombre completo *</span><input type="text" id="sell-name" required minlength="3" maxlength="120" autocomplete="name"></label>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>Cédula de identidad</span><input type="text" id="sell-ci" maxlength="30" autocomplete="off" placeholder="Ej. 4567890 LP"></label>
+            <label class="agent-field"><span>Eres el… *</span>
+              <select id="sell-role"><option value="propietario">Propietario</option><option value="copropietario">Copropietario</option><option value="apoderado">Apoderado</option><option value="heredero">Heredero</option></select>
+            </label>
+          </div>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>WhatsApp *</span><input type="tel" id="sell-phone" required maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>
+            <label class="agent-field"><span>Correo electrónico</span><input type="email" id="sell-email" maxlength="160" autocomplete="email"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="sell-section">
+          <legend><span>2</span> Datos del inmueble</legend>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>Tipo *</span>
+              <select id="sell-type" required><option value="casa">Casa</option><option value="departamento">Departamento</option><option value="terreno">Terreno</option><option value="otro">Otro</option></select>
+            </label>
+            <label class="agent-field"><span>Operación *</span>
+              <select id="sell-operation"><option value="venta">Venta</option><option value="anticretico">Anticrético</option><option value="alquiler">Alquiler</option></select>
+            </label>
+          </div>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>Ciudad *</span><select id="sell-city" required><option value="">Selecciona…</option></select></label>
+            <label class="agent-field"><span>Zona o barrio</span><input type="text" id="sell-zone" maxlength="120" placeholder="Ej. Sopocachi"></label>
+          </div>
+          <label class="agent-field"><span>Dirección *</span><input type="text" id="sell-address" required minlength="5" maxlength="250" placeholder="Calle, número, edificio, referencia"></label>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>Precio esperado</span><input type="number" id="sell-price" min="0" step="any" inputmode="decimal" placeholder="Opcional"></label>
+            <label class="agent-field sell-currency"><span>Moneda</span><select id="sell-currency"><option value="USD">USD</option><option value="BOB">Bs</option></select></label>
+          </div>
+          <div class="agent-field-row">
+            <label class="agent-field"><span>Superficie del terreno (m²)</span><input type="number" id="sell-land" min="0" step="any" inputmode="decimal"></label>
+            <label class="agent-field" data-sell-building><span>Superficie construida (m²)</span><input type="number" id="sell-built" min="0" step="any" inputmode="decimal"></label>
+          </div>
+          <div class="agent-field-row" data-sell-building>
+            <label class="agent-field"><span>Habitaciones</span><input type="number" id="sell-rooms" min="0" max="99" inputmode="numeric"></label>
+            <label class="agent-field"><span>Baños</span><input type="number" id="sell-baths" min="0" max="99" inputmode="numeric"></label>
+          </div>
+          <label class="agent-field"><span>Descripción</span><textarea id="sell-desc" rows="3" maxlength="1500" placeholder="Estado del inmueble, mejoras, servicios, si está ocupado, cualquier detalle útil…"></textarea></label>
+        </fieldset>
+
+        <fieldset class="sell-section">
+          <legend><span>3</span> Ubicación en el mapa *</legend>
+          <div class="sell-search">
+            <input type="search" id="sell-search" maxlength="150" placeholder="Busca la calle, zona o referencia…" aria-label="Buscar dirección en el mapa">
+            <button type="button" id="sell-search-btn" class="sell-mini-btn">Buscar</button>
+            <button type="button" id="sell-geo" class="sell-mini-btn sell-mini-btn--ghost">Usar mi ubicación</button>
+          </div>
+          <div id="sell-search-results" class="sell-search-results hidden"></div>
+          <div id="sell-map-wrap" class="sell-map-wrap"><div id="sell-map" class="sell-map" role="application" aria-label="Mapa para marcar la ubicación del inmueble"></div></div>
+          <p id="sell-map-status" class="sell-map-status">Toca el mapa en el punto exacto del inmueble o arrastra el pin para ajustarlo.</p>
+        </fieldset>
+
+        <fieldset class="sell-section" id="sell-docs-group">
+          <legend><span>4</span> Documentos que respaldan la propiedad *</legend>
+          <div class="sell-choices">
+            <label class="sell-choice"><input type="radio" name="sell-docs" value="en_regla"><span><b>Tengo mis documentos en regla</b><small>Los adjuntaré aquí.</small></span></label>
+            <label class="sell-choice"><input type="radio" name="sell-docs" value="por_regularizar"><span><b>Tengo algunos, pero me falta regularizar</b><small>Adjunto lo que tengo y pido ayuda con lo demás.</small></span></label>
+            <label class="sell-choice"><input type="radio" name="sell-docs" value="sin_documentos"><span><b>No tengo documentos</b><small>Necesito apoyo legal para sanear mis papeles.</small></span></label>
+          </div>
+          <div id="sell-docs-upload" class="hidden">
+            <p class="agent-form-hint">Adjunta lo que tengas (PDF, JPG, PNG o WEBP · hasta 10 MB cada uno · máximo 12 archivos). Solo los verá nuestro equipo.</p>
+            <div id="sell-doc-slots" class="sell-slots"></div>
+            <p class="sell-doc-count" id="sell-doc-count"></p>
+            <p class="agent-form-error hidden" id="sell-doc-error"></p>
+          </div>
+          <label class="sell-check"><input type="checkbox" id="sell-legal"><span>Requiero apoyo legal para sanear o regularizar mis documentos</span></label>
+          <p class="agent-form-note hidden" id="sell-legal-note"></p>
+        </fieldset>
+
+        <label class="sell-check sell-consent"><input type="checkbox" id="sell-consent"><span>Acepto que Bastet use estos datos y documentos para evaluar y publicar mi inmueble y contactarme. Más información en la <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</span></label>
+        <p class="agent-form-error hidden" id="sell-error" role="alert"></p>
+        <button type="submit" class="cta-button" id="sell-submit"><span>Enviar solicitud</span></button>
+      </form>
+
+      <div id="sell-success" class="agent-success hidden">
+        <p class="agent-success-title">¡Recibimos tu solicitud!</p>
+        <p class="agent-form-hint">Un asesor de Bastet revisará los datos de tu inmueble y te contactará por WhatsApp o correo para coordinar la evaluación gratuita.</p>
+        <p class="agent-form-note hidden" id="sell-success-legal">También registramos que necesitas apoyo legal: nuestro equipo te orientará para sanear tus documentos.</p>
+        <a id="sell-wa" class="cta-button" href="#" target="_blank" rel="noopener"><span>Escribirnos por WhatsApp</span></a>
+        <button type="button" class="agent-form-link" id="sell-done">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="property-modal-backdrop hidden" id="agent-modal-backdrop">
   <div class="property-modal agent-modal" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title">
     <button type="button" class="property-modal-close" id="agent-modal-close" aria-label="Cerrar">✕</button>
@@ -223,5 +323,6 @@
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261014b"></script>
 <script src="assets/js/main.js?v=20261014b"></script>
+<script src="assets/js/sell.js?v=20261014c"></script>
 </body>
 </html>
