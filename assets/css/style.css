@@ -1055,3 +1055,20 @@ body.menu-open { overflow: hidden; }
   .prop-tile, .prop-tile-img, .prop-tile-wa { transition: none; }
   .prop-tile:hover, .prop-tile:hover .prop-tile-img { transform: none; }
 }
+
+/* ── Marketplace Inmobiliario: página propia (marketplace.html) y vista previa en el inicio ── */
+.marketplace-section { padding-top: 150px; min-height: 70vh; }
+.marketplace-section .section-heading { margin-top: 0; }
+.prop-cta-wrap { display: flex; justify-content: center; margin-top: 44px; }
+.navbar-link.is-active { color: var(--lux-gold-light, #F8DA8C); }
+/* El enlace largo "Marketplace Inmobiliario" no se parte en dos líneas; en laptops angostas se compacta el menú. */
+.navbar-link { white-space: nowrap; }
+@media (min-width: 1080px) and (max-width: 1279px) {
+  .navbar-links { gap: 16px; }
+  .navbar-link { font-size: 14px; }
+  .navbar-links .cta-button--sm { padding-left: 14px; padding-right: 14px; }
+}
+.navbar-mobile-link.is-active { color: var(--lux-gold-light, #F8DA8C); }
+@media (max-width: 700px) {
+  .marketplace-section { padding-top: 120px; }
+}
