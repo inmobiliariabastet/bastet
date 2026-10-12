@@ -108,6 +108,22 @@ agentLoginForm.addEventListener('submit', async (e) => {
   window.location.href = 'admin/';
 });
 
+// Login con Google: Supabase redirige a Google y vuelve al panel con la sesión.
+// Solo entra quien ya tiene cuenta de agente activa (el panel valida rol/estado).
+document.getElementById('agent-google').addEventListener('click', async () => {
+  showAgentError('agent-login-error', '');
+  const btn = document.getElementById('agent-google');
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/admin/' },
+  });
+  if (error) {
+    btn.disabled = false;
+    showAgentError('agent-login-error', 'No se pudo iniciar con Google: ' + error.message);
+  }
+});
+
 // "¿Olvidaste tu contraseña?": usa el correo ya escrito arriba y manda el enlace directo.
 document.getElementById('agent-forgot').addEventListener('click', async () => {
   const emailInput = document.getElementById('agent-login-email');

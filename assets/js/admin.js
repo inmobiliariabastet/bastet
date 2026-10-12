@@ -70,6 +70,21 @@ loginForm.addEventListener('submit', async (e) => {
   }
 });
 
+document.getElementById('google-login').addEventListener('click', async () => {
+  loginError.classList.add('hidden');
+  const btn = document.getElementById('google-login');
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname },
+  });
+  if (error) {
+    btn.disabled = false;
+    loginError.textContent = 'No se pudo iniciar con Google: ' + error.message;
+    loginError.classList.remove('hidden');
+  }
+});
+
 document.getElementById('logout-btn').addEventListener('click', () => supabaseClient.auth.signOut());
 
 /* ── Recuperar contraseña ── */
