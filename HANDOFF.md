@@ -16,6 +16,8 @@
 
 **Registro automático con Google (2026-10-12, commit b696043, SQL corrido y signups activados; probado por la dueña):** ya NO hay solicitud + aprobación. Quien entra con Google nace habilitado como agente (`handle_new_user` pone `is_active = true` si `raw_app_meta_data.provider = 'google'` o hay `invited_at`; `display_name` sale del nombre de Google). Altas por otras vías (signup directo con correo/contraseña) siguen desactivadas. Supabase tiene "Allow new users to sign up" ACTIVADO. Se quitó la pestaña "Quiero una cuenta" de los modales de landing y marketplace (el formulario sigue en el DOM, oculto) y los enlaces a "solicitar cuenta"; la vista Solicitudes del admin queda solo como historial. El admin conserva Desactivar/Reactivar/Eliminar en Usuarios. SQL: `supabase/google-auto-activate.sql`. Riesgo a vigilar: cualquiera con Google puede crearse cuenta de agente (revisar cupos/créditos gratis iniciales).
 
+**Login solo con Google (2026-10-12, en producción, verificado en `/admin`):** el formulario de correo y contraseña y "¿Olvidaste tu contraseña?" están OCULTOS (`style="display:none"`, no borrados, para poder restaurarlos) en `admin/index.html` y en los modales "Acceso agentes" de `index.html` y `marketplace.html`. Solo queda el botón "Continuar con Google". Ojo: quien solo entraba con contraseña (p. ej. `contacto@bastet.uno` si no es cuenta de Google) ya no puede entrar; debe usar Google con ese mismo correo o se restaura el formulario quitando esos `display:none`.
+
 **Estado al 2026-09-29 — todo en producción en https://bastet.uno y verificado.**
 
 - **Deploy:** push a `main` de `inmobiliariabastet/bastet` → Hostinger publica en ~30s. Verificar con `curl -s "https://bastet.uno/?x=$RANDOM" | grep <algo nuevo>`.
