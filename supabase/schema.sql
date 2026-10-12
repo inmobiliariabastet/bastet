@@ -162,7 +162,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if not public.is_admin() then
+  if auth.uid() is not null and not public.is_admin() then
     new.role := old.role;
     new.is_active := old.is_active;
     new.email := old.email;
@@ -180,6 +180,9 @@ drop trigger if exists protect_profile_privileged on public.profiles;
 create trigger protect_profile_privileged
   before update on public.profiles
   for each row execute function public.protect_profile_privileged_columns();
+
+-- Agentes aprobados por invitación: ver supabase/invite-activate.sql (trigger on_auth_user_invited,
+-- porque GoTrue marca invited_at en un UPDATE posterior al INSERT).
 
 -- ── RLS: properties ───────────────────────────────────────────────
 alter table public.properties enable row level security;
