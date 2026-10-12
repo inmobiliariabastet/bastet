@@ -53,7 +53,8 @@ function setAgentTab(tab) {
   agentRequestSuccess.classList.toggle('hidden', tab !== 'request' || !sent);
 }
 
-async function openAgentModal(tab = 'login') {
+async function openAgentModal() {
+  const tab = 'login'; // ya no hay solicitud de cuenta: el alta es automática con Google
   setMenuOpen(false);
   // Si ya hay una sesión activa en este navegador, ir directo al panel.
   const { data: { session } } = await supabaseClient.auth.getSession();
@@ -150,9 +151,8 @@ document.getElementById('agent-forgot').addEventListener('click', async () => {
   }
   // Mismo mensaje exista o no la cuenta (no se revela qué correos están registrados).
   note.innerHTML = 'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
-    ' ¿No tienes cuenta? <a href="#" data-agent-go-request>Solicítala aquí</a>.';
+    ' Si aún no tienes cuenta, entra con Google y se crea al instante.';
   note.classList.remove('hidden');
-  note.querySelector('[data-agent-go-request]').addEventListener('click', (ev) => { ev.preventDefault(); setAgentTab('request'); });
 });
 
 agentRequestForm.addEventListener('submit', async (e) => {

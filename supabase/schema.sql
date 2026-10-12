@@ -86,8 +86,13 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, role, is_active)
-  values (new.id, new.email, 'agent', new.invited_at is not null)
+  -- Con Google nace habilitado (ver supabase/google-auto-activate.sql, versión vigente).
+  insert into public.profiles (id, email, role, is_active, display_name)
+  values (
+    new.id, new.email, 'agent',
+    new.invited_at is not null or coalesce(new.raw_app_meta_data->>'provider', '') = 'google',
+    nullif(trim(coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', '')), '')
+  )
   on conflict (id) do nothing;
   return new;
 end;

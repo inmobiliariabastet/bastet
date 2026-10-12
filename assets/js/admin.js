@@ -52,7 +52,7 @@ function readOAuthRedirectError() {
   const description = params.get('error_description') || hash.get('error_description') || '';
   history.replaceState(null, '', window.location.pathname);
   if (/signup|not allowed|database error saving new user/i.test(code + ' ' + description)) {
-    return 'Ese correo de Google no tiene una cuenta en Bastet. Usa el correo con el que te registraron o solicita una cuenta de agente.';
+    return 'No se pudo crear tu cuenta con Google. Avisa al administrador (inmobiliaria@bastet.uno).';
   }
   if (error === 'access_denied' && !/expired/i.test(code + description)) {
     return 'Cancelaste el inicio de sesión con Google.';
@@ -157,7 +157,7 @@ forgotForm.addEventListener('submit', async (e) => {
   // correos están registrados), así que el mensaje no puede afirmar que se envió.
   forgotSuccess.innerHTML =
     'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
-    '<br><br>¿No tienes una cuenta registrada? <a href="../#solicitar-cuenta">Solicita tu cuenta de agente aquí</a>.';
+    '<br><br>Si aún no tienes cuenta, entra con Google y se crea al instante.';
   forgotSuccess.classList.remove('hidden');
   forgotForm.reset();
   forgotForm.classList.add('hidden'); // ya se envió: no volver a mostrar el campo de correo
@@ -234,7 +234,7 @@ async function handleSession(session) {
 
   if (!profile.is_active) {
     await supabaseClient.auth.signOut();
-    loginError.textContent = 'Tu cuenta no está habilitada. Si eres agente, solicita acceso desde "Acceso agentes" en la página principal.';
+    loginError.textContent = 'Tu cuenta fue desactivada por un administrador. Si crees que es un error, escribe a inmobiliaria@bastet.uno.';
     loginError.classList.remove('hidden');
     showView('login');
     return;
