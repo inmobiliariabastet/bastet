@@ -41,6 +41,32 @@ function traduceAuthError(message) {
   return message;
 }
 
+// Supabase devuelve los fallos del inicio con Google en la URL (?error=... o #error=...).
+// Se muestran en el login y se limpia la URL para que no reaparezcan al recargar.
+function readOAuthRedirectError() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const code = params.get('error_code') || hash.get('error_code');
+  const error = params.get('error') || hash.get('error');
+  if (!error && !code) return null;
+  const description = params.get('error_description') || hash.get('error_description') || '';
+  history.replaceState(null, '', window.location.pathname);
+  if (/signup|not allowed|database error saving new user/i.test(code + ' ' + description)) {
+    return 'Ese correo de Google no tiene una cuenta en Bastet. Usa el correo con el que te registraron o solicita una cuenta de agente.';
+  }
+  if (error === 'access_denied' && !/expired/i.test(code + description)) {
+    return 'Cancelaste el inicio de sesión con Google.';
+  }
+  if (/otp_expired|expired/i.test(code + ' ' + description)) {
+    return 'El enlace venció o ya fue usado. Vuelve a intentarlo.';
+  }
+  if (/exchange external code|unexpected_failure/i.test(code + ' ' + description)) {
+    return 'No se pudo completar el ingreso con Google por un problema de configuración. Intenta con tu correo y contraseña y avisa al administrador.';
+  }
+  return 'No se pudo iniciar sesión con Google' + (description ? ': ' + description : '.');
+}
+const oauthRedirectError = readOAuthRedirectError();
+
 /* ── View switching ── */
 const views = {
   login: document.getElementById('view-login'),
@@ -55,6 +81,7 @@ function showView(name) {
 /* ── Auth ── */
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
+if (oauthRedirectError) { loginError.textContent = oauthRedirectError; loginError.classList.remove('hidden'); }
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   loginError.classList.add('hidden');
