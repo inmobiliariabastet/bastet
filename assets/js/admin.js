@@ -37,14 +37,6 @@ function matchBoliviaCity(name) {
   }) || null;
 }
 
-function traduceAuthError(message) {
-  if (/invalid login credentials/i.test(message)) return 'Correo o contraseña incorrectos.';
-  if (/user already registered/i.test(message)) return 'Ya existe una cuenta con ese correo.';
-  if (/password should be at least/i.test(message)) return 'La contraseña debe tener al menos 6 caracteres.';
-  if (/email not confirmed/i.test(message)) return 'Debes confirmar tu correo antes de iniciar sesión.';
-  return message;
-}
-
 // Supabase devuelve los fallos del inicio con Google en la URL (?error=... o #error=...).
 // Se muestran en el login y se limpia la URL para que no reaparezcan al recargar.
 function readOAuthRedirectError() {
@@ -65,7 +57,7 @@ function readOAuthRedirectError() {
     return 'El enlace venció o ya fue usado. Vuelve a intentarlo.';
   }
   if (/exchange external code|unexpected_failure/i.test(code + ' ' + description)) {
-    return 'No se pudo completar el ingreso con Google por un problema de configuración. Intenta con tu correo y contraseña y avisa al administrador.';
+    return 'No se pudo completar el ingreso con Google por un problema de configuración. Avisa al administrador.';
   }
   return 'No se pudo iniciar sesión con Google' + (description ? ': ' + description : '.');
 }
@@ -74,8 +66,6 @@ const oauthRedirectError = readOAuthRedirectError();
 /* ── View switching ── */
 const views = {
   login: document.getElementById('view-login'),
-  forgot: document.getElementById('view-forgot'),
-  reset: document.getElementById('view-reset'),
   dashboard: document.getElementById('view-dashboard'),
 };
 function showView(name) {
@@ -83,24 +73,8 @@ function showView(name) {
 }
 
 /* ── Auth ── */
-const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 if (oauthRedirectError) { loginError.textContent = oauthRedirectError; loginError.classList.remove('hidden'); }
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginError.classList.add('hidden');
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const btn = document.getElementById('login-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  btn.disabled = false;
-  if (error) {
-    loginError.textContent = traduceAuthError(error.message);
-    loginError.classList.remove('hidden');
-  }
-});
-
 document.getElementById('google-login').addEventListener('click', async () => {
   loginError.classList.add('hidden');
   const btn = document.getElementById('google-login');
@@ -118,93 +92,10 @@ document.getElementById('google-login').addEventListener('click', async () => {
 
 document.getElementById('logout-btn').addEventListener('click', () => supabaseClient.auth.signOut());
 
-/* ── Recuperar contraseña ── */
-document.getElementById('go-to-forgot').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('forgot-error').classList.add('hidden');
-  document.getElementById('forgot-success').classList.add('hidden');
-  forgotForm.classList.remove('hidden');
-  showView('forgot');
-  // Si ya escribió su correo en el login, se envía el enlace directo sin volver a pedirlo.
-  const loginEmailInput = document.getElementById('login-email');
-  if (loginEmailInput.value.trim() && loginEmailInput.checkValidity()) {
-    document.getElementById('forgot-email').value = loginEmailInput.value.trim();
-    forgotForm.requestSubmit();
-  }
-});
-document.getElementById('go-to-login-from-forgot').addEventListener('click', (e) => {
-  e.preventDefault();
-  startOnForgot = false;
-  showView('login');
-});
-
-const forgotForm = document.getElementById('forgot-form');
-const forgotError = document.getElementById('forgot-error');
-const forgotSuccess = document.getElementById('forgot-success');
-forgotForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  forgotError.classList.add('hidden');
-  forgotSuccess.classList.add('hidden');
-  const email = document.getElementById('forgot-email').value.trim();
-  const btn = document.getElementById('forgot-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname,
-  });
-  btn.disabled = false;
-  if (error) {
-    forgotError.textContent = traduceAuthError(error.message);
-    forgotError.classList.remove('hidden');
-    return;
-  }
-  // Supabase responde igual exista o no la cuenta (a propósito, para no revelar qué
-  // correos están registrados), así que el mensaje no puede afirmar que se envió.
-  forgotSuccess.innerHTML =
-    'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
-    '<br><br>Si aún no tienes cuenta, entra con Google y se crea al instante.';
-  forgotSuccess.classList.remove('hidden');
-  forgotForm.reset();
-  forgotForm.classList.add('hidden'); // ya se envió: no volver a mostrar el campo de correo
-});
-
-const resetForm = document.getElementById('reset-form');
-const resetError = document.getElementById('reset-error');
-resetForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  resetError.classList.add('hidden');
-  const password = document.getElementById('reset-password').value;
-  const confirmPassword = document.getElementById('reset-password-confirm').value;
-  if (password !== confirmPassword) {
-    resetError.textContent = 'Las contraseñas no coinciden.';
-    resetError.classList.remove('hidden');
-    return;
-  }
-  const btn = document.getElementById('reset-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.updateUser({ password });
-  btn.disabled = false;
-  if (error) {
-    resetError.textContent = traduceAuthError(error.message);
-    resetError.classList.remove('hidden');
-    return;
-  }
-  resetForm.reset();
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  handleSession(session);
-});
-
-// El landing enlaza a admin/#forgot desde "¿Olvidaste tu contraseña?": sin sesión, se abre esa pantalla en vez del login.
-let startOnForgot = window.location.hash === '#forgot';
-if (startOnForgot) history.replaceState(null, '', window.location.pathname);
-
 async function init() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   handleSession(session);
   supabaseClient.auth.onAuthStateChange((event, newSession) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      showView('reset');
-      return;
-    }
     handleSession(newSession);
   });
 }
@@ -217,10 +108,9 @@ async function handleSession(session) {
   currentSession = session;
   if (!session) {
     currentProfile = null;
-    showView(startOnForgot ? 'forgot' : 'login');
+    showView('login');
     return;
   }
-  startOnForgot = false;
 
   const { data: profile, error } = await supabaseClient
     .from('profiles')
