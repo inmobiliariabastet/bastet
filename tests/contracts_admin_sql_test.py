@@ -14,7 +14,7 @@ stub = """
 create role anon nologin; create role authenticated nologin;
 create schema auth;
 create schema storage; create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]); create table storage.objects(id uuid default gen_random_uuid() primary key, bucket_id text, name text); alter table storage.objects enable row level security; grant usage on schema storage to anon, authenticated; grant all on storage.objects to anon, authenticated;
-create table auth.users(id uuid primary key default gen_random_uuid(), email text, invited_at timestamptz);
+create table auth.users(id uuid primary key default gen_random_uuid(), email text, invited_at timestamptz, raw_app_meta_data jsonb default '{}', raw_user_meta_data jsonb default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
 grant usage on schema auth to anon, authenticated; grant usage on schema public to anon, authenticated;
 alter default privileges in schema public grant all on tables to anon, authenticated;
@@ -29,6 +29,7 @@ adm, a1, a2, adm2 = [r[0] for r in cur.fetchall()]
 cur.execute("alter table public.profiles disable trigger protect_profile_privileged")
 cur.execute("update public.profiles set role='admin' where id in (%s,%s)", (adm, adm2)); cur.execute("update public.profiles set display_name='Ana Agente' where id=%s", (a1,))
 cur.execute("insert into credit_wallets(user_id,balance) values (%s,50),(%s,50)", (a1, a2))
+for u in (a1, a2): cur.execute("select public._activate_subscription(%s,'agente','admin',null,null)", (u,))   # los contratos los cubre el plan, no créditos
 fails = 0
 def as_(uid, sql, args=None):
     cur.execute("reset role; select set_config('request.jwt.claim.sub',%s,false)", (str(uid) if uid else '',))
@@ -83,7 +84,7 @@ cur.execute("reset role"); cur.execute("select voided_at is not null, voided_by=
 chk("no se puede anular dos veces", as_(adm2, "select admin_void_exclusivity_contract(%s,'otro motivo')", (cid1,)), True)
 eq("el segundo intento no cambia al responsable", one("select voided_by=%s from exclusivity_contracts where id=%s", (adm, cid1)), True)
 eq("anular no devuelve créditos", one("select balance from credit_wallets where user_id=%s", (a1,)), bal_before)
-eq("anular no borra el movimiento", one("select count(*) from credit_ledger where contract_id=%s", (cid1,)), 1)
+eq("anular no borra el contrato", one("select count(*) from exclusivity_contracts where id=%s", (cid1,)), 1)
 eq("el otro contrato sigue vigente", one("select voided_at is null from exclusivity_contracts where id=%s", (cid2,)), True)
 
 # ── verificación pública después de anular
