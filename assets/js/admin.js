@@ -501,13 +501,20 @@ function sanitizeFilename(name) {
 
 async function uploadPhotos(fileList) {
   const files = Array.from(fileList).filter((f) => f.type.startsWith('image/'));
-  for (const file of files) {
+  const noteEl = document.getElementById('photo-note');
+  const smallOnes = [];
+  noteEl.classList.add('hidden');
+  for (const original of files) {
     const placeholder = document.createElement('div');
     placeholder.className = 'photo-thumb is-uploading';
     photoGrid.appendChild(placeholder);
 
+    // Se redimensiona (máx. 2000 px) y comprime antes de subir: fotos de celular de 5–10 MB quedan en unos cientos de KB
+    const opt = await UnoImage.optimize(original, { maxSide: 2000, quality: 0.82, kind: 'photo' });
+    const file = opt.file;
+    if (opt.small) smallOnes.push(original.name);
     const path = formState.id + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-    const { error: uploadError } = await supabaseClient.storage.from(PROPERTY_PHOTOS_BUCKET).upload(path, file);
+    const { error: uploadError } = await supabaseClient.storage.from(PROPERTY_PHOTOS_BUCKET).upload(path, file, { contentType: file.type });
     if (uploadError) {
       placeholder.remove();
       alert('Error al subir ' + file.name + ': ' + uploadError.message);
@@ -517,6 +524,10 @@ async function uploadPhotos(fileList) {
     formState.photos.push(data.publicUrl);
     placeholder.remove();
     renderPhotoGrid();
+  }
+  if (smallOnes.length) {
+    noteEl.textContent = (smallOnes.length === 1 ? 'Una foto tiene' : smallOnes.length + ' fotos tienen') + ' poca resolución (menos de 1200 px) y se verá borrosa en pantalla grande: ' + smallOnes.join(', ') + '. Si puedes, sube la versión original.';
+    noteEl.classList.remove('hidden');
   }
 }
 
@@ -942,13 +953,14 @@ async function addPartner(file) {
   const name = partnerNameInput.value.trim();
   const url = document.getElementById('partner-url-input').value.trim() || null;
   const id = crypto.randomUUID();
+  file = (await UnoImage.optimize(file, { maxSide: 800, kind: 'logo' })).file;
   const path = id + '/' + Date.now() + '-' + sanitizeFilename(file.name);
 
   const placeholder = document.createElement('div');
   placeholder.className = 'photo-thumb is-uploading';
   partnerDropzone.insertAdjacentElement('afterend', placeholder);
 
-  const { error: uploadError } = await supabaseClient.storage.from(PARTNER_LOGOS_BUCKET).upload(path, file);
+  const { error: uploadError } = await supabaseClient.storage.from(PARTNER_LOGOS_BUCKET).upload(path, file, { contentType: file.type });
   placeholder.remove();
   if (uploadError) {
     partnerAddError.textContent = 'Error al subir el logo: ' + uploadError.message;
@@ -1099,8 +1111,9 @@ async function uploadTestimonialPhoto(file) {
   placeholder.style.marginTop = '10px';
   testimonialPhotoPreview.appendChild(placeholder);
 
+  file = (await UnoImage.optimize(file, { maxSide: 800, quality: 0.85, kind: 'photo' })).file;
   const path = crypto.randomUUID() + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-  const { error: uploadError } = await supabaseClient.storage.from(TESTIMONIAL_PHOTOS_BUCKET).upload(path, file);
+  const { error: uploadError } = await supabaseClient.storage.from(TESTIMONIAL_PHOTOS_BUCKET).upload(path, file, { contentType: file.type });
   placeholder.remove();
   if (uploadError) {
     testimonialAddError.textContent = 'Error al subir la foto: ' + uploadError.message;
@@ -1335,8 +1348,9 @@ async function uploadProfileAvatar(file) {
   placeholder.style.marginTop = '10px';
   profileAvatarPreview.appendChild(placeholder);
 
+  file = (await UnoImage.optimize(file, { maxSide: 600, quality: 0.85, kind: 'photo' })).file;
   const path = currentSession.user.id + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-  const { error: uploadError } = await supabaseClient.storage.from(AGENT_AVATARS_BUCKET).upload(path, file);
+  const { error: uploadError } = await supabaseClient.storage.from(AGENT_AVATARS_BUCKET).upload(path, file, { contentType: file.type });
   placeholder.remove();
   if (uploadError) {
     profileFormError.textContent = 'Error al subir la foto: ' + uploadError.message;
