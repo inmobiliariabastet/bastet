@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Ciudad como selector en el formulario de registro (2026-10-16, `onboarding.js?v=20261024f`)**: lista desplegable con `BOLIVIA_CITIES` + «Otra ciudad»; obligatoria. Sin SQL.
+
 - ✅ **El tipo de cuenta sale de lo que elige la persona al registrarse (2026-10-16, SQL aplicado)**: la prueba de 7 días activa el plan que corresponde a su respuesta («propietario»→Propietario, «agente»→Agente, «empresa»→Empresa), ya no siempre Agente. El campo es obligatorio en el formulario y en `complete_registration`; `_start_trial` lee `profiles.interest`. Tests actualizados (`tests/registration_sql_test.py`). JS: `onboarding.js?v=20261024e`, `subscription.js?v=20261024e`.
 - ✅ **Se quitó «UNO» de los textos visibles (2026-10-16, `subscription.js?v=20261024c`)**: el mensaje de WhatsApp para pedir datos de pago ahora dice «Hola, quiero pagar mi suscripción en Bastet…» (antes «…de UNO»); comentarios de CSS actualizados. Revisado todo el repo: ya no queda «UNO» en HTML/JS/CSS visibles (solo identificadores internos como `UnoPublications`, el evento `uno:subscription`, claves de localStorage `uno-contract-*` y encabezados de comentarios SQL).
 - ✅ **Menú fijo con efecto vidrio al hacer scroll (2026-10-16, `brand.css?v=20261024c`, `main.js?v=20261024b`)**: pasados 40 px la barra se vuelve verde de marca translúcido (`rgba(61,76,58,.78)` + `backdrop-filter` blur/saturate), enlaces y botón «Acceso agentes» en verde pálido #EFF8E7, y el logotipo cambia a `bastet-logo-horizontal-negativo.png` (función `updateNavbarScroll` en main.js). Con el menú móvil abierto vuelve a blanco.

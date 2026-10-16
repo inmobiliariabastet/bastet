@@ -30,7 +30,7 @@
           '<div class="field"><label for="ob-name">Nombre completo</label><input type="text" id="ob-name" maxlength="120" autocomplete="name" required value="' + esc(meta.full_name || meta.name || '') + '"></div>' +
           '<div class="field"><label for="ob-wa">WhatsApp</label><input type="tel" id="ob-wa" maxlength="30" autocomplete="tel" placeholder="Ej: 77123456 o +591 77123456" required></div>' +
           '<div class="ob-row">' +
-            '<div class="field"><label for="ob-city">Ciudad</label><input type="text" id="ob-city" maxlength="80" autocomplete="address-level2" placeholder="Ej: La Paz"></div>' +
+            '<div class="field"><label for="ob-city">Ciudad</label><select id="ob-city" required><option value="">Selecciona…</option>' + cityOptions() + '</select></div>' +
             '<div class="field"><label for="ob-company">Inmobiliaria o empresa (opcional)</label><input type="text" id="ob-company" maxlength="120"></div>' +
           '</div>' +
           '<div class="field"><label for="ob-interest">¿Cómo usarás Bastet? Define el tipo de cuenta que recibirás</label><select id="ob-interest" required><option value="">Selecciona…</option>' +
@@ -63,6 +63,7 @@
       const val = (id) => form.querySelector('#' + id).value.trim();
       if (val('ob-name').length < 3) return fail('Escribe tu nombre completo.');
       if (!/^\+?[0-9 ()-]{7,30}$/.test(val('ob-wa'))) return fail('Escribe un WhatsApp válido (solo números).');
+      if (!val('ob-city')) return fail('Elige tu ciudad.');
       if (!val('ob-interest')) return fail('Elige cómo usarás Bastet: propietario, agente o empresa.');
       if (!form.querySelector('#ob-consent').checked) return fail('Debes aceptar el uso de tus datos para continuar.');
       const buttons = form.querySelectorAll('button[type="submit"]');
