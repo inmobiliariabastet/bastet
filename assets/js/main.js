@@ -1021,13 +1021,20 @@ function closeProperty() {
   modalBackdrop.classList.add('hidden');
 }
 
-function buildAgentSectionHtml(agent) {
-  if (!agent || (!agent.display_name && !agent.avatar_url)) return '';
-  const initial = (agent.display_name || '?').trim().charAt(0).toUpperCase();
-  const avatar = agent.avatar_url
-    ? '<img class="property-modal-agent-avatar" src="' + escapeHtml(agent.avatar_url) + '" alt="">'
-    : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>';
-  const socials =
+// Agente que publicó la propiedad, con el ícono de WhatsApp junto a sus redes (reemplaza al botón grande).
+// El WhatsApp es el del agente, o el de la propiedad si el agente no puso uno, o el general de Bastet.
+function buildAgentSectionHtml(agent, property, message) {
+  const hasAgent = !!(agent && (agent.display_name || agent.avatar_url));
+  const a = hasAgent ? agent : { display_name: 'Bastet', facebook_url: null, instagram_url: null, tiktok_url: null };
+  const initial = (a.display_name || '?').trim().charAt(0).toUpperCase();
+  const avatar = a.avatar_url
+    ? '<img class="property-modal-agent-avatar" src="' + escapeHtml(a.avatar_url) + '" alt="">'
+    : (hasAgent
+      ? '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
+      : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-gato-dorado.png" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
+  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + escapeHtml(whatsappUrl(message, (hasAgent && agent.contact_whatsapp) || (property && property.whatsapp))) + '" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp a ' + escapeHtml(a.display_name || 'Bastet') + '" title="Escribir por WhatsApp"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  agent = a;   // el resto de la función usa `agent`
+  const socials = waIcon +
     socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
     socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
     socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok');
@@ -1095,8 +1102,7 @@ function renderModal() {
           '</div>'
         : '') +
       '<p class="property-modal-desc">' + escapeHtml(p.description) + '</p>' +
-      buildAgentSectionHtml(p.agent) +
-      '<a class="cta-button cta-button--block cta-button--arrow" id="modal-whatsapp-cta" style="margin-top:8px;" href="' + whatsappUrl(message, p.whatsapp) + '" target="_blank" rel="noopener"><span>Consultar por WhatsApp</span></a>' +
+      buildAgentSectionHtml(p.agent, p, message) +
       '<div id="lead-form-slot"></div>' +
     '</div>';
 
