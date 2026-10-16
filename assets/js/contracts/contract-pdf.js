@@ -237,11 +237,11 @@
               { chrome: true, text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 2, 0, 0] },
             ],
           },
-          // QR grande (56 pt) sobre un recuadro blanco con borde, para que se lea bien aunque el membrete tenga dibujo detrás
+          // QR grande (56 pt), sin recuadro: solo un margen blanco alrededor para que se lea bien aunque el membrete tenga dibujo detrás
           ...(verifyUrl ? [{
             chrome: true, width: 64, alignment: 'right',
             table: { widths: [56], body: [[{ chrome: true, qr: verifyUrl, fit: 56, eccLevel: 'M', foreground: '#000000', background: '#FFFFFF' }]] },
-            layout: { hLineWidth: () => 0.6, vLineWidth: () => 0.6, hLineColor: () => C.warmGrey, vLineColor: () => C.warmGrey, fillColor: () => '#FFFFFF', paddingLeft: () => 3, paddingRight: () => 3, paddingTop: () => 3, paddingBottom: () => 3 },
+            layout: { hLineWidth: () => 0, vLineWidth: () => 0, fillColor: () => '#FFFFFF', paddingLeft: () => 3, paddingRight: () => 3, paddingTop: () => 3, paddingBottom: () => 3 },
           }] : []),
         ],
       }),

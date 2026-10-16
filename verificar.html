@@ -13,7 +13,7 @@
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014a">
-<link rel="stylesheet" href="assets/css/legal.css?v=20261023a">
+<link rel="stylesheet" href="assets/css/legal.css?v=20261027a">
 <link rel="stylesheet" href="assets/css/responsive-guard.css?v=20261027c">
 </head>
 <body>
@@ -38,6 +38,7 @@
       <input id="verify-code" name="code" type="text" inputmode="text" maxlength="8" minlength="8" required placeholder="K7M2QX9A" autocapitalize="characters" spellcheck="false">
       <button type="submit" class="verify-btn" id="verify-submit">Verificar</button>
     </div>
+    <button type="button" class="scan-btn" id="scan-btn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Escanear el código QR con la cámara</button>
   </form>
 
   <div class="verify-card hidden" id="verify-result" role="status" aria-live="polite"></div>
@@ -89,11 +90,13 @@
       '<div><dt>Tipo</dt><dd>Contrato de corretaje con exclusividad</dd></div></dl>');
   }
 
+  window.UnoVerify = { verify: verify };   // lo usa el escáner de QR (assets/js/qr-scan.js)
   form.addEventListener('submit', function (e) { e.preventDefault(); verify(input.value); });
   input.addEventListener('input', function () { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
   var q = new URLSearchParams(location.search).get('c');
   if (q) { input.value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); verify(input.value); }
 })();
 </script>
+<script src="assets/js/qr-scan.js?v=20261027b"></script>
 </body>
 </html>
