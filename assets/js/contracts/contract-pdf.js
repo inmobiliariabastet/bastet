@@ -138,8 +138,27 @@
     return table;
   }
 
+
+  // Marca de tiempo de emisión: viene del REGISTRO DEL SERVIDOR (created_at del contrato, que nadie puede cambiar desde el navegador),
+  // no del reloj de quien descarga: volver a descargar el contrato siempre muestra la misma fecha y hora de emisión.
+  function issuedInfo(iso) {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const parts = (opts) => { const o = {}; new Intl.DateTimeFormat('es-BO', Object.assign({ timeZone: 'America/La_Paz' }, opts)).formatToParts(d).forEach((p) => { o[p.type] = p.value; }); return o; };
+    const n = parts({ day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+    const l = parts({ day: 'numeric', month: 'long', year: 'numeric' });
+    const time = n.hour + ':' + n.minute + ':' + n.second;
+    return {
+      short: n.day + '/' + n.month + '/' + n.year + ' ' + time,
+      long: l.day + ' de ' + l.month + ' de ' + l.year + ', ' + time + ' (hora de Bolivia, UTC−4)',
+      utc: d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC'),
+    };
+  }
+
   function build(opts) {
     const { blocks, number, code, agentName, letterheadDataUrl, voided } = opts;
+    const issued = issuedInfo(opts.issuedAt);
     const docTitle = opts.docTitle || 'CONTRATO DE EXCLUSIVIDAD';   // encabezado de las páginas 2 en adelante
     const docSubject = opts.docSubject || 'Contrato de corretaje inmobiliario con exclusividad';
     const verifyUrl = code ? VERIFY_BASE + code : null;                // sin código: el documento no se verifica en la página pública
@@ -164,6 +183,29 @@
     // Un título de cláusula nunca queda solo al pie de una página: pageBreakBefore (abajo) lo pasa a la siguiente.
     // (No se ata al párrafo entero: con cláusulas largas dejaba media página en blanco.)
     const bound = merged;
+    // Constancia de emisión y verificación (última página): QR grande, código y marca de tiempo del servidor
+    if (verifyUrl && issued) {
+      const BLACK = '#000000';
+      bound.push({
+        unbreakable: true, margin: [0, 22, 0, 0],
+        table: {
+          widths: [124, '*'],
+          body: [[
+            { qr: verifyUrl, fit: 108, eccLevel: 'M', foreground: BLACK, background: '#FFFFFF', alignment: 'center', margin: [0, 2, 0, 2] },
+            { stack: [
+              { text: 'CONSTANCIA DE EMISIÓN Y VERIFICACIÓN', font: 'Conso', bold: true, fontSize: 10.5, color: C.ebony, characterSpacing: 0.6, margin: [0, 0, 0, 6] },
+              { text: [{ text: 'Emitido el: ', bold: true }, issued.long], fontSize: 9.5, lineHeight: 1.3 },
+              { text: [{ text: 'Marca de tiempo: ', bold: true }, issued.utc], fontSize: 9.5, lineHeight: 1.3 },
+              { text: [{ text: 'Contrato Nº: ', bold: true }, number], fontSize: 9.5, lineHeight: 1.3, margin: [0, 0, 0, 6] },
+              { text: 'Código de verificación', fontSize: 8.5, color: C.warmGrey },
+              { text: code, font: 'Conso', bold: true, fontSize: 22, color: C.ink, characterSpacing: 4, lineHeight: 1.05, margin: [0, 0, 0, 6] },
+              { text: 'Escanea el código QR o ingresa a bastet.uno/verificar.html para comprobar que este documento es auténtico. La fecha y la hora corresponden al registro del servidor de bastet.uno en el momento de la emisión.', fontSize: 8, color: C.warmGrey, lineHeight: 1.25 },
+            ], margin: [4, 2, 0, 2] },
+          ]],
+        },
+        layout: { hLineWidth: () => 0.9, vLineWidth: () => 0.9, hLineColor: () => C.ebony, vLineColor: () => C.ebony, fillColor: () => '#FFFFFF', paddingLeft: () => 10, paddingRight: () => 10, paddingTop: () => 9, paddingBottom: () => 9 },
+      });
+    }
 
     return {
       pageSize: { width: PAGE_W, height: PAGE_H },
@@ -190,11 +232,17 @@
             width: '*',
             stack: [
               { chrome: true, text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.warmGrey, lineHeight: 1.2 },
+              ...(issued ? [{ chrome: true, text: 'Emitido el ' + issued.short + ' (hora de Bolivia)', fontSize: 7.5, color: C.ink, bold: true, lineHeight: 1.2 }] : []),
               ...(code ? [{ chrome: true, text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.2 }] : []),
               { chrome: true, text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 2, 0, 0] },
             ],
           },
-          ...(verifyUrl ? [{ chrome: true, qr: verifyUrl, fit: 32, foreground: C.ebony, alignment: 'right', width: 32 }] : []),
+          // QR grande (56 pt) sobre un recuadro blanco con borde, para que se lea bien aunque el membrete tenga dibujo detrás
+          ...(verifyUrl ? [{
+            chrome: true, width: 64, alignment: 'right',
+            table: { widths: [56], body: [[{ chrome: true, qr: verifyUrl, fit: 56, eccLevel: 'M', foreground: '#000000', background: '#FFFFFF' }]] },
+            layout: { hLineWidth: () => 0.6, vLineWidth: () => 0.6, hLineColor: () => C.warmGrey, vLineColor: () => C.warmGrey, fillColor: () => '#FFFFFF', paddingLeft: () => 3, paddingRight: () => 3, paddingTop: () => 3, paddingBottom: () => 3 },
+          }] : []),
         ],
       }),
       // Un título de cláusula nunca queda solo al final de página. `following` también trae el encabezado, el pie y el fondo

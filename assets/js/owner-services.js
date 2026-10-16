@@ -78,7 +78,7 @@
       const blocks = T.renderCollaborationBlocks(state.colabTpl, offer);
       const doc = P.build({
         blocks, number: offer.doc_number, code: null, agentName: (offer.owner_data && offer.owner_data.nombre) || 'Propietario', letterheadDataUrl: letterhead,
-        docTitle: 'OFERTA DE COLABORACIÓN', docSubject: 'Oferta de colaboración propietario-agente (borrador sujeto a validación legal)',
+        issuedAt: offer.created_at, docTitle: 'OFERTA DE COLABORACIÓN', docSubject: 'Oferta de colaboración propietario-agente (borrador sujeto a validación legal)',
       });
       await P.download(doc, 'Oferta-Colaboracion-' + offer.doc_number + '-' + P.surnameForFile(offer.owner_data && offer.owner_data.nombre) + '.pdf');
     } catch (e) {

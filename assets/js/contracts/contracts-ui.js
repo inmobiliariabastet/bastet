@@ -661,13 +661,13 @@
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Ver planes</button></div>');
   }
 
-  async function prepareDoc(data, number, code, voided, version) {
+  async function prepareDoc(data, number, code, voided, version, issuedAt) {
     await P.ensureLibs(asset('js/contracts/contract-fonts.js'));
     const letterhead = await P.fetchDataUrl(asset('img/membrete-bastet.jpg'));
     const tpl = state.templates[version || templateVersionFor(data.operacion)];
     if (!tpl) throw new Error('Plantilla del contrato no disponible');
     const blocks = T.renderBlocks(tpl, data, { numero_contrato: number, codigo_verificacion: code });
-    return P.build({ blocks, number, code, agentName: data.agente_nombre, letterheadDataUrl: letterhead, voided: !!voided });
+    return P.build({ blocks, number, code, agentName: data.agente_nombre, letterheadDataUrl: letterhead, voided: !!voided, issuedAt });
   }
 
   async function confirmGenerate() {
@@ -697,7 +697,7 @@
       let blob = null; let downloadFailed = false;
       const name = P.fileName(res.contract_number, data.propietario_nombre);
       try {
-        const doc = await prepareDoc(data, res.contract_number, res.verification_code, false, version);
+        const doc = await prepareDoc(data, res.contract_number, res.verification_code, false, version, res.created_at);
         blob = await P.download(doc, name);
       } catch (e) { downloadFailed = true; }
       clearDraft();
@@ -736,7 +736,7 @@
     if (!c || (btn && btn.disabled)) return;
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.innerHTML = '<span class="ct-spin"></span>'; }
     try {
-      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code, !!c.voided_at, c.template_version);
+      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code, !!c.voided_at, c.template_version, c.created_at);
       await P.download(doc, P.fileName(c.contract_number, c.data.propietario_nombre));
     } catch (e) { toast('No se pudo preparar el PDF: ' + ((e && e.message) || 'error'), true); }
     finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Descargar PDF'; } }

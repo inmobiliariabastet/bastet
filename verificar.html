@@ -71,18 +71,20 @@
     if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>Inténtalo de nuevo en unos minutos.</p>'); return; }
     var row = res.data && res.data[0];
     if (!row) { show('is-bad', '<h2>No encontramos este contrato</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ningún contrato generado en bastet.uno. Si lo recibiste en un documento, verifica que no haya sido alterado.</p>'); return; }
-    var fecha = new Date(row.created_at).toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' });
+    // Fecha y hora exactas de emisión (registro del servidor), en hora de Bolivia
+    var fmt = function (iso, withTime) { var o = { timeZone: 'America/La_Paz', day: 'numeric', month: 'long', year: 'numeric' }; if (withTime) { o.hour = '2-digit'; o.minute = '2-digit'; o.second = '2-digit'; o.hourCycle = 'h23'; } return new Date(iso).toLocaleString('es-BO', o); };
+    var fecha = fmt(row.created_at, true) + ' (hora de Bolivia)';
     if (row.voided) {
-      var anulado = new Date(row.voided_at).toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' });
+      var anulado = fmt(row.voided_at, false);
       show('is-bad', '<h2>⚠ Contrato ANULADO</h2><p>Este contrato existe, pero fue <b>anulado el ' + esc(anulado) + '</b> y ya no tiene validez.</p>' +
         '<dl><div><dt>Nº de contrato</dt><dd>' + esc(row.contract_number) + '</dd></div>' +
-        '<div><dt>Generado el</dt><dd>' + esc(fecha) + '</dd></div>' +
+        '<div><dt>Emitido el</dt><dd>' + esc(fecha) + '</dd></div>' +
         '<div><dt>Agente</dt><dd>' + esc(row.agent_name) + '</dd></div></dl>');
       return;
     }
     show('is-ok', '<h2>✓ Contrato auténtico</h2>' +
       '<dl><div><dt>Nº de contrato</dt><dd>' + esc(row.contract_number) + '</dd></div>' +
-      '<div><dt>Generado el</dt><dd>' + esc(fecha) + '</dd></div>' +
+      '<div><dt>Emitido el</dt><dd>' + esc(fecha) + '</dd></div>' +
       '<div><dt>Agente</dt><dd>' + esc(row.agent_name) + '</dd></div>' +
       '<div><dt>Tipo</dt><dd>Contrato de corretaje con exclusividad</dd></div></dl>');
   }
