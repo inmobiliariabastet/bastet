@@ -189,7 +189,7 @@ const revealObserver = ('IntersectionObserver' in window)
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15 })
+    }, { threshold: 0, rootMargin: '0px 0px -8% 0px' })
   : null;
 document.querySelectorAll('.reveal').forEach((el) => {
   if (revealObserver) revealObserver.observe(el);

@@ -380,3 +380,6 @@ body.brand .prop-tile--featured:hover { border-color: var(--br-sage); box-shadow
 body.brand .operation-tab--stay { margin-left: clamp(8px, 2vw, 24px); padding-left: clamp(10px, 2vw, 24px); border-left: 1px solid var(--br-line); }
 body.brand .testi-ring-photo-placeholder { border-color: var(--br-sage); }
 body.brand .trust-stat { font-size: clamp(34px, 3.4vw, 46px); }
+
+/* "Instalar app" solo en celular y tablet: en computadora no se muestra (el menú y el botón de la barra superior) */
+@media (min-width: 1080px) { [data-install-app] { display: none !important; } }
