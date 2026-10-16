@@ -6,7 +6,6 @@ Si se cambian en el Dashboard, actualizar también estos archivos.
 
 | Plantilla en Supabase | Archivo | Subject |
 |---|---|---|
-| Invite user | `invite.html` | Tu invitación para ser agente en Bastet |
 | Reset password | `reset-password.html` | Crea una nueva contraseña para tu cuenta Bastet |
 
 `{{ .ConfirmationURL }}` y `{{ .Email }}` son variables de Supabase: no tocarlas.
@@ -14,3 +13,5 @@ Si se cambian en el Dashboard, actualizar también estos archivos.
 ## Correos de marketing
 
 Hoy Bastet **no envía correos de marketing**: los de arriba son transaccionales (invitación y restablecer contraseña), que no requieren enlace de baja y ya llevan la dirección postal. Si algún día se envían promociones o boletines, cada correo debe terminar con `marketing-footer.html` (dirección postal + enlace de baja) y solo se debe escribir a quien dio su consentimiento.
+
+La plantilla de invitación (`invite.html`) y la función `invite-admin` se eliminaron: ya no se invita por correo, los agentes entran con Google y su cuenta se crea sola.

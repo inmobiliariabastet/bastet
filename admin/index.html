@@ -124,7 +124,6 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="testimonials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Testimonios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="admins"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Usuarios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Propietarios <span class="tab-count hidden" id="sell-count"></span></button>
-      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="requests"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 14h5l1 2h4l1-2h5"/></svg>Solicitudes <span class="tab-count hidden" id="requests-count"></span></button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="legal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-2 6a3 3 0 0 0 4 0zM19 7l-2 6a3 3 0 0 0 4 0zM8 21h8"/></svg>Asesoría legal</button>
     </nav>
     <div class="admin-side-foot">
@@ -333,38 +332,13 @@
       <div class="admin-toolbar">
         <div>
           <h1>Usuarios</h1>
-          <p class="admin-toolbar-hint">Invita a nuevos agentes o administradores. Un agente solo puede ver y editar sus propias propiedades; un administrador ve y gestiona todo.</p>
+          <p class="admin-toolbar-hint">Quien entra con Google se registra solo. Aquí ves sus datos de registro y su plan, y puedes desactivar o eliminar cuentas. Un agente solo ve y edita sus propias propiedades; un administrador ve y gestiona todo.</p>
         </div>
       </div>
-
-      <form id="invite-admin-form" class="invite-admin-card">
-        <div class="field">
-          <label for="invite-email">Correo de la persona a invitar</label>
-          <input type="email" id="invite-email" required placeholder="nombre@ejemplo.com">
-        </div>
-        <p id="invite-admin-error" class="form-error hidden"></p>
-        <p id="invite-admin-success" class="auth-banner hidden"></p>
-        <button type="submit" id="invite-admin-submit" class="btn btn-accent">Enviar invitación</button>
-      </form>
 
       <h2 class="admin-subheading">Usuarios con acceso</h2>
-      <p class="admin-toolbar-hint">Los agentes invitados aparecen aquí con rol "agent". Desactiva a alguien para quitarle acceso de inmediato (no borra sus propiedades).</p>
+      <p class="admin-toolbar-hint">Las cuentas nuevas aparecen aquí al entrar con Google. Desactiva a alguien para quitarle acceso de inmediato (no borra sus propiedades).</p>
       <div id="user-list" class="user-list"></div>
-    </div>
-
-    <div id="tab-panel-requests" class="tab-panel hidden">
-      <div class="admin-toolbar">
-        <div>
-          <h1>Solicitudes de nuevos agentes</h1>
-          <p class="admin-toolbar-hint">Personas que pidieron una cuenta desde el botón "Acceso agentes" del landing. Contáctalas y, si las apruebas, se les envía una invitación por correo para crear su contraseña (entran con rol Agente).</p>
-        </div>
-      </div>
-      <div class="request-filters" id="request-filters">
-        <button type="button" class="request-filter is-active" data-status="pending">Pendientes</button>
-        <button type="button" class="request-filter" data-status="approved">Aprobadas</button>
-        <button type="button" class="request-filter" data-status="rejected">Rechazadas</button>
-      </div>
-      <div id="request-list" class="request-list"></div>
     </div>
 
     <div id="tab-panel-account" class="tab-panel hidden">
@@ -682,7 +656,7 @@
 <script src="../assets/js/contracts/contracts-ui.js?v=20261023a"></script>
 <script src="../assets/js/owner-services.js?v=20261023b"></script>
 <script src="../assets/js/payments.js?v=20261025a"></script>
-<script src="../assets/js/admin-nav.js?v=20261016a"></script>
-<script src="../assets/js/admin.js?v=20261023a"></script>
+<script src="../assets/js/admin-nav.js?v=20261025a"></script>
+<script src="../assets/js/admin.js?v=20261025a"></script>
 </body>
 </html>

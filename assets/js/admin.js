@@ -253,7 +253,6 @@ async function handleSession(session) {
   showView('dashboard');
   if (!wasSignedIn) {
     loadProperties();
-    if (profile.role === 'admin') refreshPendingRequestsCount();
   }
 }
 
@@ -872,7 +871,6 @@ document.querySelectorAll('.admin-tab').forEach((btn) => {
     if (btn.dataset.tab === 'partners') loadPartners();
     if (btn.dataset.tab === 'testimonials') loadTestimonials();
     if (btn.dataset.tab === 'admins') loadUsers();
-    if (btn.dataset.tab === 'requests') loadRequests();
     if (btn.dataset.tab === 'analytics') loadAnalytics();
   });
 });
@@ -1270,56 +1268,6 @@ testimonialAddForm.addEventListener('submit', async (e) => {
   loadTestimonials();
 });
 
-/* ── Administradores: invitar nuevos usuarios (vía Edge Function, ver supabase/functions/invite-admin) ── */
-// Llama a invite-admin y devuelve null si salió bien, o el motivo del error en español.
-// Con un status no-2xx, supabase-js solo da un mensaje genérico; el detalle real
-// ({ error }) viene en el cuerpo de la respuesta (error.context).
-async function inviteByEmail(email) {
-  const { data, error } = await supabaseClient.functions.invoke('invite-admin', { body: { email } });
-  if (!error && !(data && data.error)) return null;
-  let message = data && data.error;
-  if (!message && error && error.context && typeof error.context.json === 'function') {
-    try { message = (await error.context.json()).error; } catch (_) { /* cuerpo no-JSON */ }
-  }
-  message = message || (error && error.message) || 'Error desconocido';
-  if (/already been registered|already registered|already exists/i.test(message)) {
-    return 'ese correo ya tiene una cuenta. Si quieres reenviarle la invitación, bórralo primero en Usuarios (basurero) y vuelve a intentarlo.';
-  }
-  if (/sending|smtp|mail/i.test(message)) {
-    return 'Supabase no pudo enviar el correo (' + message + '). Revisa la configuración SMTP y Authentication → Logs.';
-  }
-  if (/rate limit/i.test(message)) {
-    return 'se alcanzó el límite de correos por hora de Supabase. Espera un rato o sube el límite en Authentication → Rate Limits.';
-  }
-  return message;
-}
-document.getElementById('invite-admin-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById('invite-admin-error');
-  const successEl = document.getElementById('invite-admin-success');
-  errorEl.classList.add('hidden');
-  successEl.classList.add('hidden');
-
-  const email = document.getElementById('invite-email').value.trim();
-  const btn = document.getElementById('invite-admin-submit');
-  btn.disabled = true;
-
-  const inviteError = await inviteByEmail(email);
-
-  btn.disabled = false;
-
-  if (inviteError) {
-    errorEl.textContent = 'Error al invitar: ' + inviteError;
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  successEl.textContent = 'Invitación enviada a ' + email + '.';
-  successEl.classList.remove('hidden');
-  document.getElementById('invite-admin-form').reset();
-  loadUsers();
-});
-
 /* ── Administradores: lista de usuarios (activar/desactivar) ── */
 const userListEl = document.getElementById('user-list');
 
@@ -1402,128 +1350,10 @@ async function deleteUser(user) {
   const propsNote = count
     ? '\n\nTiene ' + count + (count === 1 ? ' propiedad publicada: no se borrará, quedará "Sin asignar".' : ' propiedades publicadas: no se borrarán, quedarán "Sin asignar".')
     : '';
-  if (!confirm('¿Eliminar definitivamente la cuenta de ' + who + '?\n\nYa no podrá iniciar sesión y esta acción no se puede deshacer (para volver a darle acceso habría que invitarla de nuevo).' + propsNote)) return;
+  if (!confirm('¿Eliminar definitivamente la cuenta de ' + who + '?\n\nYa no podrá iniciar sesión y esta acción no se puede deshacer (si vuelve a entrar con Google, se creará una cuenta nueva).' + propsNote)) return;
   const { error } = await supabaseClient.rpc('admin_delete_user', { target: user.id });
   if (error) { alert('Error al eliminar: ' + error.message); return; }
   loadUsers();
-}
-
-/* ── Solicitudes de nuevos agentes (llegan desde "Acceso agentes" en el landing) ── */
-const requestListEl = document.getElementById('request-list');
-let requestStatusFilter = 'pending';
-
-const REQUEST_STATUS_LABELS = { pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada' };
-
-document.querySelectorAll('.request-filter').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    requestStatusFilter = btn.dataset.status;
-    document.querySelectorAll('.request-filter').forEach((b) => b.classList.toggle('is-active', b === btn));
-    loadRequests();
-  });
-});
-
-async function refreshPendingRequestsCount() {
-  const { count, error } = await supabaseClient
-    .from('agent_requests')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending');
-  const badge = document.getElementById('requests-count');
-  const n = error ? 0 : (count || 0);
-  badge.textContent = n;
-  badge.classList.toggle('hidden', n === 0);
-}
-
-async function loadRequests() {
-  requestListEl.innerHTML = '<p class="property-empty">Cargando…</p>';
-  const { data, error } = await supabaseClient
-    .from('agent_requests')
-    .select('*')
-    .eq('status', requestStatusFilter)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    requestListEl.innerHTML = '<p class="property-empty">Error al cargar solicitudes: ' + escapeHtml(error.message) + '</p>';
-    return;
-  }
-  renderRequestList(data || []);
-  refreshPendingRequestsCount();
-}
-
-function renderRequestList(requests) {
-  if (!requests.length) {
-    const emptyText = { pending: 'No hay solicitudes pendientes.', approved: 'Todavía no aprobaste ninguna solicitud.', rejected: 'No hay solicitudes rechazadas.' };
-    requestListEl.innerHTML = '<p class="property-empty">' + emptyText[requestStatusFilter] + '</p>';
-    return;
-  }
-  requestListEl.innerHTML = '';
-  requests.forEach((r) => {
-    const card = document.createElement('div');
-    card.className = 'request-card';
-    const waMessage = 'Hola ' + r.full_name.split(' ')[0] + ', te escribimos de Bastet por tu solicitud de cuenta de agente.';
-    const waLink = 'https://api.whatsapp.com/send?phone=' + r.whatsapp.replace(/[^0-9]/g, '') + '&text=' + encodeURIComponent(waMessage);
-    const field = (label, html) => html ? '<div><span class="request-label">' + label + '</span><span class="request-value">' + html + '</span></div>' : '';
-
-    card.innerHTML =
-      '<div class="request-head">' +
-        '<p class="request-name">' + escapeHtml(r.full_name) + '</p>' +
-        '<span class="request-date">' + new Date(r.created_at).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + REQUEST_STATUS_LABELS[r.status] + '</span>' +
-      '</div>' +
-      '<div class="request-grid">' +
-        field('WhatsApp', '<a href="' + waLink + '" target="_blank" rel="noopener">' + escapeHtml(r.whatsapp) + '</a>') +
-        field('Correo', '<a href="mailto:' + encodeURIComponent(r.email) + '">' + escapeHtml(r.email) + '</a>') +
-        field('Ciudad', escapeHtml(r.city || '')) +
-        field('Experiencia', escapeHtml(r.experience || '')) +
-        field('Inmobiliaria / empresa', escapeHtml(r.company || '')) +
-      '</div>' +
-      (r.message ? '<p class="request-message">' + escapeHtml(r.message) + '</p>' : '') +
-      '<div class="request-actions">' +
-        (r.status !== 'approved' ? '<button type="button" class="btn btn-accent btn-sm" data-action="approve">Aprobar y enviar invitación</button>' : '') +
-        (r.status === 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="reject">Rechazar</button>' : '') +
-        (r.status !== 'pending' ? '<button type="button" class="btn btn-ghost btn-sm" data-action="pending">Volver a pendiente</button>' : '') +
-        '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar solicitud" aria-label="Eliminar solicitud">' + TRASH_ICON + '</button>' +
-      '</div>' +
-      '<p class="request-feedback hidden"></p>';
-
-    const feedback = card.querySelector('.request-feedback');
-    const showFeedback = (msg) => {
-      feedback.textContent = msg;
-      feedback.className = 'request-feedback is-error';
-    };
-    const bind = (action, fn) => {
-      const btn = card.querySelector('[data-action="' + action + '"]');
-      if (btn) btn.addEventListener('click', () => fn(btn));
-    };
-
-    bind('approve', async (btn) => {
-      if (!confirm('¿Aprobar a ' + r.full_name + '? Se enviará una invitación a ' + r.email + ' para crear su contraseña (entrará como Agente).')) return;
-      btn.disabled = true;
-      const inviteError = await inviteByEmail(r.email);
-      if (inviteError) {
-        btn.disabled = false;
-        showFeedback('No se pudo enviar la invitación: ' + inviteError);
-        return;
-      }
-      await setRequestStatus(r, 'approved');
-    });
-    bind('reject', () => {
-      if (confirm('¿Rechazar la solicitud de ' + r.full_name + '?')) setRequestStatus(r, 'rejected');
-    });
-    bind('pending', () => setRequestStatus(r, 'pending'));
-    bind('delete', async () => {
-      if (!confirm('¿Eliminar definitivamente la solicitud de ' + r.full_name + '?')) return;
-      const { error } = await supabaseClient.from('agent_requests').delete().eq('id', r.id);
-      if (error) { showFeedback('Error: ' + error.message); return; }
-      loadRequests();
-    });
-
-    requestListEl.appendChild(card);
-  });
-}
-
-async function setRequestStatus(request, status) {
-  const { error } = await supabaseClient.from('agent_requests').update({ status }).eq('id', request.id);
-  if (error) { alert('Error: ' + error.message); return; }
-  loadRequests();
 }
 
 /* ── Administradores: ver las propiedades publicadas por un usuario ── */

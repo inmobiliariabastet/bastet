@@ -125,54 +125,12 @@
     <button type="button" class="property-modal-close" id="agent-modal-close" aria-label="Cerrar">✕</button>
     <div class="agent-modal-body">
       <h2 class="agent-modal-title" id="agent-modal-title">Acceso agentes</h2>
-      <div class="agent-tabs" role="tablist" style="display:none">
-        <button type="button" class="agent-tab is-active" data-agent-tab="login">Ya tengo cuenta</button>
-        <button type="button" class="agent-tab" data-agent-tab="request">Quiero una cuenta</button>
-      </div>
-
       <form id="agent-login-form" class="agent-form" data-agent-panel="login">
         <p class="agent-form-hint">Entra con tu cuenta de Google para gestionar tus propiedades. Si es tu primera vez, tu cuenta de agente se crea y se habilita al instante.</p>
         <button type="button" class="google-btn" id="agent-google"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M21.35 11.1H12v2.98h5.35c-.23 1.4-1.6 4.1-5.35 4.1-3.22 0-5.85-2.67-5.85-5.96s2.63-5.96 5.85-5.96c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.68 3.7 14.55 2.7 12 2.7 6.92 2.7 2.8 6.82 2.8 11.9S6.92 21.1 12 21.1c5.2 0 8.65-3.66 8.65-8.8 0-.59-.06-1.04-.14-1.2z"/></svg><span>Continuar con Google</span></button>
-        <p class="google-divider" style="display:none"><span>o con tu correo</span></p>
-        <label class="agent-field" style="display:none"><span>Correo</span><input type="email" id="agent-login-email" required autocomplete="username"></label>
-        <label class="agent-field" style="display:none"><span>Contraseña</span><input type="password" id="agent-login-password" required autocomplete="current-password"></label>
         <p class="agent-form-error hidden" id="agent-login-error"></p>
-        <button style="display:none" type="submit" class="cta-button" id="agent-login-submit"><span>Ingresar</span></button>
-        <p style="display:none" class="agent-form-note hidden" id="agent-forgot-note"></p>
-        <button style="display:none" type="button" class="agent-form-link" id="agent-forgot">¿Olvidaste tu contraseña?</button>
       </form>
 
-      <form id="agent-request-form" class="agent-form hidden" data-agent-panel="request">
-        <p class="agent-form-hint">Déjanos tus datos y nos pondremos en contacto contigo para habilitar tu cuenta de agente en Bastet.</p>
-        <label class="agent-field"><span>Nombre completo *</span><input type="text" id="req-name" required minlength="3" maxlength="120" autocomplete="name"></label>
-        <div class="agent-field-row">
-          <label class="agent-field"><span>WhatsApp *</span><input type="tel" id="req-whatsapp" required minlength="7" maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>
-          <label class="agent-field"><span>Correo electrónico *</span><input type="email" id="req-email" required maxlength="160" autocomplete="email"></label>
-        </div>
-        <div class="agent-field-row">
-          <label class="agent-field"><span>Ciudad</span><select id="req-city"><option value="">Selecciona…</option></select></label>
-          <label class="agent-field"><span>Experiencia</span>
-            <select id="req-experience">
-              <option value="">Selecciona…</option>
-              <option>Recién empiezo</option>
-              <option>Menos de 1 año</option>
-              <option>1 a 3 años</option>
-              <option>3 a 5 años</option>
-              <option>Más de 5 años</option>
-            </select>
-          </label>
-        </div>
-        <label class="agent-field"><span>Inmobiliaria o empresa (si trabajas con una)</span><input type="text" id="req-company" maxlength="120" placeholder="Independiente"></label>
-        <label class="agent-field"><span>Cuéntanos sobre ti</span><textarea id="req-message" rows="3" maxlength="1000" placeholder="Zonas en las que trabajas, tipo de inmuebles, cuántas propiedades manejas…"></textarea></label>
-        <p class="agent-form-hint">Usaremos tus datos solo para evaluar tu solicitud y contactarte. Más información en nuestra <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</p>
-        <p class="agent-form-error hidden" id="agent-request-error"></p>
-        <button type="submit" class="cta-button" id="agent-request-submit"><span>Enviar solicitud</span></button>
-      </form>
-
-      <div class="agent-success hidden" id="agent-request-success">
-        <p class="agent-success-title">¡Solicitud enviada!</p>
-        <p class="agent-form-hint">Gracias. Revisaremos tus datos y te contactaremos por WhatsApp o correo para darte acceso.</p>
-      </div>
     </div>
   </div>
 </div>
@@ -190,6 +148,6 @@
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/main.js?v=20261024b"></script>
+<script src="assets/js/main.js?v=20261025a"></script>
 </body>
 </html>

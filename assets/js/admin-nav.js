@@ -39,7 +39,7 @@
       const num = (id) => { const el = document.getElementById(id); return el && !el.classList.contains('hidden') ? (parseInt(el.textContent, 10) || 0) : 0; };
       const setBadge = (id, n) => { const b = document.getElementById(id); if (!b) return; b.textContent = n > 99 ? '99+' : String(n); b.classList.toggle('hidden', !n); };
       setBadge('abb-leads-count', num('leads-count'));
-      setBadge('abb-more-count', num('requests-count') + num('sell-count'));
+      setBadge('abb-more-count', num('sell-count'));
     };
     quick.forEach((b) => b.addEventListener('click', () => { const t = sideTab(b.dataset.go); if (t) { t.click(); window.scrollTo({ top: 0 }); } }));
     more.addEventListener('click', () => { burger.click(); });

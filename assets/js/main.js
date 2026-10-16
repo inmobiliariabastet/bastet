@@ -40,37 +40,16 @@ function updateNavbarScroll() {
 window.addEventListener('scroll', updateNavbarScroll, { passive: true });
 updateNavbarScroll();
 
-/* ── Acceso agentes: iniciar sesión (y saltar al panel) o solicitar una cuenta ── */
+/* ── Acceso agentes: entrar con Google (la cuenta se crea sola la primera vez) ── */
 const agentModalBackdrop = document.getElementById('agent-modal-backdrop');
-const agentLoginForm = document.getElementById('agent-login-form');
-const agentRequestForm = document.getElementById('agent-request-form');
-const agentRequestSuccess = document.getElementById('agent-request-success');
-
-BOLIVIA_CITIES.forEach((city) => {
-  const opt = document.createElement('option');
-  opt.value = city;
-  opt.textContent = city;
-  document.getElementById('req-city').appendChild(opt);
-});
-
-function setAgentTab(tab) {
-  document.querySelectorAll('.agent-tab').forEach((b) => b.classList.toggle('is-active', b.dataset.agentTab === tab));
-  // Tras enviar una solicitud, la pestaña muestra el mensaje de éxito en vez del formulario.
-  const sent = agentRequestSuccess.dataset.sent === '1';
-  agentLoginForm.classList.toggle('hidden', tab !== 'login');
-  agentRequestForm.classList.toggle('hidden', tab !== 'request' || sent);
-  agentRequestSuccess.classList.toggle('hidden', tab !== 'request' || !sent);
-}
 
 async function openAgentModal() {
-  const tab = 'login'; // ya no hay solicitud de cuenta: el alta es automática con Google
   setMenuOpen(false);
   // Si ya hay una sesión activa en este navegador, ir directo al panel.
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) { window.location.href = 'admin/'; return; }
-  setAgentTab(tab);
   agentModalBackdrop.classList.remove('hidden');
-  document.getElementById(tab === 'request' ? 'req-name' : 'agent-login-email').focus();
+  document.getElementById('agent-google').focus();
 }
 
 function closeAgentModal() {
@@ -78,12 +57,6 @@ function closeAgentModal() {
 }
 
 document.querySelectorAll('[data-agent-access]').forEach((btn) => btn.addEventListener('click', () => openAgentModal()));
-// El panel enlaza a /#solicitar-cuenta ("¿No tienes una cuenta?") para abrir directo el formulario.
-if (window.location.hash === '#solicitar-cuenta') {
-  history.replaceState(null, '', window.location.pathname);
-  openAgentModal('request');
-}
-document.querySelectorAll('.agent-tab').forEach((btn) => btn.addEventListener('click', () => setAgentTab(btn.dataset.agentTab)));
 document.getElementById('agent-modal-close').addEventListener('click', closeAgentModal);
 agentModalBackdrop.addEventListener('click', (e) => { if (e.target === agentModalBackdrop) closeAgentModal(); });
 document.addEventListener('keydown', (e) => {
@@ -96,30 +69,8 @@ function showAgentError(id, message) {
   el.classList.toggle('hidden', !message);
 }
 
-agentLoginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showAgentError('agent-login-error', '');
-  const btn = document.getElementById('agent-login-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email: document.getElementById('agent-login-email').value.trim(),
-    password: document.getElementById('agent-login-password').value,
-  });
-  if (error) {
-    btn.disabled = false;
-    showAgentError('agent-login-error', /invalid login credentials/i.test(error.message)
-      ? 'Correo o contraseña incorrectos.'
-      : /email not confirmed/i.test(error.message)
-        ? 'Debes confirmar tu correo antes de iniciar sesión.'
-        : 'No se pudo iniciar sesión: ' + error.message);
-    return;
-  }
-  // La sesión queda guardada en este navegador; el panel la retoma (y valida rol/estado).
-  window.location.href = 'admin/';
-});
-
 // Login con Google: Supabase redirige a Google y vuelve al panel con la sesión.
-// Solo entra quien ya tiene cuenta de agente activa (el panel valida rol/estado).
+// La primera vez se crea y habilita la cuenta al instante; el panel valida rol/estado.
 document.getElementById('agent-google').addEventListener('click', async () => {
   showAgentError('agent-login-error', '');
   const btn = document.getElementById('agent-google');
@@ -132,61 +83,6 @@ document.getElementById('agent-google').addEventListener('click', async () => {
     btn.disabled = false;
     showAgentError('agent-login-error', 'No se pudo iniciar con Google: ' + error.message);
   }
-});
-
-// "¿Olvidaste tu contraseña?": usa el correo ya escrito arriba y manda el enlace directo.
-document.getElementById('agent-forgot').addEventListener('click', async () => {
-  const emailInput = document.getElementById('agent-login-email');
-  const note = document.getElementById('agent-forgot-note');
-  const email = emailInput.value.trim();
-  showAgentError('agent-login-error', '');
-  note.classList.add('hidden');
-  if (!email || !emailInput.checkValidity()) {
-    showAgentError('agent-login-error', 'Escribe arriba el correo de tu cuenta y vuelve a hacer clic en "¿Olvidaste tu contraseña?".');
-    emailInput.focus();
-    return;
-  }
-  const btn = document.getElementById('agent-forgot');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/admin/',
-  });
-  btn.disabled = false;
-  if (error) {
-    showAgentError('agent-login-error', /rate limit/i.test(error.message)
-      ? 'Ya pediste varios enlaces seguidos. Espera unos minutos y vuelve a intentarlo.'
-      : 'No se pudo enviar el enlace: ' + error.message);
-    return;
-  }
-  // Mismo mensaje exista o no la cuenta (no se revela qué correos están registrados).
-  note.innerHTML = 'Si <strong>' + escapeHtml(email) + '</strong> tiene una cuenta de agente en Bastet, te llegará un correo con un enlace para crear una nueva contraseña (revisa también la carpeta de spam).' +
-    ' Si aún no tienes cuenta, entra con Google y se crea al instante.';
-  note.classList.remove('hidden');
-});
-
-agentRequestForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showAgentError('agent-request-error', '');
-  const value = (id) => document.getElementById(id).value.trim();
-  const btn = document.getElementById('agent-request-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.from('agent_requests').insert({
-    full_name: value('req-name'),
-    whatsapp: value('req-whatsapp'),
-    email: value('req-email'),
-    city: value('req-city') || null,
-    experience: value('req-experience') || null,
-    company: value('req-company') || null,
-    message: value('req-message') || null,
-  });
-  btn.disabled = false;
-  if (error) {
-    showAgentError('agent-request-error', 'No pudimos enviar tu solicitud. Revisa los datos o escríbenos por WhatsApp al +591 77666205.');
-    return;
-  }
-  agentRequestForm.reset();
-  agentRequestSuccess.dataset.sent = '1';
-  setAgentTab('request');
 });
 
 /* ── Reveal on scroll ── */
