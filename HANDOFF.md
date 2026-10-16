@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Se quitó la palabra «Marketplace» de los textos visibles (2026-10-16)**: el botón de la portada dice «Ver propiedades»; el título de la página y la pestaña de la barra inferior dicen «Propiedades»; títulos, descripciones, `manifest.json`, `app.html`, privacidad y el aviso de la prueba actualizados. Quedan solo nombres internos (archivo `marketplace.html`, clases CSS `marketplace-*`, comentarios) para no romper enlaces.
+
 - ✅ **Prueba gratuita solo para propietarios + arreglo del formulario (2026-10-16, `onboarding.js?v=20261024h`, `subscription.js?v=20261024f`; SQL `registration.sql` por re-correr para que la regla quede también en la base)**: la prueba de 7 días ahora es únicamente el plan Propietario y solo si la persona elige «propietario»; agente y empresa deben comprar suscripción desde el inicio (el formulario oculta el botón de prueba y lo explica). `_start_trial`/`complete_registration` rechazan la prueba para otros intereses; `my_subscription` devuelve `interest`. Además: la versión `20261024f` del formulario fallaba (`cityOptions` sin definir) y no se abría; corregido en `h`. Nota: quien ya tenía un plan de cortesía (30 días) lo conserva, el formulario no cambia su plan.
 
 - ✅ **Ciudad como selector en el formulario de registro (2026-10-16, `onboarding.js?v=20261024f`)**: lista desplegable con `BOLIVIA_CITIES` + «Otra ciudad»; obligatoria. Sin SQL.

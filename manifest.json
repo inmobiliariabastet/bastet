@@ -1,7 +1,7 @@
 {
   "name": "Bastet · Propiedades e inmobiliarias",
   "short_name": "Bastet",
-  "description": "Marketplace inmobiliario de Bastet: compra, vende y alquila inmuebles en Bolivia.",
+  "description": "Propiedades de Bastet: compra, vende y alquila inmuebles en Bolivia.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
