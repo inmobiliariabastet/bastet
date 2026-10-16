@@ -2767,10 +2767,36 @@ begin
 end;
 $$;
 
--- 3) ¿Puede usar la prueba? Una vez por persona, sin plan, sin solicitudes de plan y sin ser admin
+-- 3) Antiabuso: la prueba es UNA sola por cuenta de Google. Se registra en una lista aparte (trial_claims) que NO se borra si el
+--    usuario o su perfil se eliminan, así que volver a crear la cuenta con el mismo correo no da otra prueba. El correo se normaliza
+--    (minúsculas; en Gmail se ignoran los puntos y el "+alias") para que ana.perez@gmail.com y anaperez+2@gmail.com cuenten como uno.
+create table if not exists public.trial_claims (
+  email_key  text primary key,
+  user_id    uuid,
+  claimed_at timestamptz not null default now()
+);
+alter table public.trial_claims enable row level security;      -- sin políticas: solo las funciones de este archivo la leen y escriben
+revoke all on public.trial_claims from public, anon, authenticated;
+
+create or replace function public._email_key(p_email text)
+returns text language sql immutable as $$
+  select case
+    when split_part(lower(btrim(coalesce(p_email, ''))), '@', 2) in ('gmail.com', 'googlemail.com')
+      then replace(split_part(split_part(lower(btrim(p_email)), '@', 1), '+', 1), '.', '') || '@gmail.com'
+    else lower(btrim(coalesce(p_email, '')))
+  end;
+$$;
+
+-- Quien ya usó la prueba antes de esta lista queda anotado
+insert into public.trial_claims (email_key, user_id, claimed_at)
+select public._email_key(email), id, trial_used_at from public.profiles where trial_used_at is not null and coalesce(email, '') <> ''
+on conflict (email_key) do nothing;
+
+-- ¿Puede usar la prueba? Una vez por cuenta de Google, sin plan, sin solicitudes de plan y sin ser admin
 create or replace function public._trial_eligible(p_uid uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select not exists (select 1 from public.profiles where id = p_uid and (trial_used_at is not null or role = 'admin'))
+     and not exists (select 1 from public.trial_claims c join public.profiles p on public._email_key(p.email) = c.email_key where p.id = p_uid)
      and not exists (select 1 from public.subscriptions where user_id = p_uid)
      and not exists (select 1 from public.subscription_requests where user_id = p_uid);
 $$;
@@ -2784,6 +2810,7 @@ begin
   end if;
   perform set_config('uno.reg_rpc', '1', true);
   update public.profiles set trial_used_at = now() where id = p_uid;
+  insert into public.trial_claims (email_key, user_id) select public._email_key(email), p_uid from public.profiles where id = p_uid and coalesce(email, '') <> '' on conflict (email_key) do nothing;
   res := public._activate_subscription(p_uid, 'agente', 'trial', 7, p_uid);
   insert into public.subscription_events (user_id, kind, plan_to, details, created_by) values (p_uid, 'trial_started', 'agente', jsonb_build_object('days', 7), p_uid);
   return res;
@@ -2868,6 +2895,7 @@ begin
 end $$;
 
 -- 6) Permisos
+revoke all on function public._email_key(text) from public, anon, authenticated;
 revoke all on function public._trial_eligible(uuid) from public, anon, authenticated;
 revoke all on function public._start_trial(uuid) from public, anon, authenticated;
 revoke all on function public.complete_registration(text, text, text, text, text, boolean, boolean) from public, anon;

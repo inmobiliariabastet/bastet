@@ -44,7 +44,7 @@
               ? '<button type="submit" class="btn btn-accent" data-ob="trial">Probar 7 días gratis</button><button type="submit" class="btn btn-primary" data-ob="plan">Elegir un plan ahora</button>'
               : '<button type="submit" class="btn btn-accent" data-ob="plan">Guardar y continuar</button>') +
           '</div>' +
-          (canTrial ? '<p class="ob-fine">La prueba incluye las funciones del plan Agente y solo se puede usar una vez. Si eliges un plan ahora, no se aplica la prueba.</p>' : '') +
+          (canTrial ? '<p class="ob-fine">La prueba incluye las funciones del plan Agente y solo se puede usar una vez por cuenta de Google. Si eliges un plan ahora, no se aplica la prueba.</p>' : '') +
           '<button type="button" class="ob-logout" id="ob-logout">Salir de esta cuenta</button>' +
         '</form>' +
       '</div>';
