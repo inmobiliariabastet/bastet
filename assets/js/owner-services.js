@@ -375,5 +375,15 @@
     const agent = !!s && (s.exempt || (hasPlan(s) && s.plan && s.plan.agent_tools));
     document.querySelectorAll('.admin-tab[data-tab="owner"]').forEach((t) => t.classList.toggle('hidden', !owner));
     document.querySelectorAll('.admin-tab[data-tab="offers"]').forEach((t) => t.classList.toggle('hidden', !agent));
+    // La barra inferior del celular sigue a las pestañas: "Mi gestión" solo con plan Propietario; "Contratos" solo si la pestaña está visible
+    const bar = document.getElementById('admin-bottombar');
+    if (bar) {
+      const side = document.getElementById('admin-side');
+      bar.querySelectorAll('.abb-item[data-go]').forEach((b) => {
+        const tab = side && side.querySelector('.admin-tab[data-tab="' + b.dataset.go + '"]');
+        if (b.dataset.go === 'owner') b.classList.toggle('hidden', !owner);
+        else if (b.dataset.go === 'contracts') b.classList.toggle('hidden', !!tab && tab.classList.contains('hidden'));
+      });
+    }
   });
 })();

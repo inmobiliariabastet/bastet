@@ -134,7 +134,7 @@
         '<div class="credits-pack-n sb-price">' + bs(p.price_bs) + '<small>/ mes</small></div>' +
         '<ul>' + featuresOf(p).map((x) => '<li>' + x + '</li>').join('') + '</ul>' +
         ((COMING_SOON[p.code] || []).length ? '<p class="sb-soon-title">Próximamente</p><ul class="sb-soon">' + COMING_SOON[p.code].map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') +
-        '<button type="button" class="btn ' + (p.code === 'agente' ? 'btn-accent' : 'btn-primary') + ' btn-sm" data-plan="' + esc(p.code) + '" ' + (pending || s.exempt ? 'disabled' : '') + '>' + esc(label) + '</button>' +
+        (s.exempt ? '' : '<button type="button" class="btn ' + (p.code === 'agente' ? 'btn-accent' : 'btn-primary') + ' btn-sm" data-plan="' + esc(p.code) + '" ' + (pending ? 'disabled' : '') + '>' + esc(label) + '</button>') +
         '</article>';
     }).join('') + '</div>' +
     '<form id="sb-method-form" class="credits-method" hidden>' +

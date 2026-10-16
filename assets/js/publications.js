@@ -59,8 +59,8 @@
         '<div class="pq-top">' +
           '<span class="pq-badge">' + ICON.doc + '</span>' +
           '<div class="pq-count" aria-label="' + u.active_properties + ' de ' + pl.max_active_properties + ' propiedades activas"><div class="pq-num"><b>' + u.active_properties + '</b><span>/ ' + pl.max_active_properties + '</span></div>' + circles(u.active_properties, pl.max_active_properties) + '</div>' +
-          '<div class="pq-text"><h2 class="pq-title">Plan ' + esc(pl.name) + ' · propiedades activas</h2>' +
-            '<p class="pq-renew"><span class="pq-ico">' + ICON.calendar + '</span><span>' + (left > 0 ? 'Te ' + plural(left, 'queda', 'quedan') + ' <b>' + left + '</b> ' + plural(left, 'cupo', 'cupos') + '. ' : '<b>Llegaste al límite</b> de tu plan. ') +
+          '<div class="pq-text"><h2 class="pq-title">Plan ' + esc(pl.name) + '</h2>' +
+            '<p class="pq-renew"><span class="pq-ico">' + ICON.calendar + '</span><span>Propiedades activas. ' + (left > 0 ? 'Te ' + plural(left, 'queda', 'quedan') + ' <b>' + left + '</b> ' + plural(left, 'cupo', 'cupos') + '. ' : '<b>Llegaste al límite</b> de tu plan. ') +
             (s.status === 'canceling' ? 'No se renovará: termina el ' : 'Vigente hasta el ') + '<b>' + esc(longDate(s.period_end)) + '</b> (' + days + ' ' + plural(days, 'día', 'días') + ').</span></p></div>' +
         '</div>' +
         '<div class="pq-notes">' +

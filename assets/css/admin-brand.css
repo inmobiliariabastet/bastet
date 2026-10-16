@@ -224,3 +224,41 @@ a { color: var(--br-green); }
   .abb-item:focus-visible { outline-color: var(--br-yellow); }
   .abb-badge { color: var(--br-green); background: var(--br-yellow); }
 }
+
+/* ───── Ajustes tras revisar el panel ───── */
+.prop-row-actions .btn:not(.btn-trash-gold) { white-space: nowrap; padding: 9px 12px; font-size: 14px; min-width: 0; }
+.prop-row-actions { flex-wrap: nowrap; }
+.pq-title { font-size: clamp(20px, 2vw, 26px); }
+.pq-count { padding: 0 20px; }
+
+/* ───── Contrato de exclusividad (herramienta) ───── */
+.ct-agent, .ct-step, .ct-hrow, .ct-success, .ct-sum { border-radius: 22px; }
+.ct-agent.is-edit { border-color: var(--br-sage); background: var(--br-cloud); }
+.ct-sub { border-left-color: var(--br-green); background: var(--br-cloud); border-radius: 0 16px 16px 0; }
+.ct-switch { background: #D5DBD7; }
+.ct-toggle input:checked + .ct-switch { background: var(--br-green); }
+.ct-toggle input:focus-visible + .ct-switch, .ct-search:focus { outline: 3px solid var(--br-yellow); outline-offset: 2px; }
+.ct-search:focus { border-color: var(--br-green); box-shadow: none; outline: 0; box-shadow: 0 0 0 3px rgba(61,76,58,.16); }
+.ct-seg-btn.is-on { color: var(--br-green); }
+.ct-count { background: var(--br-green); color: var(--br-yellow); }
+.ct-balance i { background: var(--br-yellow); }
+.ct-toast { background: var(--br-green); color: var(--br-cream); border-radius: 999px; }
+.ct-toast.is-error { background: #8C2F1F; color: #fff; }
+.ct-spin { border-color: rgba(30,38,41,.35); border-top-color: transparent; }
+.ct-hrow.is-void { background: #FBEAE5; }
+.ct-warn { background: #FBEAE5; color: #8C2F1F; }
+.prop-life[data-level="warn"] .prop-life-time { color: var(--br-orange); }
+.ct-link { color: var(--br-green); }
+.property-drag-handle { color: var(--br-sage); }
+
+@media (max-width: 860px) {
+  .admin-bottombar { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .pq-dots { flex-wrap: wrap; gap: 6px; }
+  .pq-dot { width: 11px; height: 11px; }
+}
+@media (max-width: 560px) {
+  .os-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .os-stat { padding: 14px; border-radius: 18px; }
+  .os-stat b { font-size: 24px; }
+  .os-stat:last-child { grid-column: 1 / -1; }
+}
