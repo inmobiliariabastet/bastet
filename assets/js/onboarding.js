@@ -37,8 +37,8 @@
             '<div class="field"><label for="ob-company">Inmobiliaria o empresa (opcional)</label><input type="text" id="ob-company" maxlength="120"></div>' +
           '</div>' +
           '<div class="field"><label for="ob-interest">¿Cómo usarás Bastet? Define el tipo de cuenta que recibirás</label><select id="ob-interest" required><option value="">Selecciona…</option>' +
-            '<option value="propietario">Cuenta de propietario: quiero vender o alquilar mi propiedad</option>' +
-            '<option value="agente">Cuenta de agente: soy agente inmobiliario</option>' +
+            '<option value="propietario">Cuenta de propietario</option>' +
+            '<option value="agente">Cuenta de agente</option>' +
             '<option value="empresa">Cuenta de empresa</option></select></div>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-consent"> <span>Acepto que Bastet use estos datos para gestionar mi cuenta y contactarme. <a href="../privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></span></label>' +
           '<p id="ob-error" class="form-error" role="alert" hidden></p>' +
