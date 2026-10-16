@@ -25,7 +25,7 @@
       '<div class="modal-panel ob-panel" role="dialog" aria-modal="true" aria-labelledby="ob-title">' +
         '<h2 id="ob-title">Bienvenido a Bastet</h2>' +
         '<p class="ob-lead">Cuéntanos quién eres para crear tu cuenta. ' + (canTrial ? 'Después podrás <b>probar gratis por 7 días</b> o elegir un plan desde ya.' : 'Después podrás seguir al panel.') + '</p>' +
-        (canTrial ? '<div class="ob-trial"><b>Prueba gratuita de 7 días</b><span>Al aceptar con «Probar 7 días gratis», tu cuenta queda habilitada y puedes publicar por 7 días sin suscripción. Pasados los 7 días debes suscribirte a un plan; si no lo haces, tu cuenta se da de baja y tus propiedades dejan de mostrarse en el marketplace.</span></div>' : '') +
+        (canTrial ? '<div class="ob-trial"><b>Prueba gratuita de 7 días</b><span>Al aceptar con «Probar 7 días gratis», tu cuenta queda habilitada con el tipo de cuenta que elijas abajo (propietario, agente o empresa) y puedes publicar por 7 días sin suscripción. Pasados los 7 días debes suscribirte a un plan; si no lo haces, tu cuenta se da de baja y tus propiedades dejan de mostrarse en el marketplace.</span></div>' : '') +
         '<form id="ob-form" novalidate>' +
           '<div class="field"><label for="ob-name">Nombre completo</label><input type="text" id="ob-name" maxlength="120" autocomplete="name" required value="' + esc(meta.full_name || meta.name || '') + '"></div>' +
           '<div class="field"><label for="ob-wa">WhatsApp</label><input type="tel" id="ob-wa" maxlength="30" autocomplete="tel" placeholder="Ej: 77123456 o +591 77123456" required></div>' +
@@ -33,10 +33,10 @@
             '<div class="field"><label for="ob-city">Ciudad</label><input type="text" id="ob-city" maxlength="80" autocomplete="address-level2" placeholder="Ej: La Paz"></div>' +
             '<div class="field"><label for="ob-company">Inmobiliaria o empresa (opcional)</label><input type="text" id="ob-company" maxlength="120"></div>' +
           '</div>' +
-          '<div class="field"><label for="ob-interest">¿Cómo usarás Bastet?</label><select id="ob-interest"><option value="">Selecciona…</option>' +
-            '<option value="propietario">Soy propietario y quiero vender o alquilar mi propiedad</option>' +
-            '<option value="agente">Soy agente inmobiliario</option>' +
-            '<option value="empresa">Represento a una inmobiliaria o empresa</option></select></div>' +
+          '<div class="field"><label for="ob-interest">¿Cómo usarás Bastet? Define el tipo de cuenta que recibirás</label><select id="ob-interest" required><option value="">Selecciona…</option>' +
+            '<option value="propietario">Cuenta de propietario: quiero vender o alquilar mi propiedad</option>' +
+            '<option value="agente">Cuenta de agente: soy agente inmobiliario</option>' +
+            '<option value="empresa">Cuenta de empresa: represento a una inmobiliaria</option></select></div>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-consent"> <span>Acepto que Bastet use estos datos para gestionar mi cuenta y contactarme. <a href="../privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></span></label>' +
           '<p id="ob-error" class="form-error" role="alert" hidden></p>' +
           '<div class="ob-actions">' +
@@ -44,7 +44,7 @@
               ? '<button type="submit" class="btn btn-accent" data-ob="trial">Probar 7 días gratis</button><button type="submit" class="btn btn-primary" data-ob="plan">Elegir un plan ahora</button>'
               : '<button type="submit" class="btn btn-accent" data-ob="plan">Guardar y continuar</button>') +
           '</div>' +
-          (canTrial ? '<p class="ob-fine">La prueba incluye las funciones del plan Agente y solo se puede usar una vez por cuenta de Google. Si eliges un plan ahora, no se aplica la prueba.</p>' : '') +
+          (canTrial ? '<p class="ob-fine">La prueba incluye las funciones del plan que corresponde a tu tipo de cuenta y solo se puede usar una vez por cuenta de Google. Si eliges un plan ahora, no se aplica la prueba.</p>' : '') +
           '<button type="button" class="ob-logout" id="ob-logout">Salir de esta cuenta</button>' +
         '</form>' +
       '</div>';
@@ -63,6 +63,7 @@
       const val = (id) => form.querySelector('#' + id).value.trim();
       if (val('ob-name').length < 3) return fail('Escribe tu nombre completo.');
       if (!/^\+?[0-9 ()-]{7,30}$/.test(val('ob-wa'))) return fail('Escribe un WhatsApp válido (solo números).');
+      if (!val('ob-interest')) return fail('Elige cómo usarás Bastet: propietario, agente o empresa.');
       if (!form.querySelector('#ob-consent').checked) return fail('Debes aceptar el uso de tus datos para continuar.');
       const buttons = form.querySelectorAll('button[type="submit"]');
       buttons.forEach((b) => { b.disabled = true; });

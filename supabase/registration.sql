@@ -5,7 +5,7 @@
 -- Qué hace:
 --  · Cada persona que entra por primera vez llena un formulario (nombre, WhatsApp, ciudad, empresa, interés). Los datos quedan en
 --    su perfil y se ven en el panel, sección "Usuarios" (solo administradores).
---  · Puede empezar una PRUEBA GRATUITA de 7 días (con las funciones del plan Agente) o elegir un plan desde el inicio.
+--  · Puede empezar una PRUEBA GRATUITA de 7 días (con el plan que corresponde a lo que elijas al registrarte: propietario, agente o empresa) o elegir un plan desde el inicio.
 --    La prueba es solo una vez por persona y solo si todavía no pidió ni tiene un plan; al terminar debe elegir un plan.
 --  · my_subscription() informa también si ya se registró y si puede usar la prueba.
 -- =====================================================================
@@ -93,16 +93,18 @@ $$;
 
 create or replace function public._start_trial(p_uid uuid)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare res jsonb;
+declare res jsonb; pl text;
 begin
+  select interest into pl from public.profiles where id = p_uid;
+  if pl is null then raise exception 'Indica cómo usarás Bastet (propietario, agente o empresa) para empezar la prueba'; end if;
   if not public._trial_eligible(p_uid) then
     raise exception 'La prueba gratuita ya no está disponible para tu cuenta' using errcode = 'P0403', hint = 'trial_unavailable';
   end if;
   perform set_config('uno.reg_rpc', '1', true);
   update public.profiles set trial_used_at = now() where id = p_uid;
   insert into public.trial_claims (email_key, user_id) select public._email_key(email), p_uid from public.profiles where id = p_uid and coalesce(email, '') <> '' on conflict (email_key) do nothing;
-  res := public._activate_subscription(p_uid, 'agente', 'trial', 7, p_uid);
-  insert into public.subscription_events (user_id, kind, plan_to, details, created_by) values (p_uid, 'trial_started', 'agente', jsonb_build_object('days', 7), p_uid);
+  res := public._activate_subscription(p_uid, pl, 'trial', 7, p_uid);
+  insert into public.subscription_events (user_id, kind, plan_to, details, created_by) values (p_uid, 'trial_started', pl, jsonb_build_object('days', 7), p_uid);
   return res;
 end $$;
 
@@ -116,7 +118,7 @@ begin
   if char_length(nm) not between 3 and 120 then raise exception 'Escribe tu nombre completo'; end if;
   if wa !~ '^\+?[0-9 ()-]{7,30}$' then raise exception 'Escribe un WhatsApp válido (solo números, con código de país si es de otro país)'; end if;
   if char_length(btrim(coalesce(p_city, ''))) > 80 or char_length(btrim(coalesce(p_company, ''))) > 120 then raise exception 'Ciudad o empresa demasiado largas'; end if;
-  if p_interest is not null and p_interest not in ('propietario', 'agente', 'empresa') then raise exception 'Interés inválido'; end if;
+  if p_interest is null or p_interest not in ('propietario', 'agente', 'empresa') then raise exception 'Elige cómo usarás Bastet: propietario, agente o empresa'; end if;
   if p_consent is not true then raise exception 'Debes aceptar el uso de tus datos para continuar'; end if;
 
   perform set_config('uno.reg_rpc', '1', true);

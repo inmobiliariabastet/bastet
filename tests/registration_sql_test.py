@@ -65,6 +65,7 @@ chk("nombre muy corto", as_(own, "select complete_registration('Al','77123456',n
 chk("whatsapp inválido", as_(own, "select complete_registration('Ana Pérez','abc',null,null,null,true,false)"), True)
 chk("sin consentimiento", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,null,false,false)"), True)
 chk("interés inválido", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,'otro',true,false)"), True)
+chk("interés obligatorio", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,null,true,true)"), True)
 chk("anónimo no puede", as_(None, "select complete_registration('Ana Pérez','77123456',null,null,null,true,false)"), True)
 chk("admin no necesita registro", as_(adm, "select complete_registration('Admin Uno','77123456',null,null,null,true,false)"), True)
 chk("trial antes de registrarse", as_(own, "select start_free_trial()"), True)
@@ -80,21 +81,23 @@ as_(own, "update profiles set registered_at=null, trial_used_at=null, role='admi
 eq("campos protegidos intactos", row("select registered_at is not null, trial_used_at is not null, role from profiles where id=%s", (own,)), (True, True, 'agent'))
 # registro eligiendo plan primero (sin prueba)
 chk("registro sin prueba", as_(own2, "select complete_registration('Beto Rojas','77111222',null,null,'propietario',true,false)"), False)
+chk("empresa: registro + prueba", as_(emp, "select complete_registration('Eva Mar','77000111',null,'Casa Mar','empresa',true,true)"), False)
+eq("empresa: plan de la prueba", sub(emp)['plan']['code'], 'empresa')
 S = sub(own2); eq("sin prueba: sin plan", (S['registered'], S['status'], S['trial_eligible']), (True, 'none', True))
 chk("pide plan", as_(own2, "select request_subscription('propietario','qr','T1')"), False)
 S = sub(own2); eq("tras pedir plan ya no hay prueba", S['trial_eligible'], False)
 chk("start_free_trial con solicitud pedida falla", as_(own2, "select start_free_trial()"), True)
 # prueba más tarde (registrado sin pedir plan)
-as_(ag1, "select complete_registration('Carla Ríos','77333444',null,null,null,true,false)")
+as_(ag1, "select complete_registration('Carla Ríos','77333444',null,null,'propietario',true,false)")
 chk("prueba posterior", as_(ag1, "select start_free_trial()"), False)
-eq("prueba posterior activa", sub(ag1)['source'], 'trial')
+eq("prueba posterior activa con el plan elegido", (sub(ag1)['source'], sub(ag1)['plan']['code']), ('trial', 'propietario'))
 # usuario con plan de cortesía ya existente: no tiene prueba
 su("select admin_grant_subscription(%s,'empresa',30)" if False else "select 1")
 as_(adm, "select admin_grant_subscription(%s,'agente',30)", (ag2,))
-as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,null,true,true)") if False else None
+as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,true)") if False else None
 S = sub(ag2); eq("con plan: sin prueba", S['trial_eligible'], False)
-chk("con plan: registro sin prueba", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,null,true,false)"), False)
-chk("con plan: registro con prueba falla", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,null,true,true)"), True)
+chk("con plan: registro sin prueba", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,false)"), False)
+chk("con plan: registro con prueba falla", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,true)"), True)
 # prueba vencida -> estado expirado y no se puede repetir
 su("update subscriptions set current_period_end = now() - interval '1 day' where user_id=%s", (own,))
 S = sub(own); eq("prueba vencida", (S['status'], S['source'], S['trial_eligible']), ('expired', 'trial', False))
@@ -103,13 +106,13 @@ S = sub(adm); eq("admin: exento y registrado", (S['exempt'], S['registered']), (
 
 # antiabuso: borrar la cuenta y volver a crearla con el mismo correo (o un alias de Gmail) NO da otra prueba
 su("insert into auth.users(email,invited_at) values ('ana.perez+x@gmail.com','2026-01-01') returning id"); g1 = cur.fetchone()[0]
-chk("gmail: registro + prueba", as_(g1, "select complete_registration('Gina Gil','77888999',null,null,null,true,true)"), False)
+chk("gmail: registro + prueba", as_(g1, "select complete_registration('Gina Gil','77888999',null,null,'agente',true,true)"), False)
 su("delete from public.profiles where id=%s", (g1,)); su("delete from auth.users where id=%s", (g1,))
 su("insert into auth.users(email,invited_at) values ('anaperez@gmail.com','2026-01-01') returning id"); g2 = cur.fetchone()[0]
 S = sub(g2); eq("alias de gmail: sin prueba", S['trial_eligible'], False)
-as_(g2, "select complete_registration('Gina Gil','77888999',null,null,null,true,false)")
+as_(g2, "select complete_registration('Gina Gil','77888999',null,null,'agente',true,false)")
 chk("alias de gmail: no puede iniciar prueba", as_(g2, "select start_free_trial()"), True)
-chk("alias de gmail: no puede en el registro", as_(g2, "select complete_registration('Gina Gil','77888999',null,null,null,true,true)"), True)
+chk("alias de gmail: no puede en el registro", as_(g2, "select complete_registration('Gina Gil','77888999',null,null,'agente',true,true)"), True)
 eq("otro correo distinto sí puede", sub(plain)['trial_eligible'], True)
 chk("nadie lee trial_claims", as_(own, "select * from public.trial_claims"), True)
 # idempotencia del SQL
