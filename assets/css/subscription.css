@@ -55,3 +55,18 @@ body.ob-open { overflow: hidden; }
 .sb-terms { margin: 18px 0 8px; padding: 14px 18px; border-radius: 16px; background: #EFF8E7; border: 1px solid #B7BEAD; color: #3D4C3A; font-size: 14px; line-height: 1.55; }
 .sb-terms b:first-child { display: block; margin-bottom: 6px; font-size: 15px; }
 .sb-terms ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+/* ── Sección «Pagos» (admin) y comprobantes ── */
+.pay-list { display: grid; gap: 14px; }
+.pay-card { display: grid; grid-template-columns: 1fr 220px; gap: 18px; padding: 16px 18px; border: 1px solid var(--linea, rgba(30,38,41,.12)); border-radius: 22px; background: #fff; }
+.pay-main h3 { margin: 0 0 2px; font-size: 20px; }
+.pay-line { margin: 8px 0 12px; }
+.pay-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pay-proofbox { display: flex; align-items: center; justify-content: center; }
+.pay-proof { display: grid; gap: 6px; justify-items: center; text-decoration: none; font-size: 13px; color: #3D4C3A; }
+.pay-proof img { width: 100%; max-height: 190px; object-fit: contain; border-radius: 14px; border: 1px solid #B7BEAD; background: #F7F9FB; }
+.pay-noproof { margin: 0; font-size: 13px; color: #5b6460; text-align: center; padding: 14px; border: 1px dashed #B7BEAD; border-radius: 14px; width: 100%; }
+.sb-pending { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.sb-attach { cursor: pointer; }
+#sb-proof { width: 100%; }
+@media (max-width: 640px) { .pay-card { grid-template-columns: 1fr; } }

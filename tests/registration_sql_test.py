@@ -11,11 +11,13 @@ core = sch[:sch.index("-- ── Tabla property_events")]
 i = sch.index("-- UNO · Créditos para agentes")
 tail = sch[sch.rindex("\n", 0, i - 5) + 1:]
 mk = tail.index("-- =====================================================================" + chr(10) + "-- UNO · Registro de nuevos usuarios")
-assert tail[mk:].strip() == open(R_ + "registration.sql", encoding="utf-8").read().strip(), "schema.sql no tiene el mismo bloque que registration.sql"
+EQ2 = "-- =====================================================================" + chr(10) + "-- UNO · Comprobantes de pago"
+end = tail.index(EQ2) if EQ2 in tail else len(tail)
+assert tail[mk:end].strip() == open(R_ + "registration.sql", encoding="utf-8").read().strip(), "schema.sql no tiene el mismo bloque que registration.sql"
 stub = """
 create role anon nologin; create role authenticated nologin;
 create schema auth;
-create schema storage; create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]); create table storage.objects(id uuid default gen_random_uuid() primary key, bucket_id text, name text); alter table storage.objects enable row level security; grant usage on schema storage to anon, authenticated; grant all on storage.objects to anon, authenticated;
+create schema storage; create function storage.foldername(name text) returns text[] language sql immutable as $fn$ select (string_to_array(name,'/'))[1:greatest(array_length(string_to_array(name,'/'),1)-1,0)] $fn$; create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]); create table storage.objects(id uuid default gen_random_uuid() primary key, bucket_id text, name text); alter table storage.objects enable row level security; grant usage on schema storage to anon, authenticated; grant all on storage.objects to anon, authenticated;
 create table auth.users(id uuid primary key default gen_random_uuid(), email text, invited_at timestamptz, raw_app_meta_data jsonb default '{}', raw_user_meta_data jsonb default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
 grant usage on schema auth to anon, authenticated; grant usage on schema public to anon, authenticated;
@@ -120,6 +122,20 @@ chk("alias de gmail: no puede iniciar prueba", as_(g2, "select start_free_trial(
 chk("alias de gmail: no puede en el registro", as_(g2, "select complete_registration('Gina Gil','77888999',null,null,'propietario',true,true,true)"), True)
 eq("otro correo distinto sí puede", sub(plain)['trial_eligible'], True)
 chk("nadie lee trial_claims", as_(own, "select * from public.trial_claims"), True)
+
+# comprobantes de pago (payment-proofs.sql)
+chk("pide plan para adjuntar", as_(plain, "select complete_registration('Pia Paz','77000222',null,null,'agente',true,false,true)"), False)
+chk("crea solicitud", as_(plain, "select request_subscription('agente','qr','R1')"), False)
+rid = one("select id from subscription_requests where user_id=%s and status='pending'", (plain,))
+chk("adjunta su comprobante", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/1700-comprobante.png')), False)
+eq("ruta guardada", one("select proof_path from subscription_requests where id=%s", (rid,)), str(plain) + '/1700-comprobante.png')
+chk("no adjunta en carpeta ajena", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(own) + '/x.png')), True)
+chk("no acepta ..", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/../x.png')), True)
+chk("otra persona no puede adjuntar a mi solicitud", as_(own2, "select attach_payment_proof(%s, %s)", (rid, str(own2) + '/x.png')), True)
+chk("anónimo no puede", as_(None, "select attach_payment_proof(%s, %s)", (rid, 'x/x.png')), True)
+as_(adm, "select admin_resolve_subscription_request(%s, true, null)", (rid,))
+chk("ya resuelta: no se adjunta", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/2.png')), True)
+eq("admin ve la ruta", as_(adm, "select proof_path from subscription_requests where id=%s", (rid,))[1][0][0], str(plain) + '/1700-comprobante.png')
 # idempotencia del SQL
 su("select 1")
 for _ in range(2): cur.execute(tail)

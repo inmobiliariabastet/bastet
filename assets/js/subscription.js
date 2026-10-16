@@ -38,6 +38,15 @@
   }
   const errText = (e) => (e && e.message) || 'No se pudo completar la acción.';
 
+  const PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+  const proofError = (file) => (PROOF_TYPES.indexOf(file.type) < 0 ? 'El comprobante debe ser una imagen (JPG, PNG, WEBP) o un PDF.' : file.size > 5 * 1024 * 1024 ? 'El comprobante pesa más de 5 MB.' : null);
+  async function uploadProof(file) {
+    const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' })[file.type];
+    const path = state.uid + '/' + Date.now() + '-comprobante.' + ext;
+    const { error } = await supabaseClient.storage.from('payment-proofs').upload(path, file, { contentType: file.type, upsert: false });
+    return error ? null : path;
+  }
+
   async function load() {
     const host = root();
     if (!host || state.busy) return;
@@ -153,6 +162,7 @@
       '<p class="credits-muted">Elige cómo pagarás. Un administrador confirmará tu pago y se activará tu plan por 30 días. <b>No hay cobro automático ni renovación automática:</b> cuando quieras renovar, vuelve a solicitarlo; para no renovar, pulsa «No renovar» en tu plan o no vuelvas a pagar.</p>' +
       '<div class="credits-method-row"><label><input type="radio" name="sb-method" value="transferencia" checked> Transferencia</label><label><input type="radio" name="sb-method" value="qr"> QR</label><label><input type="radio" name="sb-method" value="efectivo"> Efectivo</label></div>' +
       '<div class="field"><label for="sb-reference">N.º de transferencia o comprobante (opcional)</label><input type="text" id="sb-reference" maxlength="120" placeholder="Ej: 004512389"></div>' +
+      '<div class="field"><label for="sb-proof">Comprobante de pago <span id="sb-proof-req">(obligatorio en transferencia y QR)</span></label><input type="file" id="sb-proof" accept="image/jpeg,image/png,image/webp,application/pdf"><p class="credits-muted">Sube la foto o captura de tu comprobante (JPG, PNG, WEBP o PDF, máximo 5 MB). Solo lo verán los administradores para confirmar tu pago.</p></div>' +
       '<p class="credits-muted">¿Necesitas los datos para pagar? Escríbenos por <a id="sb-wa-link" href="' + waLink(null) + '" target="_blank" rel="noopener">WhatsApp</a>.</p>' +
       '<div class="credits-method-row"><button type="submit" class="btn btn-accent btn-sm" id="sb-method-submit">Enviar solicitud</button><button type="button" class="btn btn-ghost btn-sm" id="sb-method-cancel">Cancelar</button></div>' +
     '</form>';
@@ -183,11 +193,7 @@
   function adminHtml(a) {
     const name = (id) => { const u = a.people.find((x) => x.id === id); return u ? (u.display_name || u.email) : 'Usuario'; };
     const planName = (code) => { const p = state.plans.find((x) => x.code === code); return p ? p.name : code; };
-    return '<h2 class="admin-subheading">Administración de suscripciones</h2><div class="credits-admin"><h3>Pagos por confirmar</h3>' +
-      (a.pending.length ? a.pending.map((r) => '<div class="property-row credits-prop"><div class="credits-prop-info"><strong>' + esc(name(r.user_id)) + '</strong>' +
-        '<span class="credits-muted">' + esc(planName(r.plan_code)) + ' · ' + bs(r.price_bs) + ' · ' + (METHOD[r.method] || esc(r.method)) + (r.reference ? ' · ref. ' + esc(r.reference) : '') + ' · ' + fdate(r.created_at) + '</span></div>' +
-        '<div class="credits-prop-actions"><button type="button" class="btn btn-accent btn-sm" data-resolve="' + r.id + '" data-approve="1">Confirmar pago</button><button type="button" class="btn btn-ghost btn-sm" data-resolve="' + r.id + '" data-approve="0">Rechazar</button></div></div>').join('')
-        : '<p class="credits-empty">No hay pagos pendientes.</p>') +
+    return '<h2 class="admin-subheading">Administración de suscripciones</h2><div class="credits-admin"><p class="credits-muted">Los pagos por confirmar y sus comprobantes ahora se gestionan en la sección <button type="button" class="ct-link" data-goto-payments>Pagos</button>' + (a.pending.length ? ' (' + a.pending.length + ' pendiente' + (a.pending.length === 1 ? '' : 's') + ')' : '') + '.</p>' +
       '<h3>Dar de alta o cambiar un plan</h3>' +
       '<form id="sb-grant-form" class="invite-admin-card">' +
         '<div class="field"><label for="sb-grant-user">Persona</label><select id="sb-grant-user" required><option value="">Selecciona…</option>' + a.people.map((u) => '<option value="' + esc(u.id) + '">' + esc(u.display_name || u.email) + ' (' + esc(u.email) + ')</option>').join('') + '</select></div>' +
@@ -202,7 +208,9 @@
 
   function render(d) {
     const s = d.sub;
-    const pendingBanner = s.pending_request ? '<p class="auth-banner">Tu solicitud del plan <b>' + esc(s.pending_request.plan_code) + '</b> (' + bs(s.pending_request.price_bs) + ') está pendiente de confirmación de pago.</p>' : '';
+    const pr = s.pending_request;
+    const pendingBanner = pr ? '<div class="auth-banner sb-pending">Tu solicitud del plan <b>' + esc(pr.plan_code) + '</b> (' + bs(pr.price_bs) + ') está pendiente de confirmación de pago. ' +
+      (pr.proof_path ? '<b>Comprobante recibido.</b>' : '<label class="btn btn-accent btn-sm sb-attach">Adjuntar comprobante<input type="file" id="sb-attach" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label>') + '</div>' : '';
     root().innerHTML = '<div id="subscription-flash" hidden></div>' + planCard(s) + pendingBanner + plansHtml(d) + featureHtml(d) + (d.admin ? adminHtml(d.admin) : '') + historyHtml(d);
     bind(d);
   }
@@ -219,18 +227,58 @@
       form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }));
     host.querySelector('#sb-method-cancel').addEventListener('click', () => { form.hidden = true; });
+    const proofInput = form.querySelector('#sb-proof');
+    const syncProofReq = () => { const m = form.querySelector('input[name="sb-method"]:checked').value; form.querySelector('#sb-proof-req').textContent = m === 'efectivo' ? '(opcional en efectivo)' : '(obligatorio en transferencia y QR)'; };
+    form.querySelectorAll('input[name="sb-method"]').forEach((r) => r.addEventListener('change', syncProofReq));
+    syncProofReq();
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = host.querySelector('#sb-method-submit');
+      const method = form.querySelector('input[name="sb-method"]:checked').value;
+      const file = proofInput.files && proofInput.files[0];
+      const bad = file ? proofError(file) : (method !== 'efectivo' ? 'Adjunta el comprobante de tu pago (foto, captura o PDF).' : null);
+      if (bad) return flash(bad, true);
       btn.disabled = true;
-      const { error } = await supabaseClient.rpc('request_subscription', {
+      let path = null;
+      if (file) {
+        path = await uploadProof(file);
+        if (!path) { btn.disabled = false; return flash('No se pudo subir el comprobante. Inténtalo de nuevo.', true); }
+      }
+      const { data: rid, error } = await supabaseClient.rpc('request_subscription', {
         p_plan: state.pickedPlan,
-        p_method: form.querySelector('input[name="sb-method"]:checked').value,
+        p_method: method,
         p_reference: form.querySelector('#sb-reference').value,
       });
-      if (error) { btn.disabled = false; return flash(errText(error), true); }
-      await reload('Solicitud enviada. Un administrador confirmará tu pago y se activará tu plan.');
+      if (error) {
+        if (path) supabaseClient.storage.from('payment-proofs').remove([path]);
+        btn.disabled = false;
+        return flash(errText(error), true);
+      }
+      if (path) {
+        const att = await supabaseClient.rpc('attach_payment_proof', { p_request_id: rid, p_path: path });
+        if (att.error) return reload('Solicitud enviada, pero no se pudo adjuntar el comprobante: ' + errText(att.error) + ' Puedes adjuntarlo desde el aviso de solicitud pendiente.', true);
+      }
+      await reload('Solicitud enviada. Un administrador revisará tu comprobante y confirmará tu pago.');
     });
+
+    // Adjuntar el comprobante después (solicitud pendiente sin comprobante)
+    const attach = host.querySelector('#sb-attach');
+    if (attach) attach.addEventListener('change', async () => {
+      const file = attach.files && attach.files[0];
+      if (!file) return;
+      const bad = proofError(file);
+      if (bad) return flash(bad, true);
+      const path = await uploadProof(file);
+      if (!path) return flash('No se pudo subir el comprobante. Inténtalo de nuevo.', true);
+      const { error } = await supabaseClient.rpc('attach_payment_proof', { p_request_id: d.sub.pending_request.id, p_path: path });
+      if (error) return reload(errText(error), true);
+      await reload('Comprobante enviado. Un administrador lo revisará.');
+    });
+
+    host.querySelectorAll('[data-goto-payments]').forEach((b) => b.addEventListener('click', () => {
+      const tab = document.querySelector('.admin-tab[data-tab="payments"]');
+      if (tab) tab.click();
+    }));
 
     host.querySelectorAll('[data-feature]').forEach((b) => b.addEventListener('click', async () => {
       const prop = d.props.find((x) => String(x.id) === String(b.dataset.feature));
