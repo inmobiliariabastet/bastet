@@ -27,9 +27,18 @@ burger.addEventListener('click', () => setMenuOpen(!mobilePanel.classList.contai
 window.matchMedia('(min-width: 1080px)').addEventListener('change', (e) => { if (e.matches) setMenuOpen(false); });
 mobilePanel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenuOpen(false)));
 
-window.addEventListener('scroll', () => {
-  navbar.classList.toggle('is-scrolled', window.scrollY > 40);
-}, { passive: true });
+// Al bajar, la barra se vuelve verde de marca con efecto vidrio y el logotipo cambia a su versión clara (negativo)
+const navLogo = navbar.querySelector('.navbar-logo-img');
+const LOGO_DARK = navLogo ? navLogo.getAttribute('src') : '';
+const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal.png', 'bastet-logo-horizontal-negativo.png');
+if (navLogo) { const pre = new Image(); pre.src = LOGO_LIGHT; }
+function updateNavbarScroll() {
+  const scrolled = window.scrollY > 40;
+  navbar.classList.toggle('is-scrolled', scrolled);
+  if (navLogo && LOGO_LIGHT !== LOGO_DARK) navLogo.setAttribute('src', scrolled && !navbar.classList.contains('is-menu-open') ? LOGO_LIGHT : LOGO_DARK);
+}
+window.addEventListener('scroll', updateNavbarScroll, { passive: true });
+updateNavbarScroll();
 
 /* ── Acceso agentes: iniciar sesión (y saltar al panel) o solicitar una cuenta ── */
 const agentModalBackdrop = document.getElementById('agent-modal-backdrop');

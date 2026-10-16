@@ -383,3 +383,19 @@ body.brand .trust-stat { font-size: clamp(34px, 3.4vw, 46px); }
 
 /* "Instalar app" solo en celular y tablet: en computadora no se muestra (el menú y el botón de la barra superior) */
 @media (min-width: 1080px) { [data-install-app] { display: none !important; } }
+
+/* ───── Barra al hacer scroll: verde de marca con efecto vidrio ───── */
+body.brand .navbar.is-scrolled {
+  background: rgba(61, 76, 58, .78); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(30, 38, 41, .18);
+}
+body.brand .navbar.is-scrolled.is-menu-open { background: #fff; border-bottom-color: var(--br-line); }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-link,
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-link--btn { color: #EFF8E7; opacity: .82; }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-link:hover,
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-link.is-active { color: #fff; opacity: 1; }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .nav-pill { background: #EFF8E7; color: var(--br-green); }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .nav-pill:hover { background: #fff; }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-install { color: #EFF8E7; border-color: rgba(239,248,231,.45); background: transparent; }
+body.brand .navbar.is-scrolled:not(.is-menu-open) .navbar-install svg { stroke: #EFF8E7; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { body.brand .navbar.is-scrolled { background: rgba(61, 76, 58, .96); } }
