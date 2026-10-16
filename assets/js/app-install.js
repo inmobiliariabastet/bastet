@@ -1,5 +1,5 @@
-/* Página "Instala la app UNO" (app.html): botones de descarga para Android y iPhone/iPad.
-   UNO es una app web (PWA): en Android el navegador ofrece instalarla con un toque (beforeinstallprompt);
+/* Página "Instala la app Bastet" (app.html): botones de descarga para Android y iPhone/iPad.
+   Bastet es una app web (PWA): en Android el navegador ofrece instalarla con un toque (beforeinstallprompt);
    en iPhone/iPad se instala desde Safari con "Añadir a pantalla de inicio". Si el navegador no permite instalar
    directamente, se muestran las instrucciones exactas en lugar de un botón que no hace nada. */
 (function () {
@@ -50,7 +50,7 @@
     selectOS('android', true);
     if (isIOS) note(noteAndroid, 'Estás en un iPhone o iPad: usa la pestaña "iOS".');
     else if (isAndroid) note(noteAndroid, 'Si no aparece el aviso de instalación, abre el menú del navegador (⋮) y elige "Instalar aplicación" o "Añadir a pantalla de inicio". Recuerda abrir esta página en Chrome.');
-    else note(noteAndroid, 'Para instalarla desde una computadora, usa Chrome o Edge: toca el ícono de instalar en la barra de direcciones o, en el menú (⋮), "Instalar UNO". Desde tu celular Android abre bastet.uno/app.html.');
+    else note(noteAndroid, 'Para instalarla desde una computadora, usa Chrome o Edge: toca el ícono de instalar en la barra de direcciones o, en el menú (⋮), "Instalar Bastet". Desde tu celular Android abre bastet.uno/app.html.');
   }
 
   function installIOS() {

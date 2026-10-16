@@ -3,24 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Marketplace Inmobiliario — UNO · Bastet</title>
-<meta name="description" content="Marketplace Inmobiliario de UNO · Bastet: casas, departamentos y terrenos en venta, alquiler y anticrético en Bolivia. Filtre por ciudad, tipo y precio y contacte al agente por WhatsApp.">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-uno-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-uno-192.png">
-<link rel="apple-touch-icon" href="assets/img/apple-touch-icon-uno.png">
+<title>Propiedades · Marketplace inmobiliario — Bastet</title>
+<meta name="description" content="Marketplace inmobiliario de Bastet: casas, departamentos y terrenos en venta, alquiler y anticrético en Bolivia. Filtre por ciudad, tipo y precio y contacte al agente por WhatsApp.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/bastet-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/bastet-favicon-192.png">
+<link rel="apple-touch-icon" href="assets/img/bastet-apple-touch.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0A0A09">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261020c">
+<link rel="stylesheet" href="assets/css/style.css?v=20261023a">
+<link rel="stylesheet" href="assets/css/brand.css?v=20261023d">
 </head>
-<body class="marketplace-page theme-white">
+<body class="marketplace-page brand">
 
 <nav class="navbar">
   <div class="navbar-inner">
-    <a href="index.html" class="navbar-logo" aria-label="UNO · Marketplace Inmobiliario by Bastet — inicio">
-      <img class="navbar-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449">
+    <a href="index.html" class="navbar-logo" aria-label="Bastet · Propiedades e inmobiliarias — inicio">
+      <img class="navbar-logo-img" src="assets/img/bastet-logo-horizontal.png" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298">
     </a>
 
     <a href="app.html" data-install-app class="navbar-install" hidden aria-label="Instalar app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Instalar app</span></a>
@@ -31,19 +32,22 @@
 
     <div class="navbar-links">
       <a href="index.html" class="navbar-link">Inicio</a>
-      <a href="marketplace.html" class="navbar-link is-active" aria-current="page">Marketplace Inmobiliario</a>
-      <a href="verificar.html" class="navbar-link">Verificador de Contratos</a>
+      <a href="marketplace.html" class="navbar-link is-active" aria-current="page">Propiedades</a>
+      <button type="button" data-agent-access class="navbar-link navbar-link--btn">Hazte un agente</button>
+      <a href="index.html#vender" class="navbar-link">Publica aquí</a>
       <a href="app.html" data-install-app class="navbar-link" hidden>Instalar app</a>
-      <button type="button" data-agent-access class="cta-button cta-button--glass cta-button--sm"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+      <button type="button" data-agent-access class="nav-pill">Acceso agentes</button>
     </div>
   </div>
 
   <div class="navbar-mobile-panel">
     <a href="index.html" class="navbar-mobile-link">Inicio</a>
-    <a href="marketplace.html" class="navbar-mobile-link is-active" aria-current="page">Marketplace Inmobiliario</a>
-    <a href="verificar.html" class="navbar-mobile-link">Verificador de Contratos</a>
-    <a href="app.html" data-install-app class="cta-button cta-button--glass" style="width:100%;margin-top:12px;" hidden><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Instalar app</span></a>
-    <button type="button" data-agent-access class="cta-button cta-button--glass" style="width:100%;margin-top:12px;"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+    <a href="marketplace.html" class="navbar-mobile-link is-active" aria-current="page">Propiedades</a>
+    <button type="button" data-agent-access class="navbar-mobile-link navbar-mobile-link--btn">Hazte un agente</button>
+    <a href="index.html#vender" class="navbar-mobile-link">Publica aquí</a>
+    <a href="verificar.html" class="navbar-mobile-link">Verificador de contratos</a>
+    <a href="app.html" data-install-app class="navbar-mobile-link" hidden>Instalar app</a>
+    <button type="button" data-agent-access class="nav-pill nav-pill--block">Acceso agentes</button>
   </div>
 </nav>
 
@@ -97,7 +101,7 @@
     <div class="footer-top">
       <div>
         <div class="footer-logo-row">
-          <img class="footer-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449" loading="lazy">
+          <img class="footer-logo-img" src="assets/img/bastet-logo-vertical.png" alt="Bastet · Propiedades · Inmobiliarias" width="900" height="500" loading="lazy">
         </div>
       </div>
       <div class="footer-contact">
@@ -105,6 +109,7 @@
         <a href="mailto:inmobiliaria@bastet.uno" class="footer-link">inmobiliaria@bastet.uno</a>
         <a href="tel:+59177666205" class="footer-link">+591 77666205</a>
         <span class="footer-city">Calle Yanacocha, Edif. Cristal, Piso 7, Of. 706 — La Paz, Bolivia</span>
+        <a href="verificar.html" class="footer-link">Verificador de contratos</a>
       </div>
     </div>
     <p class="footer-copy">© 2026 Bastet Real State. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a></p>
@@ -185,6 +190,6 @@
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/main.js?v=20261020b"></script>
+<script src="assets/js/main.js?v=20261023a"></script>
 </body>
 </html>

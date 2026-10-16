@@ -86,7 +86,7 @@
     }
     const digits = String(r.owner_phone || '').replace(/[^0-9]/g, '');
     const first = String(r.owner_name || '').trim().split(/\s+/)[0];
-    const wa = 'https://wa.me/' + digits + '?text=' + encodeURIComponent('Hola ' + first + ', te escribo de UNO · Bastet por tu solicitud para vender tu inmueble en ' + r.city + '. ¿Cuándo podemos hablar?');
+    const wa = 'https://wa.me/' + digits + '?text=' + encodeURIComponent('Hola ' + first + ', te escribo de Bastet por tu solicitud para vender tu inmueble en ' + r.city + '. ¿Cuándo podemos hablar?');
     const map = r.latitude != null ? 'https://www.google.com/maps?q=' + r.latitude + ',' + r.longitude : null;
     const docs = Array.isArray(r.documents) ? r.documents : [];
     panel.innerHTML =

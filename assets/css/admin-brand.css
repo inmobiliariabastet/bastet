@@ -1,0 +1,226 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Panel /admin · identidad Bastet 2026 — fondo blanco premium, verde de marca, amarillo y naranja de acento.
+   Conso (títulos y botones) + Cabinet Grotesk (texto). Se carga DESPUÉS de admin.css, credits.css, subscription.css,
+   contracts.css y owner-services.css y reasigna sus colores (esos archivos conservan la estructura).
+   Paleta: #3D4C3A verde · #F1BF46 amarillo · #EC6C2E naranja · #EEE6E0 arena · #1E2629 carbón · #EFF8E7 verde suave
+   ══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --br-green: #3D4C3A; --br-green-dark: #2F3B2D; --br-ink: #1E2629; --br-sand: #EEE6E0; --br-yellow: #F1BF46; --br-orange: #EC6C2E;
+  --br-cream: #FBE6AB; --br-mist: #CEDDDE; --br-sage: #B7BEAD; --br-pale: #EFF8E7; --br-brown: #412B21; --br-cloud: #F7F9FB;
+
+  --oro: #F1BF46;          /* acento (amarillo) */
+  --oro-p: #3D4C3A;        /* texto de acento (verde) */
+  --brillo: #FBE6AB;
+  --noche: #3D4C3A;        /* superficies de marca (verde) */
+  --ebano: #1E2629;
+  --marfil: #FFFFFF;
+  --marfil-2: #F7F9FB;
+  --linea: #E3E7E4;
+  --tinta: #1E2629;
+  --tinta-2: #5E6A66;
+  --ok: #3D4C3A; --warn: #B7791F; --bad: #A63D2F;
+  --gold-grad: linear-gradient(135deg, #F1BF46, #F1BF46);
+  --serif: 'Conso', Georgia, 'Times New Roman', serif;
+  --sans: 'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif;
+}
+body { background: #FFFFFF; color: var(--tinta); font-family: var(--sans); }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; color: var(--br-green); }
+html { scrollbar-color: rgba(61,76,58,.4) transparent; }
+a { color: var(--br-green); }
+:focus-visible { outline: 3px solid var(--br-yellow); outline-offset: 2px; }
+
+/* ───── Acceso (login / recuperar) ───── */
+.auth-screen { background: var(--br-green); }
+.auth-art { background: var(--br-green); }
+.auth-art::before { opacity: .06; background: repeating-linear-gradient(135deg, var(--br-sand) 0 1px, transparent 1px 28px); }
+.auth-art img { filter: none; }
+.auth-art p { color: var(--br-cream); opacity: .85; }
+.auth-card { background: #fff; }
+.auth-logo-sub { color: var(--br-green); letter-spacing: .24em; }
+.auth-title { font-size: clamp(34px, 4vw, 46px); }
+.auth-banner { background: var(--br-cream); border-color: var(--br-yellow); color: var(--br-brown); border-radius: 16px; }
+.auth-banner a { color: var(--br-green); }
+.auth-switch a { color: var(--br-green); }
+
+/* ───── Campos y botones (pastilla) ───── */
+.field label { color: var(--br-green); letter-spacing: .12em; }
+.field input, .field textarea, .field select, .role-select { background: var(--br-cloud); border: 1px solid var(--linea); border-radius: 14px; }
+.field input:focus, .field textarea:focus, .field select:focus, .role-select:focus { background: #fff; border-color: var(--br-green); box-shadow: 0 0 0 4px rgba(61,76,58,.14); }
+.field input::placeholder, .field textarea::placeholder { color: rgba(30,38,41,.4); }
+.btn { border-radius: 999px; font-family: var(--serif); font-weight: 500; letter-spacing: .01em; font-size: 16px; padding: 13px 26px; }
+.btn-sm { padding: 8px 18px; font-size: 14.5px; }
+.btn-accent { background: var(--br-yellow); color: var(--br-ink); box-shadow: none; border-color: var(--br-yellow); }
+.btn-accent:not(:disabled):hover { background: #E5B13A; border-color: #E5B13A; }
+.btn-primary { background: var(--br-green); color: #fff; }
+.btn-primary:not(:disabled):hover { background: var(--br-green-dark); }
+.btn-ghost { background: #fff; color: var(--br-green); border-color: var(--br-sage); }
+.btn-ghost:not(:disabled):hover { border-color: var(--br-green); background: var(--br-pale); }
+.btn-trash-gold { color: var(--br-green); border-color: var(--linea); border-radius: 50%; }
+.btn-trash-gold:not(:disabled):hover { border-color: var(--br-green); background: var(--br-pale); }
+.google-btn { color: var(--br-green); border: 1.5px solid var(--br-green); border-radius: 999px; background: #fff; min-height: 52px; font-family: var(--serif); font-size: 16px; padding: 12px 16px; }
+.google-btn:hover { background: var(--br-pale); }
+
+/* ───── Menú lateral (blanco, con acento verde) ───── */
+.admin-side { background: #fff; color: var(--br-ink); border-right: 1px solid var(--linea); }
+.admin-side-brand { border-bottom: 1px solid var(--linea); }
+.admin-side-brand img { width: 168px; }
+.admin-logo-sub { color: var(--tinta-2); letter-spacing: .2em; }
+.admin-nav-group { color: var(--tinta-2); }
+.admin-tab { color: var(--tinta-2); border-radius: 14px; font-family: var(--sans); font-weight: 500; }
+.admin-tab:hover { background: var(--br-cloud); color: var(--br-green); }
+.admin-tab.is-active { background: var(--br-pale); color: var(--br-green); }
+.admin-tab.is-active::before { background: var(--br-green); }
+.tab-count { background: var(--br-green); color: var(--br-yellow); }
+.admin-side-foot { border-top: 1px solid var(--linea); }
+.admin-landing-link { color: var(--tinta-2); border-radius: 12px; }
+.admin-landing-link:hover { background: var(--br-cloud); color: var(--br-green); }
+.admin-avatar { background: var(--br-green); color: var(--br-yellow); }
+.admin-user-email { color: var(--br-ink); }
+.role-badge { background: var(--br-pale); color: var(--br-green); border: 0; }
+.admin-logout { color: var(--tinta-2); }
+.admin-logout:hover { color: var(--br-green); }
+.admin-toolbar h1 { font-size: clamp(32px, 3.6vw, 44px); }
+.admin-subheading { font-size: 28px; }
+
+/* ───── Tarjetas, filas e insignias ───── */
+.analytics-stat-card, .property-row, .partner-add-card, .partner-row, .invite-admin-card, .user-row, .request-card, .property-empty, .data-table-wrap { border-radius: 22px; border-color: var(--linea); }
+.property-row-clickable:hover, .prop-card:hover { border-color: var(--br-sage); }
+.prop-card { border-radius: 24px; }
+.prop-card:hover { box-shadow: 0 22px 40px -26px rgba(30,38,41,.45); }
+.prop-card.drag-over, .property-row.drag-over { border-color: var(--br-green); box-shadow: 0 0 0 3px rgba(61,76,58,.2); }
+.prop-ph { background: linear-gradient(135deg, var(--br-sage), var(--br-pale)); }
+.prop-ph .property-drag-handle { background: rgba(255,255,255,.9); color: var(--br-green); }
+.prop-eyebrow, .detail-label, .analytics-stat-label, .request-label, .lead-col-title, .prop-life-label { color: var(--br-green); }
+.prop-price, .property-price, .prop-life-time { color: var(--br-ink); }
+.property-thumb-placeholder { background: var(--br-green); color: var(--br-yellow); }
+.property-code-tag { background: var(--br-pale); color: var(--br-green); }
+.b-ok, .status-badge.available { background: var(--br-pale); color: var(--br-green); box-shadow: none; }
+.b-warn { background: #FBF0D9; color: #8A5A12; }
+.b-gold, .role-tag.admin { background: var(--br-yellow); color: var(--br-ink); }
+.b-mute, .role-tag.agent { background: var(--br-cloud); color: var(--tinta-2); }
+.data-table th { color: var(--br-green); }
+.data-table tbody tr:hover td { background: var(--br-cloud); }
+.data-table td, .credits-table td { border-bottom-color: #EEF1EF; }
+.request-filter.is-active { background: var(--br-green); border-color: var(--br-green); color: #fff; }
+.tag-chip:hover, .request-filter:hover, .photo-dropzone:hover, .photo-dropzone.is-dragover { border-color: var(--br-green); background: var(--br-pale); }
+.checkbox-label input[type="checkbox"] { accent-color: var(--br-green); }
+.user-active-check { background: var(--br-green); color: var(--br-yellow); }
+.user-inactive-mark { color: var(--br-green); border-color: var(--br-sage); }
+.testimonial-photo-thumb-placeholder { background: var(--br-pale); color: var(--br-green); }
+.currency-pill input:checked + span { color: #fff; background: var(--br-green); box-shadow: none; }
+.pw-toggle { color: var(--br-green); }
+.pw-toggle:hover, .pw-toggle:focus-visible { background: var(--br-pale); }
+.pub-banner { background: var(--br-cream); border-color: var(--br-yellow); color: var(--br-brown); border-radius: 16px; }
+.sell-legal-flag { background: var(--br-cream); border-color: var(--br-yellow); color: var(--br-brown); }
+.lead-col { background: var(--br-cloud); border-radius: 22px; }
+.lead-card { border-radius: 16px; }
+.lead-card:hover { border-color: var(--br-sage); }
+.lead-card-date { color: var(--br-green) !important; }
+
+/* ───── Ventanas ───── */
+.modal-overlay { background: rgba(30,38,41,.55); }
+.modal-panel { background: #fff; border: 0; border-radius: 30px; box-shadow: 0 40px 90px -30px rgba(30,38,41,.6); }
+.modal-panel h2 { color: var(--br-green); }
+
+/* ───── Tarjeta del plan en Propiedades (verde de marca) ───── */
+.pq-card { color: var(--br-sand); border: 0; border-radius: 28px; background: var(--br-green); box-shadow: 0 22px 44px -28px rgba(61,76,58,.8); }
+.pq-card:hover { border: 0; box-shadow: 0 26px 48px -28px rgba(61,76,58,.9); }
+.pq-main { border-right-color: rgba(238,230,224,.22); }
+.pq-badge { color: var(--br-green); background: var(--br-yellow); box-shadow: none; }
+.pq-count { border-left-color: rgba(238,230,224,.22); }
+.pq-num { color: var(--br-yellow); }
+.pq-num b { background: none; -webkit-text-fill-color: currentColor; color: var(--br-yellow); }
+.pq-num span { color: var(--br-sage); }
+.pq-dot { border-color: var(--br-sage); }
+.pq-dot.is-on { border-color: var(--br-yellow); background: var(--br-yellow); box-shadow: none; }
+.pq-title { color: var(--br-cream); }
+.pq-renew, .pq-note { color: var(--br-sand); }
+.pq-renew b, .pq-cost b { color: var(--br-yellow); }
+.pq-ico, .pq-note-ico { color: var(--br-sage); }
+.pq-notes { border-top-color: rgba(238,230,224,.22); }
+.pq-note:first-child { border-right-color: rgba(238,230,224,.22); }
+.pq-credits { background: rgba(255,255,255,.08); border: 1px solid rgba(238,230,224,.2); border-radius: 22px; }
+.pq-coin { border-color: var(--br-yellow); color: var(--br-yellow); }
+.pq-balance { color: var(--br-yellow); }
+.pq-credits-top div span, .pq-cost { color: var(--br-sand); }
+.pq-cost { border-top-color: rgba(238,230,224,.22); }
+.pq-btn { color: var(--br-green); background: var(--br-yellow); border: 0; border-radius: 999px; font-family: var(--serif); }
+.pq-btn:hover { color: var(--br-green); background: #E5B13A; }
+@media (max-width: 960px) { .pq-main { border-bottom-color: rgba(238,230,224,.22); } }
+
+/* ───── Vigencia de cada publicación ───── */
+.prop-life { background: var(--br-cloud); border-color: var(--linea); border-radius: 16px; }
+.prop-life-bar { background: #E3E7E4; }
+.prop-life-bar i { background: var(--br-green); }
+.prop-life[data-level="warn"] { background: #FBF0D9; border-color: var(--br-yellow); }
+.prop-life[data-level="warn"] .prop-life-bar i { background: var(--br-orange); }
+.prop-life[data-level="warn"] .prop-life-time { color: #8A5A12; }
+.pub-modal-new { background: var(--br-cream); border-color: var(--br-yellow); }
+
+/* ───── Suscripción (credits.css / subscription.css) ───── */
+.cr-card { color: var(--br-sand); border: 0; border-radius: 32px; background: var(--br-green); box-shadow: 0 24px 48px -30px rgba(61,76,58,.85); }
+.cr-card:hover { border: 0; box-shadow: 0 28px 52px -30px rgba(61,76,58,.95); }
+.cr-left { border-right-color: rgba(238,230,224,.22); }
+.cr-eyebrow { color: var(--br-yellow); }
+.cr-eyebrow--soft { color: var(--br-cream); }
+.cr-sub { color: var(--br-sage); }
+.sb-plan-name, .cr-figure b { color: var(--br-yellow); font-family: var(--serif); }
+.cr-figure span { color: var(--br-cream); }
+.sb-card .cr-sub b, .sb-card .cr-sub em { color: var(--br-cream); }
+.sb-steps, .sb-meter-top { color: var(--br-sage); }
+.sb-meter-top b { color: var(--br-sand); }
+.sb-meter-bar { background: rgba(238,230,224,.16); }
+.sb-meter-bar i, .sb-meter.is-full .sb-meter-bar i { background: var(--br-yellow); }
+.sb-actions { border-top-color: rgba(238,230,224,.22); }
+.cr-use b { color: var(--br-sand); }
+.credits-pack { border-radius: 32px 32px 24px 24px; border-color: var(--linea); }
+.credits-pack:hover { border-color: var(--br-sage); box-shadow: 0 22px 44px -28px rgba(30,38,41,.4); }
+.credits-pack.is-top { background: var(--br-green); border-color: var(--br-green); color: var(--br-sand); }
+.credits-pack.is-top h3, .credits-pack.is-top .credits-pack-n, .credits-pack.is-top .credits-pack-price { color: var(--br-yellow); }
+.credits-pack.is-top .credits-muted, .credits-pack.is-top ul { color: var(--br-sage); }
+.credits-pack li::before { color: var(--br-orange); }
+.credits-pack-n, .sb-price { font-family: var(--serif); font-weight: 400; }
+.sb-plans .credits-pack.is-current { border-color: var(--br-green); box-shadow: 0 0 0 2px var(--br-green); }
+.sb-badge { color: var(--br-green); background: var(--br-yellow); }
+.sb-soon-title { color: var(--br-green); }
+.credits-method { background: var(--br-cloud); border: 1px dashed var(--br-sage); border-radius: 22px; }
+.credits-method-row input[type="radio"] { accent-color: var(--br-green); }
+.credits-admin h3 { color: var(--br-green); }
+.credits-table-wrap { border-radius: 22px; border-color: var(--linea); }
+.credits-table th { color: var(--br-green); }
+.credits-table tbody tr:hover td { background: var(--br-cloud); }
+.credits-table .is-in { color: var(--br-green); }
+
+/* ───── Servicios del propietario / ofertas / asesoría legal ───── */
+.os-lock { background: var(--br-cloud); border: 1px dashed var(--br-sage); border-radius: 28px; }
+.os-stat { border-radius: 22px; border-color: var(--linea); }
+.os-stat span { color: var(--br-green); }
+.os-agent { border-radius: 24px; }
+.os-agent:hover { border-color: var(--br-sage); box-shadow: 0 18px 36px -26px rgba(30,38,41,.4); }
+.os-avatar { border-color: var(--br-sage); }
+.os-avatar--initial { color: var(--br-green); background: var(--br-pale); }
+.os-status { background: var(--br-cloud); color: var(--tinta-2); }
+.os-status--accepted, .os-status--completed { background: var(--br-pale); color: var(--br-green); }
+.os-status--pending, .os-status--in_review, .os-status--in_progress { background: var(--br-cream); color: var(--br-brown); }
+.os-status--rejected, .os-status--canceled, .os-status--cancelled { background: #F7E3DE; color: #8C2F1F; }
+
+/* ───── Contrato de exclusividad: la vista previa del documento ───── */
+.cdoc .cdoc-title, .cdoc .cdoc-clause { color: var(--br-green); }
+.cdoc .cdoc-number { color: var(--br-orange); }
+.cdoc .cdoc-annex { border-top-color: var(--br-yellow); }
+.cdoc .cdoc-table th { background: var(--br-pale); color: var(--br-green); }
+.cdoc .cdoc-bullet::before { color: var(--br-green); }
+.cdoc mark.cv { background: var(--br-cream); color: var(--br-brown); }
+
+/* ───── Celular / tablet: barra superior y accesos rápidos ───── */
+@media (max-width: 860px) {
+  .admin-mobilebar { background: var(--br-green); border-bottom: 0; }
+  .admin-burger { background: rgba(255,255,255,.12); color: var(--br-cream); border-color: rgba(255,255,255,.25); }
+  .admin-scrim.open { background: rgba(30,38,41,.55); }
+  .admin-bottombar { background: rgba(255,255,255,.97); border-top: 1px solid var(--linea); box-shadow: 0 -10px 28px -18px rgba(30,38,41,.5); }
+  .abb-item { color: var(--tinta-2); }
+  .abb-item.is-active { color: var(--br-green); }
+  .abb-item.is-active::after { background: var(--br-green); }
+  .abb-item:focus-visible { outline-color: var(--br-yellow); }
+  .abb-badge { color: var(--br-green); background: var(--br-yellow); }
+}

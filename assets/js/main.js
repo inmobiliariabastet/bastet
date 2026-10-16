@@ -776,7 +776,15 @@ async function loadProperties() {
     await attachAgentInfo(allProperties);
   }
 
-  if (HAS_FILTERS) rebuildFilters();
+  if (HAS_FILTERS) {
+    // Búsqueda que viene del inicio (marketplace.html?ciudad=…&op=…&tipo=…): se precargan los filtros
+    const qs = new URLSearchParams(window.location.search);
+    const op = qs.get('op'), tipo = qs.get('tipo'), ciudad = qs.get('ciudad');
+    if (op && PROPERTY_OPERATION_LABELS[op]) operationFilter = op;
+    if (tipo && PROPERTY_TYPE_LABELS[tipo]) typeFilter = tipo;
+    if (ciudad && BOLIVIA_CITIES.includes(ciudad)) cityFilter = ciudad;
+    rebuildFilters();
+  }
   renderPropertyGrid();
 }
 
@@ -798,6 +806,14 @@ async function attachAgentInfo(properties) {
 // Se muestran siempre todas las opciones con su cantidad, así el visitante sabe qué hay en cada una.
 const isTemporal = (p) => p.operation === 'temporal';
 
+// Íconos de las pestañas de operación (trazo fino, estilo del manual de marca)
+const OPERATION_ICONS = {
+  venta: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 15L16 5l12 10"/><path d="M7 13v13h18V13"/><path d="M13 26v-7h6v7"/></svg>',
+  alquiler: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="16" r="5.5"/><path d="M16.5 16H28M23 16v4M27 16v3"/></svg>',
+  anticretico: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4l10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8z"/><path d="M12 16l3 3 5-6"/></svg>',
+  temporal: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="5"/><path d="M16 4v2.5M16 21.5V24M6 14h2.5M23.5 14H26M9 7l1.8 1.8M21.2 19.2L23 21M23 7l-1.8 1.8M10.8 19.2L9 21"/><path d="M5 28h22"/></svg>',
+};
+
 function buildOperationFilters() {
   const options = Object.entries(PROPERTY_OPERATION_LABELS);
   operationFiltersEl.innerHTML = '';
@@ -808,7 +824,7 @@ function buildOperationFilters() {
     btn.setAttribute('role', 'tab');
     btn.setAttribute('aria-selected', String(value === operationFilter));
     btn.className = 'operation-tab' + (value === 'temporal' ? ' operation-tab--stay' : '') + (value === operationFilter ? ' is-active' : '');
-    btn.innerHTML = escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span>';
+    btn.innerHTML = (OPERATION_ICONS[value] || '') + '<span class="operation-tab-label">' + escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span></span>';
     btn.addEventListener('click', () => {
       operationFilter = operationFilter === value ? '' : value;
       cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
@@ -1333,6 +1349,13 @@ function normalizeLogo(url, imgs) {
 
 loadPartners();
 
+// Barra de búsqueda del inicio: las ciudades salen de la misma lista que usa el Marketplace
+(function fillHomeSearch() {
+  const sel = document.getElementById('home-search-city');
+  if (!sel) return;
+  BOLIVIA_CITIES.forEach((c) => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+})();
+
 /* ── Video del hero: reproduce y luego retrocede en cámara lenta (ping-pong), en vez de cortar y reiniciar ── */
 (function setupHeroVideo() {
   const video = document.getElementById('hero-video');
@@ -1365,7 +1388,7 @@ loadPartners();
   video.play().catch(() => {});
 })();
 
-/* ── Instalar UNO como app (PWA): los botones "Instalar app" llevan a la pantalla app.html (mockups, ventajas y descarga) ── */
+/* ── Instalar Bastet como app (PWA): los botones "Instalar app" llevan a la pantalla app.html (mockups, ventajas y descarga) ── */
 (function setupInstallApp() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 

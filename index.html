@@ -3,25 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bastet — Inmobiliaria en Bolivia</title>
+<title>Bastet · Propiedades e inmobiliarias en Bolivia</title>
 <meta name="description" content="Bastet, propiedades e inmobiliaria en Bolivia. Certeza legal, resultados en 30 días.">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-uno-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-uno-192.png">
-<link rel="apple-touch-icon" href="assets/img/apple-touch-icon-uno.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/bastet-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/bastet-favicon-192.png">
+<link rel="apple-touch-icon" href="assets/img/bastet-apple-touch.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0A0A09">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261020c">
+<link rel="stylesheet" href="assets/css/style.css?v=20261023a">
+<link rel="stylesheet" href="assets/css/brand.css?v=20261023d">
 <link rel="stylesheet" href="assets/css/sell.css?v=20261014d">
 </head>
-<body class="theme-white">
+<body class="brand">
 
 <nav class="navbar">
   <div class="navbar-inner">
-    <a href="#hero" class="navbar-logo" aria-label="UNO · Marketplace Inmobiliario by Bastet — inicio">
-      <img class="navbar-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449">
+    <a href="#hero" class="navbar-logo" aria-label="Bastet · Propiedades e inmobiliarias — inicio">
+      <img class="navbar-logo-img" src="assets/img/bastet-logo-horizontal.png" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298">
     </a>
 
     <a href="app.html" data-install-app class="navbar-install" hidden aria-label="Instalar app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Instalar app</span></a>
@@ -31,44 +32,57 @@
     </button>
 
     <div class="navbar-links">
-      <a href="#hero" class="navbar-link">Inicio</a>
-      <a href="marketplace.html" class="navbar-link">Marketplace Inmobiliario</a>
-      <a href="verificar.html" class="navbar-link">Verificador de Contratos</a>
+      <a href="#hero" class="navbar-link is-active" aria-current="page">Inicio</a>
+      <a href="marketplace.html" class="navbar-link">Propiedades</a>
+      <button type="button" data-agent-access class="navbar-link navbar-link--btn">Hazte un agente</button>
+      <button type="button" data-sell-open class="navbar-link navbar-link--btn">Publica aquí</button>
       <a href="app.html" data-install-app class="navbar-link" hidden>Instalar app</a>
-      <button type="button" data-agent-access class="cta-button cta-button--glass cta-button--sm"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+      <button type="button" data-agent-access class="nav-pill">Acceso agentes</button>
     </div>
   </div>
 
   <div class="navbar-mobile-panel">
     <a href="#hero" class="navbar-mobile-link">Inicio</a>
-    <a href="marketplace.html" class="navbar-mobile-link">Marketplace Inmobiliario</a>
-    <a href="verificar.html" class="navbar-mobile-link">Verificador de Contratos</a>
-    <a href="app.html" data-install-app class="cta-button cta-button--glass" style="width:100%;margin-top:12px;" hidden><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Instalar app</span></a>
-    <button type="button" data-agent-access class="cta-button cta-button--glass" style="width:100%;margin-top:12px;"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Acceso agentes</span></button>
+    <a href="marketplace.html" class="navbar-mobile-link">Propiedades</a>
+    <button type="button" data-agent-access class="navbar-mobile-link navbar-mobile-link--btn">Hazte un agente</button>
+    <button type="button" data-sell-open class="navbar-mobile-link navbar-mobile-link--btn">Publica aquí</button>
+    <a href="verificar.html" class="navbar-mobile-link">Verificador de contratos</a>
+    <a href="app.html" data-install-app class="navbar-mobile-link" hidden>Instalar app</a>
+    <button type="button" data-agent-access class="nav-pill nav-pill--block">Acceso agentes</button>
   </div>
 </nav>
 
-<section id="hero" class="hero">
-  <video id="hero-video" class="hero-video" muted playsinline preload="auto" poster="assets/img/hero-start.jpg">
-    <source src="assets/video/hero.mp4" type="video/mp4">
-  </video>
-  <div class="hero-overlay"></div>
-  <div class="hero-inner">
-    <div class="hero-content">
-      <h1 class="hero-title">Marketplace Inmobiliario</h1>
-      <p class="hero-tagline">Venda o Compre su inmueble en 30 días o menos.</p>
-      <p class="hero-subtext">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
-      <div class="hero-cta-wrap">
-        <button type="button" data-sell-open class="pa-btn pa-btn--primary"><span class="pa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span class="pa-label">Vender mi inmueble</span><span class="pa-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></button>
-        <a href="marketplace.html" class="pa-btn pa-btn--secondary"><span class="pa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><span class="pa-label">Buscar un inmueble</span><span class="pa-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+<section id="hero" class="home-hero">
+  <div class="home-hero-card">
+    <div class="home-hero-copy">
+      <p class="home-hero-eyebrow">Bastet · Propiedades e inmobiliarias</p>
+      <h1 class="home-hero-title">Marketplace inmobiliario</h1>
+      <p class="home-hero-tagline">Vende o compra tu inmueble en 30 días o menos.</p>
+      <p class="home-hero-sub">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
+      <div class="home-hero-cta">
+        <a href="marketplace.html" class="btn-pill btn-pill--green">Buscar un inmueble</a>
+        <button type="button" data-sell-open class="btn-pill btn-pill--line">Vender mi inmueble</button>
       </div>
     </div>
+    <div class="home-hero-photo">
+      <img src="assets/img/hero-familia.webp" alt="Una familia jugando en el jardín de su casa al atardecer" width="1672" height="941" fetchpriority="high">
+    </div>
   </div>
+
+  <form class="search-pill" id="home-search" action="marketplace.html" method="get" aria-label="Buscar propiedades">
+    <label class="search-field"><span>Dónde</span>
+      <select name="ciudad" id="home-search-city"><option value="">Todas las ciudades</option></select></label>
+    <label class="search-field"><span>Operación</span>
+      <select name="op"><option value="">Venta, alquiler…</option><option value="venta">Venta</option><option value="alquiler">Alquiler</option><option value="anticretico">Anticrético</option><option value="temporal">Temporal (por día)</option></select></label>
+    <label class="search-field"><span>Tipo</span>
+      <select name="tipo"><option value="">Cualquier tipo</option><option value="casa">Casa</option><option value="departamento">Departamento</option><option value="terreno">Terreno</option></select></label>
+    <button type="submit" class="search-go" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+  </form>
 </section>
 
 <section id="propiedades" class="propiedades-section">
   <div class="propiedades-inner reveal">
-    <h2 class="section-heading section-heading--light">Propiedades en el Marketplace</h2>
+    <h2 class="section-heading section-heading--light">Propiedades destacadas</h2>
     <p class="section-sub section-sub--light">Una selección de nuestras propiedades. Explore todas, con filtros, en el Marketplace Inmobiliario.</p>
     <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
     <div class="prop-cta-wrap">
@@ -141,7 +155,7 @@
     <div class="footer-top">
       <div>
         <div class="footer-logo-row">
-          <img class="footer-logo-img" src="assets/img/uno-logo-bastet.webp" alt="UNO · Marketplace Inmobiliario by Bastet Real State" width="1000" height="449" loading="lazy">
+          <img class="footer-logo-img" src="assets/img/bastet-logo-vertical.png" alt="Bastet · Propiedades · Inmobiliarias" width="900" height="500" loading="lazy">
         </div>
       </div>
       <div class="footer-contact">
@@ -149,6 +163,7 @@
         <a href="mailto:inmobiliaria@bastet.uno" class="footer-link">inmobiliaria@bastet.uno</a>
         <a href="tel:+59177666205" class="footer-link">+591 77666205</a>
         <span class="footer-city">Calle Yanacocha, Edif. Cristal, Piso 7, Of. 706 — La Paz, Bolivia</span>
+        <a href="verificar.html" class="footer-link">Verificador de contratos</a>
       </div>
     </div>
     <p class="footer-copy">© 2026 Bastet Real State. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a></p>
@@ -324,7 +339,7 @@
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/main.js?v=20261020b"></script>
+<script src="assets/js/main.js?v=20261023a"></script>
 <script src="assets/js/sell.js?v=20261014d"></script>
 </body>
 </html>

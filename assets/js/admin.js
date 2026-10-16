@@ -342,7 +342,7 @@ function renderPropertyList() {
       '</div>' +
       '<div class="prop-bd">' +
         '<span class="prop-eyebrow">' + [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location].filter(Boolean).map(escapeHtml).join(' · ') + '</span>' +
-        '<h3 class="prop-title">' + (isPropertyFeatured(property) ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</h3>' +
+        '<h3 class="prop-title">' + (isPropertyFeatured(property) ? '<img class="property-featured-icon" src="../assets/img/bastet-isotipo.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</h3>' +
         (code ? '<span><span class="property-code-tag">' + code + '</span></span>' : '') +
         '<div class="prop-price">' + formatPrice(property.price, property.currency, property.operation) + '</div>' +
         (facts ? '<p class="prop-facts">' + facts + '</p>' : '') +
@@ -430,7 +430,7 @@ async function getProfilesEmailMap() {
 async function openPropertyDetail(property) {
   const isAdmin = currentProfile && currentProfile.role === 'admin';
   const isOwnProperty = currentSession && property.owner_id === currentSession.user.id;
-  detailTitleEl.innerHTML = (property.featured ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title);
+  detailTitleEl.innerHTML = (property.featured ? '<img class="property-featured-icon" src="../assets/img/bastet-isotipo.png" alt="Destacada">' : '') + escapeHtml(property.title);
 
   const photos = (property.photos || []).map((url) =>
     '<img src="' + escapeHtml(url) + '" alt="">'
@@ -951,7 +951,7 @@ async function loadAnalytics() {
     row.innerHTML =
       thumb +
       '<div class="property-info">' +
-        '<p class="property-info-title">' + (property.featured ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</p>' +
+        '<p class="property-info-title">' + (property.featured ? '<img class="property-featured-icon" src="../assets/img/bastet-isotipo.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</p>' +
         '<p class="property-info-meta">' + escapeHtml(property.location) + '</p>' +
       '</div>' +
       '<div class="analytics-metric"><p class="analytics-metric-value">' + stat.views + '</p><p class="analytics-metric-label">Vistas</p></div>' +
@@ -1551,7 +1551,7 @@ async function openUserProperties(user) {
       ? '<img class="property-thumb" src="' + escapeHtml(property.photos[0]) + '" alt="">'
       : '<div class="property-thumb-placeholder">BASTET</div>';
     row.innerHTML =
-      (property.featured ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada" style="flex-shrink:0;">' : '<span style="width:18px;flex-shrink:0;"></span>') +
+      (property.featured ? '<img class="property-featured-icon" src="../assets/img/bastet-isotipo.png" alt="Destacada" style="flex-shrink:0;">' : '<span style="width:18px;flex-shrink:0;"></span>') +
       thumb +
       '<div class="property-info">' +
         '<p class="property-info-title">' + escapeHtml(property.title) + '</p>' +

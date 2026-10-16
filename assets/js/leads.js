@@ -86,7 +86,7 @@
     const digits = String(lead.whatsapp || '').replace(/[^0-9]/g, '');
     const first = String(lead.full_name || '').trim().split(/\s+/)[0];
     const p = lead.properties || {};
-    const text = 'Hola ' + first + ', te escribo de UNO · Bastet por tu interés en la propiedad ' + code(p) +
+    const text = 'Hola ' + first + ', te escribo de Bastet por tu interés en la propiedad ' + code(p) +
       (p.title ? ' (' + p.title + ')' : '') + '. ¿Cómo puedo ayudarte?';
     return 'https://wa.me/' + digits + '?text=' + encodeURIComponent(text);
   }

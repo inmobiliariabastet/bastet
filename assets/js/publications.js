@@ -64,7 +64,7 @@
             (s.status === 'canceling' ? 'No se renovará: termina el ' : 'Vigente hasta el ') + '<b>' + esc(longDate(s.period_end)) + '</b> (' + days + ' ' + plural(days, 'día', 'días') + ').</span></p></div>' +
         '</div>' +
         '<div class="pq-notes">' +
-          '<p class="pq-note"><span class="pq-note-ico">' + ICON.info + '</span><span>Tus propiedades se muestran en UNO hasta el fin del periodo pagado. Vendidas o vencidas no ocupan cupo.</span></p>' +
+          '<p class="pq-note"><span class="pq-note-ico">' + ICON.info + '</span><span>Tus propiedades se muestran en Bastet hasta el fin del periodo pagado. Vendidas o vencidas no ocupan cupo.</span></p>' +
         '</div>' +
       '</div>' +
       '<aside class="pq-credits" aria-label="Destacados">' +

@@ -1,15 +1,25 @@
 {
-  "name": "UNO · Marketplace Inmobiliario by Bastet",
-  "short_name": "UNO",
+  "name": "Bastet · Propiedades e inmobiliarias",
+  "short_name": "Bastet",
   "description": "Marketplace inmobiliario de Bastet: compra, vende y alquila inmuebles en Bolivia.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0A0A09",
-  "theme_color": "#0A0A09",
+  "background_color": "#FFFFFF",
+  "theme_color": "#3D4C3A",
   "lang": "es",
   "icons": [
-    { "src": "assets/img/uno-app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "assets/img/uno-app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "assets/img/bastet-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/img/bastet-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

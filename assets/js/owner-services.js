@@ -177,7 +177,7 @@
   function renderOwner(d) {
     ownerRoot().innerHTML = '<div id="owner-flash" hidden></div>' + summaryHtml(d) +
       '<h2 class="admin-subheading">Elegir un agente</h2>' +
-      '<p class="credits-muted">Agentes registrados en UNO con un plan vigente. Ofrece una de tus propiedades con tus condiciones: el agente puede aceptar o rechazar.</p>' +
+      '<p class="credits-muted">Agentes registrados en Bastet con un plan vigente. Ofrece una de tus propiedades con tus condiciones: el agente puede aceptar o rechazar.</p>' +
       (d.agents.length ? '<div class="field os-search"><label for="os-agent-search">Buscar por nombre</label><input type="search" id="os-agent-search" placeholder="Ej. Ana"></div><div class="os-agents" id="os-agents">' + d.agents.map(agentCard).join('') + '</div><p class="credits-empty hidden" id="os-agents-empty">Ningún agente coincide con la búsqueda.</p>'
         : '<p class="credits-empty">Todavía no hay agentes con plan vigente para mostrar.</p>') +
       offersHtml(d) + legalHtml(d);

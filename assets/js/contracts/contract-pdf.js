@@ -7,7 +7,8 @@
   const PDFMAKE_URL = 'https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/pdfmake.min.js';
   const VERIFY_BASE = 'https://bastet.uno/verificar.html?c=';
   // Paleta sin verde: ébano para los títulos, oro profundo para los acentos, tonos cálidos para lo secundario.
-  const C = { ebony: '#1C160E', warmGrey: '#6B5E49', gold: '#F2B035', neutral: '#F8EBC8', ink: '#1A1A16', night: '#0F0C08', goldLight: '#F8DA8C', deepGold: '#8A5A12' };
+  // Paleta del Brand Book Bastet 2026: carbón para el texto, verde para títulos y cláusulas, amarillo y naranja de acento.
+  const C = { ebony: '#3D4C3A', warmGrey: '#5E6A66', gold: '#F1BF46', neutral: '#EFF8E7', ink: '#1E2629', night: '#1E2629', goldLight: '#FBE6AB', deepGold: '#3D4C3A', orange: '#EC6C2E' };
   const MM = 72 / 25.4;
   // Medidas del membrete oficial (MEMBRETE BASTET.pdf): 595,276 × 793,701 pt. Su logo ocupa hasta ~99 pt desde arriba
   // y el pie con los datos de contacto empieza en ~745 pt, así que el texto vive entre esas dos franjas.
@@ -35,8 +36,8 @@
         if (!root.CONTRACT_FONTS_VFS) await loadScript(fontsUrl);
         root.pdfMake.vfs = Object.assign({}, root.pdfMake.vfs || {}, root.CONTRACT_FONTS_VFS);
         root.pdfMake.fonts = {
-          Cormorant: { normal: 'Cormorant-SemiBold.ttf', bold: 'Cormorant-Bold.ttf', italics: 'Cormorant-SemiBold.ttf', bolditalics: 'Cormorant-Bold.ttf' },
-          Jost: { normal: 'Jost-Regular.ttf', bold: 'Jost-SemiBold.ttf', italics: 'Jost-Regular.ttf', bolditalics: 'Jost-SemiBold.ttf' },
+          Conso: { normal: 'Conso-Regular.otf', bold: 'Conso-SemiBold.otf', italics: 'Conso-Regular.otf', bolditalics: 'Conso-SemiBold.otf' },
+          Cabinet: { normal: 'CabinetGrotesk-Regular.otf', bold: 'CabinetGrotesk-Medium.otf', italics: 'CabinetGrotesk-Regular.otf', bolditalics: 'CabinetGrotesk-Medium.otf' },
         };
       })().catch((e) => { libsPromise = null; throw e; });
     }
@@ -167,10 +168,10 @@
     return {
       pageSize: { width: PAGE_W, height: PAGE_H },
       // Un contrato anulado se puede volver a descargar, pero siempre sale marcado
-      ...(voided ? { watermark: { text: 'ANULADO', color: '#A63D2F', opacity: 0.16, bold: true, fontSize: 120, font: 'Cormorant' } } : {}),
+      ...(voided ? { watermark: { text: 'ANULADO', color: '#A63D2F', opacity: 0.16, bold: true, fontSize: 120, font: 'Conso' } } : {}),
       pageMargins: [MARGIN_X, MARGIN_TOP, MARGIN_X, MARGIN_BOTTOM],
       info: { title: (opts.docTitle ? opts.docTitle.charAt(0) + opts.docTitle.slice(1).toLowerCase() : 'Contrato de Exclusividad') + ' Nº ' + number, author: agentName, subject: docSubject, creator: 'bastet.uno', producer: 'bastet.uno' },
-      defaultStyle: { font: 'Jost', fontSize: 10.3, lineHeight: 1.4, color: C.ink },
+      defaultStyle: { font: 'Cabinet', fontSize: 10.3, lineHeight: 1.4, color: C.ink },
       images: { membrete: letterheadDataUrl },
       // Membrete de Bastet como fondo de TODAS las páginas (sello "Verificado por Bastet")
       background: () => ({ chrome: true, image: 'membrete', width: PAGE_W, height: PAGE_H, absolutePosition: { x: 0, y: 0 } }),
@@ -208,9 +209,9 @@
       },
       content: bound,
       styles: {
-        title: { font: 'Cormorant', bold: true, fontSize: 17, color: C.ebony, alignment: 'center', characterSpacing: 1.1, lineHeight: 1.15, margin: [0, 6, 0, 0] },
-        number: { fontSize: 10, color: C.deepGold, alignment: 'center', margin: [0, 2, 0, 14] },
-        clause: { font: 'Cormorant', bold: true, fontSize: 12.5, color: C.deepGold, margin: [0, 12, 0, 4], characterSpacing: 0.3 },
+        title: { font: 'Conso', bold: true, fontSize: 14.5, color: C.ebony, alignment: 'center', characterSpacing: .5, lineHeight: .95, margin: [0, 6, 0, 0] },
+        number: { fontSize: 10, color: C.orange, alignment: 'center', margin: [0, 2, 0, 14] },
+        clause: { font: 'Conso', bold: true, fontSize: 11.5, color: C.deepGold, margin: [0, 12, 0, 4], characterSpacing: 0.2, lineHeight: .95 },
         body: { alignment: 'justify', lineHeight: 1.4 },
         note: { fontSize: 8.5, color: C.warmGrey, italics: true, alignment: 'center' },
         th: { bold: true, fontSize: 9.5, color: C.deepGold, characterSpacing: 0.8 },

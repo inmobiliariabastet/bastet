@@ -3,12 +3,12 @@
 **Nº {{numero_documento}}**
 
 > **Convenciones de la plantilla (para la app):**
-> - Plantilla configurable generada por la plataforma UNO · Bastet para el plan Propietario. NO es una plantilla aprobada por un abogado: el aviso de validación legal de la primera línea no debe quitarse hasta que Bastet la apruebe.
+> - Plantilla configurable generada por la plataforma Bastet para el plan Propietario. NO es una plantilla aprobada por un abogado: el aviso de validación legal de la primera línea no debe quitarse hasta que Bastet la apruebe.
 > - `{{campo}}` → dato que llena el propietario o que se calcula automáticamente.
 > - `[[SI condición]] … [[FIN]]` → bloque que solo aparece si se cumple la condición.
 > - `- ` al inicio de línea → viñeta.
 
-**Borrador generado por la plataforma UNO · Bastet. No es un contrato definitivo: requiere validación legal y la firma de ambas partes antes de producir efectos entre ellas.**
+**Borrador generado por la plataforma Bastet. No es un contrato definitivo: requiere validación legal y la firma de ambas partes antes de producir efectos entre ellas.**
 
 En la ciudad de {{ciudad_jurisdiccion}}, a {{fecha_literal}}, EL PROPIETARIO formula a EL AGENTE la siguiente oferta de colaboración, bajo las cláusulas que siguen:
 
@@ -56,7 +56,7 @@ La oferta tiene una vigencia de **{{plazo_dias}} ({{plazo_dias_literal}}) días 
 
 ## {{numeral_validez}}.- (DE LA ACEPTACIÓN Y SU VALIDEZ)
 
-Esta oferta se registró en la plataforma UNO · Bastet con el número {{numero_documento}}[[SI aceptada]] y fue aceptada por EL AGENTE el {{fecha_aceptacion}}[[FIN]]. La plataforma solo facilita el contacto y la generación del documento: **no es parte** de esta relación ni garantiza su resultado. Este documento es un borrador sujeto a validación legal; para que produzca efectos jurídicos definitivos debe ser revisado por un profesional y firmado por LAS PARTES.
+Esta oferta se registró en la plataforma Bastet con el número {{numero_documento}}[[SI aceptada]] y fue aceptada por EL AGENTE el {{fecha_aceptacion}}[[FIN]]. La plataforma solo facilita el contacto y la generación del documento: **no es parte** de esta relación ni garantiza su resultado. Este documento es un borrador sujeto a validación legal; para que produzca efectos jurídicos definitivos debe ser revisado por un profesional y firmado por LAS PARTES.
 
 &nbsp;
 
