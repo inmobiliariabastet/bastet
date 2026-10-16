@@ -14,8 +14,8 @@
   const PAGE_W = 595.276;
   const PAGE_H = 793.701;
   const MARGIN_X = 25 * MM; // 2,5 cm
-  const MARGIN_TOP = 116;
-  const MARGIN_BOTTOM = 96;
+  const MARGIN_TOP = 128;
+  const MARGIN_BOTTOM = 116;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -109,7 +109,7 @@
       const o = { text: runs(segs), alignment: b.align[i] || 'left' };
       if (isSignature) {
         o.style = 'sig';
-        if (/^_{6,}$/.test(text)) { o.margin = [0, 58, 0, 0]; o.color = C.warmGrey; } // ≥ 2,5 cm de espacio real para firmar
+        if (/^_{6,}$/.test(text)) { o.margin = [0, 46, 0, 0]; o.color = C.warmGrey; } // ~1,6 cm de espacio real para firmar
         else if (rowIdx === b.rows.length - 1) { o.bold = true; o.color = C.ebony; o.fontSize = 9.5; }  // cargo: EL PROPIETARIO / EL AGENTE
       } else if (isHead) {
         o.style = 'th';
@@ -146,17 +146,16 @@
       Array.isArray(c) ? content.push(...c) : content.push(c);
     });
 
-    // Las firmas (y la del copropietario) viajan juntas, y con la cláusula de conformidad que las precede:
-    // si no caben en la página, pasa todo el bloque a la siguiente (nunca una página con solo firmas).
+    // La cláusula de conformidad viaja junta con la PRIMERA tabla de firmas (nunca una página con solo firmas).
+    // Cada tabla de firmas es además irrompible por sí sola. OJO: no agrupar todo en un único bloque irrompible:
+    // si no cabe en una página, pdfmake lo omite en silencio y el contrato saldría sin firmas.
     const firstSig = content.findIndex((c) => c && c.unbreakable);
     let merged = content;
     if (firstSig > 0) {
-      let lastSig = firstSig;
-      while (content[lastSig + 1] && content[lastSig + 1].unbreakable) lastSig++;
       let start = firstSig;
       while (start > 0 && !(content[start] && content[start].headlineLevel === 1)) start--;
-      const group = content.slice(start, lastSig + 1).map((c) => (c.unbreakable ? c.stack : [c])).flat();
-      merged = content.slice(0, start).concat([{ unbreakable: true, stack: group }], content.slice(lastSig + 1));
+      const group = content.slice(start, firstSig + 1).map((c) => (c.unbreakable ? c.stack : [c])).flat();
+      merged = content.slice(0, start).concat([{ unbreakable: true, stack: group }], content.slice(firstSig + 1));
     }
 
     // Un título de cláusula nunca queda solo al pie de una página: pageBreakBefore (abajo) lo pasa a la siguiente.
@@ -177,7 +176,7 @@
         chrome: true,
         text: 'CONTRATO DE EXCLUSIVIDAD · Nº ' + number,
         color: C.warmGrey, fontSize: 8, alignment: 'right', characterSpacing: 0.8,
-        margin: [MARGIN_X, 34, MARGIN_X, 0],
+        margin: [MARGIN_X, 40, MARGIN_X, 0],
       }),
       footer: (page, pages) => ({
         chrome: true,
