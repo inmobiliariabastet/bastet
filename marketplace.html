@@ -14,7 +14,7 @@
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="assets/css/style.css?v=20261023a">
-<link rel="stylesheet" href="assets/css/brand.css?v=20261024c">
+<link rel="stylesheet" href="assets/css/brand.css?v=20261026b">
 </head>
 <body class="marketplace-page brand">
 
@@ -59,7 +59,8 @@
     <h1 class="section-heading section-heading--light">Propiedades</h1>
     <p class="section-sub section-sub--light">Seleccione un inmueble para conocer sus características y consultar directamente por WhatsApp.</p>
     <div class="operation-filters" id="operation-filters" role="tablist" aria-label="Filtrar por operación"></div>
-    <div class="select-filters">
+    <button type="button" class="filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="select-filters"><span class="ft-left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Filtros</span><span class="ft-left"><span class="ft-badge" id="filters-badge"></span><svg class="ft-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button>
+    <div class="select-filters" id="select-filters">
       <div class="budget-filter">
         <label for="city-filter-select" class="budget-filter-label">Ciudad</label>
         <select id="city-filter-select" class="budget-filter-select"></select>
@@ -150,6 +151,6 @@
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/main.js?v=20261026a"></script>
+<script src="assets/js/main.js?v=20261026b"></script>
 </body>
 </html>

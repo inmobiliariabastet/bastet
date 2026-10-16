@@ -733,7 +733,10 @@ function buildOperationFilters() {
     btn.setAttribute('role', 'tab');
     btn.setAttribute('aria-selected', String(value === operationFilter));
     btn.className = 'operation-tab' + (value === 'temporal' ? ' operation-tab--stay' : '') + (value === operationFilter ? ' is-active' : '');
-    btn.innerHTML = (OPERATION_ICONS[value] || '') + '<span class="operation-tab-label">' + escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span></span>';
+    const labelHtml = '<span class="operation-tab-label">' + escapeHtml(value === 'temporal' ? 'Estadías temporales' : label) + '<span class="operation-tab-count">' + count + '</span></span>';
+    btn.innerHTML = value === 'temporal'
+      ? (OPERATION_ICONS[value] || '') + '<span class="operation-tab-main">' + labelHtml + '<span class="operation-tab-sub">Por noche, con fechas y huéspedes · como un hotel</span></span><svg class="operation-tab-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+      : (OPERATION_ICONS[value] || '') + labelHtml;
     btn.addEventListener('click', () => {
       // Temporal tiene su propia pantalla (estadias.html), al estilo de un buscador de alojamientos
       if (value === 'temporal') { window.location.href = 'estadias.html' + (cityFilter !== 'Todas' ? '?ciudad=' + encodeURIComponent(cityFilter) : ''); return; }
@@ -845,8 +848,26 @@ clearFiltersBtn?.addEventListener('click', () => {
   renderPropertyGrid();
 });
 
+// Botón «Filtros» (solo en celular): muestra cuántos filtros hay activos y pliega/despliega el panel
+const filtersToggleEl = document.getElementById('filters-toggle');
+const selectFiltersEl = document.getElementById('select-filters');
+function syncFiltersToggle() {
+  const badge = document.getElementById('filters-badge');
+  if (!badge) return;
+  const n = [typeFilter, roomsFilter, bathsFilter, minPriceFilter, maxPriceFilter].filter((v) => v !== '').length + (cityFilter !== 'Todas' ? 1 : 0);
+  badge.textContent = n ? String(n) : '';
+}
+if (filtersToggleEl && selectFiltersEl) {
+  filtersToggleEl.addEventListener('click', () => {
+    const open = !selectFiltersEl.classList.contains('is-open');
+    selectFiltersEl.classList.toggle('is-open', open);
+    filtersToggleEl.setAttribute('aria-expanded', String(open));
+  });
+}
+
 function renderPropertyGrid(resetPage = true) {
   if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
+  syncFiltersToggle();
   clearFiltersBtn?.classList.toggle('hidden', !anyFilterActive());
   const stayView = operationFilter === 'temporal';
   propGridEl.classList.toggle('prop-grid--stay', stayView);
