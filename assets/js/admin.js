@@ -5,7 +5,11 @@ function escapeHtml(str) {
 }
 
 // Precio con su moneda: "185.000 USD" o "Bs.- 1.200.000" (propiedades en bolivianos)
-function formatPrice(price, currency) {
+function formatPrice(price, currency, operation) {
+  const base = formatPriceBase(price, currency);
+  return operation === 'temporal' && base ? base + ' por día' : base;
+}
+function formatPriceBase(price, currency) {
   const digits = (price || '').toString().replace(/[^0-9]/g, '');
   if (!digits) return escapeHtml(price || '');
   const n = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -297,7 +301,7 @@ const MINUS_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" 
 
 function propertyStatusLabel(property) {
   if (property.status !== 'sold') return 'Disponible';
-  return { alquiler: 'Alquilada', anticretico: 'En anticrético' }[property.operation] || 'Vendida';
+  return { alquiler: 'Alquilada', anticretico: 'En anticrético', temporal: 'Ocupado' }[property.operation] || 'Vendida';
 }
 
 function isPropertyFeatured(property) {
@@ -340,7 +344,7 @@ function renderPropertyList() {
         '<span class="prop-eyebrow">' + [PROPERTY_TYPE_LABELS[property.property_type], PROPERTY_OPERATION_LABELS[property.operation], property.location].filter(Boolean).map(escapeHtml).join(' · ') + '</span>' +
         '<h3 class="prop-title">' + (isPropertyFeatured(property) ? '<img class="property-featured-icon" src="../assets/img/uno-destacada.png" alt="Destacada">' : '') + escapeHtml(property.title) + '</h3>' +
         (code ? '<span><span class="property-code-tag">' + code + '</span></span>' : '') +
-        '<div class="prop-price">' + formatPrice(property.price, property.currency) + '</div>' +
+        '<div class="prop-price">' + formatPrice(property.price, property.currency, property.operation) + '</div>' +
         (facts ? '<p class="prop-facts">' + facts + '</p>' : '') +
         '<div class="prop-row-actions">' +
           '<button class="btn btn-primary btn-sm" data-action="view">Ver detalle</button>' +
@@ -447,7 +451,7 @@ async function openPropertyDetail(property) {
     '<div class="detail-grid">' +
       (formatPropertyCode(property) ? '<div><p class="detail-label">Código</p><p class="detail-value">' + formatPropertyCode(property) + '</p></div>' : '') +
       '<div><p class="detail-label">Estado</p><p class="detail-value">' + propertyStatusLabel(property) + '</p></div>' +
-      '<div><p class="detail-label">Precio</p><p class="detail-value">' + formatPrice(property.price, property.currency) + '</p></div>' +
+      '<div><p class="detail-label">Precio</p><p class="detail-value">' + formatPrice(property.price, property.currency, property.operation) + '</p></div>' +
       (property.exchange_rate && property.currency !== 'BOB' ? '<div><p class="detail-label">Tipo de cambio aceptado</p><p class="detail-value">' + escapeHtml(property.exchange_rate) + '</p></div>' : '') +
       '<div><p class="detail-label">Ciudad</p><p class="detail-value">' + escapeHtml(property.location) + '</p></div>' +
       (property.address ? '<div><p class="detail-label">Dirección</p><p class="detail-value">' + escapeHtml(property.address) + '</p></div>' : '') +
@@ -662,11 +666,13 @@ function setPropertyCurrency(cur) {
   const radio = document.querySelector('input[name="field-currency"][value="' + cur + '"]');
   if (radio) radio.checked = true;
   const bob = cur === 'BOB';
-  document.getElementById('field-price-label').textContent = bob ? 'Precio (en Bs.-)' : 'Precio (en USD)';
+  const perDay = document.getElementById('field-operation').value === 'temporal' ? ' por día' : '';
+  document.getElementById('field-price-label').textContent = (bob ? 'Precio (en Bs.-)' : 'Precio (en USD)') + perDay;
   document.getElementById('field-price').placeholder = bob ? 'Ej: 1,200,000' : 'Ej: 185,000';
   document.getElementById('field-exchange-rate-wrap').classList.toggle('hidden', bob);
 }
 document.querySelectorAll('input[name="field-currency"]').forEach((r) => r.addEventListener('change', () => setPropertyCurrency(currentCurrency())));
+document.getElementById('field-operation').addEventListener('change', () => setPropertyCurrency(currentCurrency())); // el rótulo del precio dice "por día" en temporales
 
 propertyForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1556,7 +1562,7 @@ async function openUserProperties(user) {
         '<p class="property-info-title">' + escapeHtml(property.title) + '</p>' +
         '<p class="property-info-meta">' + escapeHtml(property.location) + ' · ' + escapeHtml(property.area) + ' · ' + escapeHtml(property.rooms) + '</p>' +
       '</div>' +
-      '<span class="property-price">' + formatPrice(property.price, property.currency) + '</span>';
+      '<span class="property-price">' + formatPrice(property.price, property.currency, property.operation) + '</span>';
     row.addEventListener('click', () => { closeUserProperties(); openPropertyDetail(property); });
     list.appendChild(row);
   });

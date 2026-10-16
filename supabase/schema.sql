@@ -39,7 +39,7 @@ alter table public.properties add column if not exists owner_whatsapp text;
 alter table public.properties add column if not exists code_number integer generated always as identity (start with 1001);
 create unique index if not exists properties_code_number_idx on public.properties (code_number);
 alter table public.properties add column if not exists property_type text check (property_type in ('casa', 'departamento', 'terreno'));
-alter table public.properties add column if not exists operation text check (operation in ('venta', 'alquiler', 'anticretico'));
+alter table public.properties add column if not exists operation text check (operation in ('venta', 'alquiler', 'anticretico', 'temporal'));
 alter table public.properties add column if not exists floors smallint check (floors between 1 and 50);
 alter table public.properties add column if not exists has_garage boolean;
 alter table public.properties add column if not exists garage_spots smallint check (garage_spots between 0 and 50);

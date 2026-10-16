@@ -203,7 +203,11 @@ function escapeHtml(str) {
 }
 
 // Precio con su moneda: "185.000 USD" o "Bs.- 1.200.000" (propiedades en bolivianos)
-function formatPrice(price, currency) {
+function formatPrice(price, currency, operation) {
+  const base = formatPriceBase(price, currency);
+  return operation === 'temporal' && base ? base + ' <span class="price-unit">por día</span>' : base;
+}
+function formatPriceBase(price, currency) {
   const digits = (price || '').toString().replace(/[^0-9]/g, '');
   if (!digits) return escapeHtml(price || '');
   const n = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -350,7 +354,7 @@ const modal = document.getElementById('property-modal');
 
 let allProperties = [];
 let cityFilter = 'Todas';
-let operationFilter = 'todas'; // 'todas' | 'venta' | 'alquiler' | 'anticretico'
+let operationFilter = ''; // '' (inicio: destacadas) | 'venta' | 'alquiler' | 'anticretico' | 'temporal'
 let typeFilter = ''; // '' | 'casa' | 'departamento' | 'terreno'
 let roomsFilter = ''; // '' = cualquiera; '3' = 3 o más habitaciones
 const roomsSelectEl = document.getElementById('rooms-filter-select');
@@ -371,8 +375,11 @@ function propertyRoomsNumber(p) {
   return match ? parseInt(match[0], 10) : null;
 }
 const typeSelectEl = document.getElementById('type-filter-select');
-let budgetFilter = ''; // índice del rango elegido en budgetRanges(), '' = cualquier presupuesto
-const budgetSelectEl = document.getElementById('budget-filter-select');
+let minPriceFilter = ''; // precio mínimo en USD ('' = sin mínimo)
+let maxPriceFilter = ''; // precio máximo en USD ('' = sin máximo)
+const minPriceEl = document.getElementById('min-price-input');
+const maxPriceEl = document.getElementById('max-price-input');
+const resultsTitleEl = document.getElementById('prop-results-title');
 
 // Selector con la marca: la lista nativa de <select> no se puede estilizar (el navegador la pinta
 // en azul con su propia fuente), así que se reemplaza por un botón + lista propia. El <select>
@@ -513,18 +520,9 @@ function enhanceSelect(selectEl) {
 document.addEventListener('pointerdown', (e) => {
   if (openBrandSelect && !e.target.closest('.brand-select.is-open')) openBrandSelect.close(false);
 });
-[citySelectEl, typeSelectEl, roomsSelectEl, bathsSelectEl, budgetSelectEl].filter(Boolean).forEach(enhanceSelect);
+[citySelectEl, typeSelectEl, roomsSelectEl, bathsSelectEl].filter(Boolean).forEach(enhanceSelect);
 
-// Rangos de presupuesto (USD) según la operación: un alquiler mensual no se busca
-// con los mismos montos que una compra o un anticrético. [mínimo exclusivo, máximo inclusivo]
-const BUDGET_RANGES = {
-  venta: [[0, 50000], [50000, 100000], [100000, 200000], [200000, 500000], [500000, Infinity]],
-  alquiler: [[0, 300], [300, 600], [600, 1000], [1000, 2000], [2000, Infinity]],
-  anticretico: [[0, 20000], [20000, 40000], [40000, 60000], [60000, Infinity]],
-};
-function budgetRanges() { return BUDGET_RANGES[operationFilter] || BUDGET_RANGES.venta; }
-
-// Los rangos del filtro están en dólares: una propiedad en bolivianos se compara convertida al tipo de cambio oficial.
+// Los precios del filtro están en dólares: una propiedad en bolivianos se compara convertida al tipo de cambio oficial.
 const BOB_PER_USD = 6.96;
 function propertyPriceNumber(p) {
   const digits = (p.price || '').toString().replace(/[^0-9]/g, '');
@@ -533,18 +531,14 @@ function propertyPriceNumber(p) {
   return p.currency === 'BOB' ? Math.round(n / BOB_PER_USD) : n;
 }
 
-function formatUSDNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-
-function budgetRangeLabel([min, max]) {
-  const suffix = operationFilter === 'alquiler' ? ' USD/mes' : ' USD';
-  if (min === 0) return 'Hasta ' + formatUSDNumber(max) + suffix;
-  if (max === Infinity) return 'Más de ' + formatUSDNumber(min) + suffix;
-  return formatUSDNumber(min) + ' – ' + formatUSDNumber(max) + suffix;
-}
-
-function inBudgetRange(p, [min, max]) {
+// Precio mínimo / máximo (USD, inclusivos). Una propiedad sin precio numérico queda fuera si hay algún límite.
+function inPriceRange(p) {
+  if (minPriceFilter === '' && maxPriceFilter === '') return true;
   const price = propertyPriceNumber(p);
-  return price !== null && price > min && price <= max;
+  if (price === null) return false;
+  if (minPriceFilter !== '' && price < Number(minPriceFilter)) return false;
+  if (maxPriceFilter !== '' && price > Number(maxPriceFilter)) return false;
+  return true;
 }
 
 // Selector de tipo de inmueble, con la cantidad de cada tipo dentro de la operación elegida.
@@ -569,11 +563,9 @@ function buildTypeFilter() {
 
 typeSelectEl?.addEventListener('change', () => {
   typeFilter = typeSelectEl.value;
-  cityFilter = 'Todas';
   typeSelectEl.classList.toggle('is-set', typeFilter !== '');
-  buildRoomsFilter();  // las cantidades de habitaciones, baños y presupuesto dependen del tipo
+  buildRoomsFilter();  // las cantidades de habitaciones y baños dependen del tipo
   buildBathsFilter();
-  buildBudgetFilter();
   buildCityFilter();
   renderPropertyGrid();
 });
@@ -600,10 +592,8 @@ function buildRoomsFilter() {
 
 roomsSelectEl?.addEventListener('change', () => {
   roomsFilter = roomsSelectEl.value;
-  cityFilter = 'Todas';
   roomsSelectEl.classList.toggle('is-set', roomsFilter !== '');
-  buildBathsFilter();  // las cantidades de baños y de presupuesto dependen de las habitaciones
-  buildBudgetFilter();
+  buildBathsFilter();  // las cantidades de baños dependen de las habitaciones
   buildCityFilter();
   renderPropertyGrid();
 });
@@ -630,41 +620,23 @@ function buildBathsFilter() {
 
 bathsSelectEl?.addEventListener('change', () => {
   bathsFilter = bathsSelectEl.value;
-  cityFilter = 'Todas';
   bathsSelectEl.classList.toggle('is-set', bathsFilter !== '');
-  buildBudgetFilter(); // las cantidades por rango dependen de los baños
   buildCityFilter();
   renderPropertyGrid();
 });
 
-// Opciones del selector con la cantidad de propiedades de cada rango (dentro de la
-// operación, el tipo, las habitaciones y los baños elegidos); los rangos vacíos quedan deshabilitados.
-function buildBudgetFilter() {
-  const base = propertiesBeforeBudget();
-  budgetSelectEl.innerHTML = '';
-  const any = document.createElement('option');
-  any.value = '';
-  any.textContent = 'Cualquier presupuesto';
-  budgetSelectEl.appendChild(any);
-  budgetRanges().forEach((range, i) => {
-    const count = base.filter((p) => inBudgetRange(p, range)).length;
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = budgetRangeLabel(range) + ' (' + count + ')';
-    opt.disabled = count === 0;
-    budgetSelectEl.appendChild(opt);
-  });
-  budgetSelectEl.value = budgetFilter;
-  budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
+// Campos "Precio mínimo / máximo": solo dígitos; al cambiarlos se vuelve a filtrar (con una pequeña espera al teclear).
+let priceTimer = null;
+function onPriceInput() {
+  [minPriceEl, maxPriceEl].forEach((el) => { el.value = el.value.replace(/[^0-9]/g, ''); });
+  minPriceFilter = minPriceEl.value;
+  maxPriceFilter = maxPriceEl.value;
+  [minPriceEl, maxPriceEl].forEach((el) => el.classList.toggle('is-set', el.value !== ''));
+  clearTimeout(priceTimer);
+  priceTimer = setTimeout(() => { buildCityFilter(); renderPropertyGrid(); }, 250);
 }
-
-budgetSelectEl?.addEventListener('change', () => {
-  budgetFilter = budgetSelectEl.value;
-  cityFilter = 'Todas';
-  budgetSelectEl.classList.toggle('is-set', budgetFilter !== '');
-  buildCityFilter();
-  renderPropertyGrid();
-});
+minPriceEl?.addEventListener('input', onPriceInput);
+maxPriceEl?.addEventListener('input', onPriceInput);
 const operationFiltersEl = document.getElementById('operation-filters');
 let selectedProperty = null;
 let selectedPhotoIndex = 0;
@@ -681,7 +653,7 @@ function withUnit(value, unit) {
 function buildPropertyTile(property) {
   const tile = document.createElement('article');
   const featured = isFeatured(property);
-  tile.className = 'prop-tile' + (featured ? ' prop-tile--featured' : '');
+  tile.className = 'prop-tile' + (featured ? ' prop-tile--featured' : '') + (property.operation === 'temporal' ? ' prop-tile--stay' : '');
   tile.tabIndex = 0;
   tile.setAttribute('role', 'button');
   tile.setAttribute('aria-label', 'Ver ' + property.title);
@@ -706,7 +678,7 @@ function buildPropertyTile(property) {
     '<div class="prop-tile-body">' +
       (eyebrow ? '<span class="prop-tile-eyebrow">' + eyebrow + '</span>' : '') +
       '<h3 class="prop-tile-title">' + escapeHtml(property.title) + '</h3>' +
-      (property.price ? '<div class="prop-tile-price">' + formatPrice(property.price, property.currency) + (property.exchange_rate && property.currency !== 'BOB' ? '<small> · T.C. ' + escapeHtml(property.exchange_rate) + '</small>' : '') + '</div>' : '') +
+      (property.price ? '<div class="prop-tile-price">' + formatPrice(property.price, property.currency, property.operation) + (property.exchange_rate && property.currency !== 'BOB' && property.operation !== 'temporal' ? '<small> · T.C. ' + escapeHtml(property.exchange_rate) + '</small>' : '') + '</div>' : '') +
       (facts.length || code ? '<p class="prop-tile-facts">' + facts.join(' · ') + (code ? '<span class="prop-tile-code">' + code + '</span>' : '') + '</p>' : '') +
     '</div>' +
     buildTileAgentHtml(property);
@@ -804,14 +776,7 @@ async function loadProperties() {
     await attachAgentInfo(allProperties);
   }
 
-  if (HAS_FILTERS) {
-    buildOperationFilters();
-    buildTypeFilter();
-    buildRoomsFilter();
-    buildBathsFilter();
-    buildBudgetFilter();
-    buildCityFilter();
-  }
+  if (HAS_FILTERS) rebuildFilters();
   renderPropertyGrid();
 }
 
@@ -828,40 +793,46 @@ async function attachAgentInfo(properties) {
   properties.forEach((p) => { p.agent = p.owner_id ? agentById[p.owner_id] || null : null; });
 }
 
-// Filtro por operación (Todas / Venta / Alquiler / Anticrético). Se muestran siempre las
-// tres opciones con su cantidad, así el visitante sabe qué hay disponible en cada una.
+// Filtro por operación (Venta / Alquiler / Anticrético / Temporal). No hay opción "Todas": sin ninguna
+// operación elegida se muestran las propiedades destacadas. Volver a pulsar la operación activa la desmarca.
+// Se muestran siempre todas las opciones con su cantidad, así el visitante sabe qué hay en cada una.
+const isTemporal = (p) => p.operation === 'temporal';
+
 function buildOperationFilters() {
-  const options = [['todas', 'Todas']].concat(Object.entries(PROPERTY_OPERATION_LABELS));
+  const options = Object.entries(PROPERTY_OPERATION_LABELS);
   operationFiltersEl.innerHTML = '';
   options.forEach(([value, label]) => {
-    const count = value === 'todas' ? allProperties.length : allProperties.filter((p) => p.operation === value).length;
+    const count = allProperties.filter((p) => p.operation === value).length;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('role', 'tab');
     btn.setAttribute('aria-selected', String(value === operationFilter));
-    btn.className = 'operation-tab' + (value === operationFilter ? ' is-active' : '');
+    btn.className = 'operation-tab' + (value === 'temporal' ? ' operation-tab--stay' : '') + (value === operationFilter ? ' is-active' : '');
     btn.innerHTML = escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span>';
     btn.addEventListener('click', () => {
-      operationFilter = value;
+      operationFilter = operationFilter === value ? '' : value;
       cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
-      budgetFilter = '';     // y los rangos de presupuesto también
       typeFilter = '';
       roomsFilter = '';
       bathsFilter = '';
-      buildOperationFilters();
-      buildTypeFilter();
-      buildRoomsFilter();
-      buildBathsFilter();
-      buildBudgetFilter();
-      buildCityFilter();
+      rebuildFilters();
       renderPropertyGrid();
     });
     operationFiltersEl.appendChild(btn);
   });
 }
 
+function rebuildFilters() {
+  buildOperationFilters();
+  buildTypeFilter();
+  buildRoomsFilter();
+  buildBathsFilter();
+  buildCityFilter();
+}
+
+// Sin operación elegida: todas menos las temporales (que tienen su propia sección).
 function propertiesForOperation() {
-  return operationFilter === 'todas' ? allProperties : allProperties.filter((p) => p.operation === operationFilter);
+  return operationFilter ? allProperties.filter((p) => p.operation === operationFilter) : allProperties.filter((p) => !isTemporal(p));
 }
 
 function propertiesForOperationAndType() {
@@ -876,29 +847,26 @@ function propertiesForOperationTypeAndRooms() {
   return base.filter((p) => (propertyRoomsNumber(p) || 0) >= min);
 }
 
-function propertiesBeforeBudget() {
+function propertiesBeforePrice() {
   const base = propertiesForOperationTypeAndRooms();
   if (bathsFilter === '') return base;
   const min = Number(bathsFilter);
   return base.filter((p) => (propertyBathsNumber(p) || 0) >= min);
 }
 
-function propertiesForOperationAndBudget() {
-  const base = propertiesBeforeBudget();
-  if (budgetFilter === '') return base;
-  const range = budgetRanges()[Number(budgetFilter)];
-  return range ? base.filter((p) => inBudgetRange(p, range)) : base;
+function propertiesForOperationAndPrice() {
+  return propertiesBeforePrice().filter(inPriceRange);
 }
 
-// Selector de departamento, con la cantidad de propiedades de cada uno según los demás filtros.
-// Solo aparecen los departamentos que tienen propiedades.
+// Selector de ciudad, con la cantidad de propiedades de cada una según los demás filtros.
+// Solo aparecen las ciudades que tienen propiedades.
 function buildCityFilter() {
-  const base = propertiesForOperationAndBudget();
+  const base = propertiesForOperationAndPrice();
   const presentCities = new Set(base.map((p) => (p.location || '').split(',')[0].trim()));
   citySelectEl.innerHTML = '';
   const any = document.createElement('option');
   any.value = 'Todas';
-  any.textContent = 'Todos los departamentos';
+  any.textContent = 'Todas las ciudades';
   citySelectEl.appendChild(any);
   BOLIVIA_CITIES.filter((c) => presentCities.has(c)).forEach((city) => {
     const count = base.filter((p) => (p.location || '').startsWith(city)).length;
@@ -907,6 +875,7 @@ function buildCityFilter() {
     opt.textContent = city + ' (' + count + ')';
     citySelectEl.appendChild(opt);
   });
+  if (cityFilter !== 'Todas' && !presentCities.has(cityFilter)) cityFilter = 'Todas';
   citySelectEl.value = cityFilter;
   citySelectEl.classList.toggle('is-set', cityFilter !== 'Todas');
 }
@@ -917,11 +886,11 @@ citySelectEl?.addEventListener('change', () => {
   renderPropertyGrid();
 });
 
+// Con ciudad elegida se muestran TODAS las propiedades de esa ciudad (destacadas o no).
 function filteredProperties() {
-  const base = propertiesForOperationAndBudget();
+  const base = propertiesForOperationAndPrice();
   if (cityFilter === 'Todas') return base;
-  const filtered = base.filter((p) => (p.location || '').startsWith(cityFilter));
-  return filtered.length ? filtered : base;
+  return base.filter((p) => (p.location || '').startsWith(cityFilter));
 }
 
 // Destacada = marcada por un admin (featured) o con créditos vigentes (featured_until en el futuro).
@@ -932,39 +901,55 @@ function isFeatured(p) {
 const clearFiltersBtn = document.getElementById('clear-filters');
 
 function anyFilterActive() {
-  return operationFilter !== 'todas' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || budgetFilter !== '' || cityFilter !== 'Todas';
+  return operationFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || minPriceFilter !== '' || maxPriceFilter !== '' || cityFilter !== 'Todas';
 }
 
 clearFiltersBtn?.addEventListener('click', () => {
-  operationFilter = 'todas';
+  operationFilter = '';
   typeFilter = '';
   roomsFilter = '';
   bathsFilter = '';
-  budgetFilter = '';
+  minPriceFilter = '';
+  maxPriceFilter = '';
+  if (minPriceEl) { minPriceEl.value = ''; minPriceEl.classList.remove('is-set'); }
+  if (maxPriceEl) { maxPriceEl.value = ''; maxPriceEl.classList.remove('is-set'); }
   cityFilter = 'Todas';
-  buildOperationFilters();
-  buildTypeFilter();
-  buildRoomsFilter();
-  buildBathsFilter();
-  buildBudgetFilter();
-  buildCityFilter();
+  rebuildFilters();
   renderPropertyGrid();
 });
 
 function renderPropertyGrid(resetPage = true) {
   if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
   clearFiltersBtn?.classList.toggle('hidden', !anyFilterActive());
-  const emptyMessage = (budgetFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '')
-    ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
-    : operationFilter !== 'todas'
-      ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
-      : 'Pronto publicaremos nuevas propiedades disponibles.';
+  const stayView = operationFilter === 'temporal';
+  propGridEl.classList.toggle('prop-grid--stay', stayView);
 
   // Las destacadas van primero; dentro de cada grupo se respeta el orden que define el administrador.
-  const list = filteredProperties()
+  // (No existen puntuaciones reales de los alojamientos temporales: no se inventa un orden por reseñas.)
+  let list = filteredProperties()
     .map((p, i) => ({ p, i }))
     .sort((a, b) => (isFeatured(b.p) - isFeatured(a.p)) || (a.i - b.i))
     .map((x) => x.p);
+
+  // Vista inicial del Marketplace (sin ningún filtro): solo las destacadas. Si todavía no hay ninguna,
+  // se muestran las propiedades disponibles (reales) en vez de dejar la página vacía.
+  let title = '';
+  if (HAS_FILTERS && !anyFilterActive()) {
+    const featuredOnly = list.filter(isFeatured);
+    if (featuredOnly.length) { list = featuredOnly; title = 'Propiedades destacadas'; }
+    else title = 'Propiedades disponibles';
+  } else if (HAS_FILTERS) {
+    title = (stayView ? 'Alojamientos temporales' : 'Resultados') + ' (' + list.length + ')';
+  }
+  if (resultsTitleEl) { resultsTitleEl.textContent = title; resultsTitleEl.classList.toggle('hidden', !title); }
+
+  const emptyMessage = (minPriceFilter !== '' || maxPriceFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || cityFilter !== 'Todas')
+    ? 'No tenemos propiedades con esos filtros por ahora. Prueba con otra combinación o escríbenos por WhatsApp y te ayudamos a encontrar una.'
+    : stayView
+      ? 'Por ahora no tenemos alojamientos temporales publicados. Vuelve pronto o escríbenos por WhatsApp.'
+      : operationFilter !== ''
+        ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
+        : 'Pronto publicaremos nuevas propiedades disponibles.';
 
   propGridEl.innerHTML = '';
   if (!list.length) {
@@ -1147,7 +1132,7 @@ function renderModal() {
         '</div>' +
         '<p class="property-modal-location">' + escapeHtml(p.location) + '</p>' +
         '<h3 class="property-modal-title">' + escapeHtml(p.title) + '</h3>' +
-        '<p class="property-modal-price">' + formatPrice(p.price, p.currency) + '</p>' +
+        '<p class="property-modal-price">' + formatPrice(p.price, p.currency, p.operation) + '</p>' +
         (p.exchange_rate && p.currency !== 'BOB' ? '<p class="property-modal-rate">Tipo de cambio aceptado: ' + escapeHtml(p.exchange_rate) + '</p>' : '') +
       '</div>' +
       '<div class="property-modal-specs">' +

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Marketplace Inmobiliario — UNO · Bastet</title>
-<meta name="description" content="Marketplace Inmobiliario de UNO · Bastet: casas, departamentos y terrenos en venta, alquiler y anticrético en Bolivia. Filtre por ciudad, tipo y presupuesto y contacte al agente por WhatsApp.">
+<meta name="description" content="Marketplace Inmobiliario de UNO · Bastet: casas, departamentos y terrenos en venta, alquiler y anticrético en Bolivia. Filtre por ciudad, tipo y precio y contacte al agente por WhatsApp.">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-uno-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-uno-192.png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon-uno.png">
@@ -13,9 +13,9 @@
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
-<link rel="stylesheet" href="assets/css/style.css?v=20261019a">
+<link rel="stylesheet" href="assets/css/style.css?v=20261020c">
 </head>
-<body class="marketplace-page">
+<body class="marketplace-page theme-white">
 
 <nav class="navbar">
   <div class="navbar-inner">
@@ -55,7 +55,7 @@
     <div class="operation-filters" id="operation-filters" role="tablist" aria-label="Filtrar por operación"></div>
     <div class="select-filters">
       <div class="budget-filter">
-        <label for="city-filter-select" class="budget-filter-label">Departamento</label>
+        <label for="city-filter-select" class="budget-filter-label">Ciudad</label>
         <select id="city-filter-select" class="budget-filter-select"></select>
       </div>
       <div class="budget-filter">
@@ -71,8 +71,12 @@
         <select id="baths-filter-select" class="budget-filter-select"></select>
       </div>
       <div class="budget-filter">
-        <label for="budget-filter-select" class="budget-filter-label">Presupuesto</label>
-        <select id="budget-filter-select" class="budget-filter-select"></select>
+        <label for="min-price-input" class="budget-filter-label">Precio mínimo (USD)</label>
+        <input type="text" id="min-price-input" class="budget-filter-select budget-filter-input" inputmode="numeric" autocomplete="off" placeholder="Sin mínimo" maxlength="9">
+      </div>
+      <div class="budget-filter">
+        <label for="max-price-input" class="budget-filter-label">Precio máximo (USD)</label>
+        <input type="text" id="max-price-input" class="budget-filter-select budget-filter-input" inputmode="numeric" autocomplete="off" placeholder="Sin máximo" maxlength="9">
       </div>
     </div>
     <div class="clear-filters-wrap">
@@ -81,6 +85,7 @@
         Limpiar filtros
       </button>
     </div>
+    <h2 class="prop-results-title hidden" id="prop-results-title"></h2>
     <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
     <div class="prop-more-wrap" id="prop-more-wrap"></div>
   </div>
@@ -179,7 +184,7 @@
 <script src="assets/js/supabase-config.js?v=20261014b"></script>
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
-<script src="assets/js/property-fields.js?v=20261014b"></script>
-<script src="assets/js/main.js?v=20261019c"></script>
+<script src="assets/js/property-fields.js?v=20261020a"></script>
+<script src="assets/js/main.js?v=20261020b"></script>
 </body>
 </html>
