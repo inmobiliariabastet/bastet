@@ -68,7 +68,11 @@
     };
     sel.addEventListener('change', syncInterest); syncInterest();
     form.querySelectorAll('[data-ob]').forEach((b) => b.addEventListener('click', () => { mode = b.dataset.ob; }));
-    overlay.querySelector('#ob-logout').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
+    overlay.querySelector('#ob-logout').addEventListener('click', async () => {
+      close();                                         // el formulario se cierra al instante; el panel vuelve a la pantalla de acceso
+      try { await supabaseClient.auth.signOut(); } catch (e) { /* si falla, la recarga de abajo limpia la sesión local */ }
+      setTimeout(() => location.reload(), 300);
+    });
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fail = (m) => { err.textContent = m; err.hidden = false; };
@@ -109,6 +113,8 @@
     const s = e.detail;
     if (s && s.exempt !== true && s.registered === false) open(s); else { close(); sendToPlans(s); }
   });
+  // Si la sesión se cierra por cualquier motivo, el formulario no debe quedar abierto sobre la pantalla de acceso
+  supabaseClient.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') { close(); sentToPlans = false; } });
   // Si el plan ya se cargó antes de que este archivo se ejecutara, no esperar al próximo evento
   const early = window.UnoPublications && window.UnoPublications.subscription;
   if (early && early.exempt !== true && early.registered === false) open(early); else sendToPlans(early);
