@@ -51,3 +51,4 @@ body.ob-open { overflow: hidden; }
 .ob-panel .form-error[hidden] { display: none; }
 .ob-consent input { accent-color: #3D4C3A; }
 .ob-panel a { color: #3D4C3A; }
+.ob-panel [hidden], .ob-actions .btn[hidden] { display: none !important; }

@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Botón «Probar 7 días gratis» oculto para agente/empresa (2026-10-16, `subscription.css?v=20261024d`)**: `.btn` anulaba el atributo `hidden`; ahora `.ob-panel [hidden] { display:none !important }`.
+
 - ✅ **«Salir de esta cuenta» cierra el formulario (2026-10-16, `onboarding.js?v=20261024m`)**: el formulario se cierra al instante, se cierra la sesión y la página se recarga; además se cierra solo si la sesión termina por cualquier motivo (`SIGNED_OUT`).
 
 - ✅ **Formulario de registro en verde de marca (2026-10-16, `subscription.css?v=20261024c`)**: los avisos de la prueba y del plan de pago usan el verde pálido #EFF8E7 con borde salvia y texto verde #3D4C3A (antes crema/amarillo); los errores del formulario también en verde de marca; casilla con `accent-color` verde. Corregido que se vieran a la vez los dos avisos (el atributo `hidden` quedaba anulado por `display:grid`).
