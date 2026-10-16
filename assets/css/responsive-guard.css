@@ -1,0 +1,36 @@
+/* Red de seguridad responsiva (celular y tableta). Se carga la ÚLTIMA en todas las páginas.
+   Qué evita: texto o tarjetas que se salen de su caja o de la pantalla, y scroll horizontal de la página.
+   Cómo auditar: ver «Auditoría de responsividad» en HANDOFF.md. Si agregas un componente nuevo con ancho fijo o letra grande,
+   pruébalo a 320 px de ancho (el celular más angosto). */
+
+/* 1) Nunca hay scroll horizontal de la página (clip no crea un contenedor de desplazamiento: no rompe sticky) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@supports (overflow: clip) { body { overflow-x: clip; } }
+
+/* 2) Los textos largos se parten en vez de salirse de su caja */
+h1, h2, h3, h4, h5, p, li, td, th, dt, dd, label, summary, figcaption, blockquote { overflow-wrap: break-word; }
+.btn, .cta-button, .nav-pill, button, a { overflow-wrap: break-word; }
+
+/* 3) Imágenes y medios nunca más anchos que su contenedor */
+img, video, canvas, iframe { max-width: 100%; }
+img { height: auto; }
+img[width][height] { height: auto; }
+
+/* 4) Hijos de REJILLAS pueden encogerse (si no, un texto largo ensancha toda la columna). No se aplica a filas flexibles: ahí min-width:0 hace que los hermanos colapsen. */
+.features-grid > *, .ap-grid > *, .stays-grid > *, .prop-grid > *, .credits-packs > *, .pay-list > * { min-width: 0; }
+
+/* 5) Títulos y cifras grandes se adaptan a pantallas angostas */
+@media (max-width: 480px) {
+  h1, h2, .sb-plan-name, .cr-figure b, .pq-num b, .stays-title, .sd-title { overflow-wrap: anywhere; }
+}
+
+/* 6) Casos puntuales detectados en la auditoría (320 px) */
+.pq-count { min-width: 0; max-width: 100%; }
+.pq-dots { flex-wrap: wrap; max-width: 100%; }
+body.brand .features-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { body.brand .features-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 420px) { body.brand .feature-item { padding: 20px; gap: 14px; } }
+.feature-item > div { min-width: 0; }
+.prop-tile-agent-label { letter-spacing: .1em; }
+/* Pantallas muy angostas: las redes pasan debajo del nombre del agente en vez de apretarlo */
+@media (max-width: 350px) { .prop-tile-agent-row { flex-wrap: wrap; row-gap: 8px; } .prop-tile-socials { flex-basis: 100%; } }

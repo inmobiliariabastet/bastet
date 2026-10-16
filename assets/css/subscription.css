@@ -53,7 +53,7 @@ body.ob-open { overflow: hidden; }
 .ob-panel a { color: #3D4C3A; }
 .ob-panel [hidden], .ob-actions .btn[hidden] { display: none !important; }
 .sb-terms { margin: 18px 0 8px; padding: 14px 18px; border-radius: 16px; background: #EFF8E7; border: 1px solid #B7BEAD; color: #3D4C3A; font-size: 14px; line-height: 1.55; }
-.sb-terms b:first-child { display: block; margin-bottom: 6px; font-size: 15px; }
+.sb-terms > b:first-child { display: block; margin-bottom: 6px; font-size: 15px; }
 .sb-terms ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 
 /* ── Sección «Pagos» (admin) y comprobantes ── */
@@ -70,3 +70,7 @@ body.ob-open { overflow: hidden; }
 .sb-attach { cursor: pointer; }
 #sb-proof { width: 100%; }
 @media (max-width: 640px) { .pay-card { grid-template-columns: 1fr; } }
+
+/* El nombre del plan no debe salirse de la tarjeta en celular (p. ej. «Administrador») */
+.sb-card .cr-figure b.sb-plan-name { font-size: clamp(30px, 9.5vw, 52px); max-width: 100%; overflow-wrap: anywhere; line-height: 1.05; }
+.sb-card .cr-figure { min-width: 0; }
