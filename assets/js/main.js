@@ -688,6 +688,7 @@ async function loadProperties() {
     // Búsqueda que viene del inicio (marketplace.html?ciudad=…&op=…&tipo=…): se precargan los filtros
     const qs = new URLSearchParams(window.location.search);
     const op = qs.get('op'), tipo = qs.get('tipo'), ciudad = qs.get('ciudad');
+    if (op === 'temporal') { window.location.replace('estadias.html' + (ciudad ? '?ciudad=' + encodeURIComponent(ciudad) : '')); return; }
     if (op && PROPERTY_OPERATION_LABELS[op]) operationFilter = op;
     if (tipo && PROPERTY_TYPE_LABELS[tipo]) typeFilter = tipo;
     if (ciudad && BOLIVIA_CITIES.includes(ciudad)) cityFilter = ciudad;
@@ -734,6 +735,8 @@ function buildOperationFilters() {
     btn.className = 'operation-tab' + (value === 'temporal' ? ' operation-tab--stay' : '') + (value === operationFilter ? ' is-active' : '');
     btn.innerHTML = (OPERATION_ICONS[value] || '') + '<span class="operation-tab-label">' + escapeHtml(label) + '<span class="operation-tab-count">' + count + '</span></span>';
     btn.addEventListener('click', () => {
+      // Temporal tiene su propia pantalla (estadias.html), al estilo de un buscador de alojamientos
+      if (value === 'temporal') { window.location.href = 'estadias.html' + (cityFilter !== 'Todas' ? '?ciudad=' + encodeURIComponent(cityFilter) : ''); return; }
       operationFilter = operationFilter === value ? '' : value;
       cityFilter = 'Todas'; // las ciudades disponibles cambian según la operación
       typeFilter = '';

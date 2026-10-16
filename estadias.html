@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estadías temporales — Bastet</title>
+<meta name="description" content="Alojamientos temporales por noche en Bolivia: casas y departamentos para tus viajes. Elige ciudad, fechas y huéspedes y consulta la disponibilidad directo con el anfitrión por WhatsApp.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/bastet-favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/bastet-favicon-192.png">
+<link rel="apple-touch-icon" href="assets/img/bastet-apple-touch.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
+<link rel="stylesheet" href="assets/css/style.css?v=20261023a">
+<link rel="stylesheet" href="assets/css/brand.css?v=20261024c">
+<link rel="stylesheet" href="assets/css/estadias.css?v=20261026d">
+</head>
+<body class="brand stays-page">
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo" aria-label="Bastet · Propiedades e inmobiliarias — inicio">
+      <img class="navbar-logo-img" src="assets/img/bastet-logo-horizontal-color.png" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298">
+    </a>
+
+    <button class="navbar-burger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="navbar-links">
+      <a href="index.html#hero" class="navbar-link">Inicio</a>
+      <a href="marketplace.html" class="navbar-link">Propiedades</a>
+      <a href="estadias.html" class="navbar-link is-active" aria-current="page">Estadías</a>
+      <button type="button" data-agent-access class="navbar-link navbar-link--btn">Hazte un agente</button>
+      <a href="index.html#vender" class="navbar-link">Publica aquí</a>
+      <button type="button" data-agent-access class="nav-pill">Acceso agentes</button>
+    </div>
+  </div>
+
+  <div class="navbar-mobile-panel">
+    <a href="index.html#hero" class="navbar-mobile-link">Inicio</a>
+    <a href="marketplace.html" class="navbar-mobile-link">Propiedades</a>
+    <a href="estadias.html" class="navbar-mobile-link is-active" aria-current="page">Estadías</a>
+    <button type="button" data-agent-access class="navbar-mobile-link navbar-mobile-link--btn">Hazte un agente</button>
+    <a href="index.html#vender" class="navbar-mobile-link">Publica aquí</a>
+    <a href="verificar.html" class="navbar-mobile-link">Verificador de contratos</a>
+    <button type="button" data-agent-access class="nav-pill nav-pill--block">Acceso agentes</button>
+  </div>
+</nav>
+
+<main class="stays-main">
+
+  <!-- Encabezado y buscador (estilo Airbnb / Booking) -->
+  <section class="stays-hero" aria-labelledby="stays-title">
+    <div class="stays-hero-inner">
+      <p class="stays-eyebrow">Estadías temporales</p>
+      <h1 id="stays-title" class="stays-title">Encuentra dónde alojarte</h1>
+      <p class="stays-sub">Casas y departamentos por noche en Bolivia. Elige tus fechas y consulta la disponibilidad directo con el anfitrión.</p>
+
+      <form class="stays-search" id="stays-search" autocomplete="off" novalidate>
+        <label class="stays-field" for="st-city">
+          <span class="stays-field-label">Destino</span>
+          <select id="st-city"></select>
+        </label>
+        <label class="stays-field" for="st-from">
+          <span class="stays-field-label">Llegada</span>
+          <input type="date" id="st-from">
+        </label>
+        <label class="stays-field" for="st-to">
+          <span class="stays-field-label">Salida</span>
+          <input type="date" id="st-to">
+        </label>
+        <div class="stays-field stays-field--guests">
+          <span class="stays-field-label" id="st-guests-label">Huéspedes</span>
+          <div class="stays-stepper" role="group" aria-labelledby="st-guests-label">
+            <button type="button" id="st-guests-minus" aria-label="Menos huéspedes">−</button>
+            <output id="st-guests" aria-live="polite">2</output>
+            <button type="button" id="st-guests-plus" aria-label="Más huéspedes">+</button>
+          </div>
+        </div>
+        <button type="submit" class="stays-search-btn" aria-label="Buscar alojamientos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Buscar</span></button>
+      </form>
+      <p class="stays-hint" id="st-date-hint">Las fechas sirven para calcular tu estadía y para tu consulta: el anfitrión confirma la disponibilidad.</p>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="stays-filters" aria-label="Filtros">
+    <div class="stays-filters-inner">
+      <div class="stays-chips" id="st-types" role="group" aria-label="Tipo de alojamiento"></div>
+      <div class="stays-selects">
+        <label class="stays-select"><span>Habitaciones</span>
+          <select id="st-rooms"><option value="">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select>
+        </label>
+        <label class="stays-select"><span>Precio por noche</span>
+          <select id="st-price"><option value="">Cualquiera</option><option value="0-30">Hasta 30 USD</option><option value="30-60">30 – 60 USD</option><option value="60-100">60 – 100 USD</option><option value="100-">Más de 100 USD</option></select>
+        </label>
+        <label class="stays-select"><span>Ordenar por</span>
+          <select id="st-sort"><option value="rec">Recomendados</option><option value="asc">Precio: menor a mayor</option><option value="desc">Precio: mayor a menor</option><option value="new">Más recientes</option></select>
+        </label>
+        <button type="button" class="stays-fav-toggle" id="st-favs" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.9a4.3 4.3 0 0 1 7.5 2.6c0 5.400-7.500 10-7.500 10z"/></svg><span>Favoritos</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resultados -->
+  <section class="stays-results" aria-live="polite">
+    <div class="stays-results-inner">
+      <div class="stays-results-head">
+        <h2 id="st-count">Cargando alojamientos…</h2>
+        <button type="button" class="stays-clear hidden" id="st-clear">Quitar filtros</button>
+      </div>
+      <div class="stays-grid" id="st-grid"></div>
+    </div>
+  </section>
+
+  <section class="stays-cta">
+    <div class="stays-cta-inner">
+      <h2>¿Tienes un alojamiento para recibir huéspedes?</h2>
+      <p>Publícalo en Bastet y recibe consultas directas por WhatsApp.</p>
+      <a class="stays-cta-btn" href="index.html#vender">Publica tu alojamiento</a>
+    </div>
+  </section>
+</main>
+
+<!-- Ficha del alojamiento (pantalla completa) -->
+<div class="stay-detail hidden" id="stay-detail" role="dialog" aria-modal="true" aria-labelledby="sd-title"></div>
+<!-- Visor de fotos -->
+<div class="stay-lightbox hidden" id="stay-lightbox" role="dialog" aria-modal="true" aria-label="Fotos del alojamiento"></div>
+
+<footer id="footer" class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo-row">
+          <img class="footer-logo-img" src="assets/img/bastet-logo-vertical.png" alt="Bastet · Propiedades · Inmobiliarias" width="900" height="500" loading="lazy">
+        </div>
+      </div>
+      <div class="footer-contact">
+        <span class="footer-contact-label">CONTACTO</span>
+        <a href="mailto:inmobiliaria@bastet.uno" class="footer-link">inmobiliaria@bastet.uno</a>
+        <a href="tel:+59177666205" class="footer-link">+591 77666205</a>
+        <span class="footer-city">Calle Yanacocha, Edif. Cristal, Piso 7, Of. 706 — La Paz, Bolivia</span>
+        <a href="verificar.html" class="footer-link">Verificador de contratos</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2026 Bastet Real State. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a> · <a href="dmca.html">Derechos de autor</a></p>
+  </div>
+</footer>
+
+<div class="property-modal-backdrop hidden" id="agent-modal-backdrop">
+  <div class="property-modal agent-modal" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title">
+    <button type="button" class="property-modal-close" id="agent-modal-close" aria-label="Cerrar">✕</button>
+    <div class="agent-modal-body">
+      <h2 class="agent-modal-title" id="agent-modal-title">Acceso agentes</h2>
+      <form id="agent-login-form" class="agent-form" data-agent-panel="login">
+        <p class="agent-form-hint">Entra con tu cuenta de Google para gestionar tus propiedades. Si es tu primera vez, tu cuenta se crea al instante.</p>
+        <button type="button" class="google-btn" id="agent-google"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M21.35 11.1H12v2.98h5.35c-.23 1.4-1.6 4.1-5.35 4.1a5.98 5.98 0 1 1 0-11.96c1.9 0 3.17.8 3.9 1.5l2.06-2A8.9 8.9 0 0 0 12 3a9 9 0 1 0 0 18c5.2 0 8.6-3.65 8.6-8.8 0-.6-.07-1.05-.15-1.1z"/></svg><span>Continuar con Google</span></button>
+        <p class="agent-form-error hidden" id="agent-login-error"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<nav class="quick-bar" aria-label="Accesos rápidos">
+  <a href="index.html#hero" class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg><span>Inicio</span></a>
+  <a href="marketplace.html" class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.500" height="7.500" rx="1.500"/><rect x="13.500" y="3" width="7.500" height="7.500" rx="1.500"/><rect x="3" y="13.500" width="7.500" height="7.500" rx="1.500"/><rect x="13.500" y="13.500" width="7.500" height="7.500" rx="1.500"/></svg><span>Propiedades</span></a>
+  <a href="estadias.html" class="qb-item is-active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V8M3 14h18v4M21 14v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11" r="1.600"/></svg><span>Estadías</span></a>
+  <a href="verificar.html" class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6l7-3zM9 12l2 2 4-4"/></svg><span>Verificar</span></a>
+  <button type="button" data-agent-access class="qb-item"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.600-7 8-7s8 3 8 7"/></svg><span>Agentes</span></button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/supabase-config.js?v=20261014b"></script>
+<script src="assets/js/bolivia-cities.js?v=20261014b"></script>
+<script src="assets/js/property-fields.js?v=20261020a"></script>
+<script src="assets/js/estadias.js?v=20261026b"></script>
+</body>
+</html>
