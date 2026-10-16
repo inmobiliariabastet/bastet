@@ -617,19 +617,20 @@ function buildTileAgentHtml(property) {
     : (agent && agent.display_name
       ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
       : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-gato-dorado.png" alt=""></span>');
-  const socials = agent
+  // WhatsApp del agente (su perfil) o, si no lo tiene, el de la propiedad; sin ninguno, el número general de Bastet
+  const waIcon = '<a class="property-modal-social-link" href="' + escapeHtml(whatsappUrl(propertyWhatsappMessage(property), (agent && agent.contact_whatsapp) || property.whatsapp)) + '" target="_blank" rel="noopener" data-tile-wa aria-label="Escribir por WhatsApp a ' + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const socials = waIcon + (agent
     ? socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
       socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
       socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok')
-    : '';
+    : '');
   return (
     '<div class="prop-tile-agent">' +
       '<div class="prop-tile-agent-row">' +
         photo +
         '<span class="prop-tile-agent-who"><span class="prop-tile-agent-label">Publicado por</span><span class="prop-tile-agent-name">' + escapeHtml(name) + '</span></span>' +
-        (socials ? '<span class="prop-tile-socials">' + socials + '</span>' : '') +
+        '<span class="prop-tile-socials">' + socials + '</span>' +
       '</div>' +
-      '<button type="button" class="cta-button cta-button--glass prop-tile-wa" data-tile-wa aria-label="Consultar por WhatsApp con ' + escapeHtml(name) + '"><span>' + WHATSAPP_ICON_SVG + 'Consultar por WhatsApp</span></button>' +
     '</div>'
   );
 }
@@ -646,7 +647,7 @@ function socialIconLink(url, kind, label) {
 // propietario del inmueble, nunca debe llegar al landing público).
 const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
-const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
+const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp,facebook_url,instagram_url,tiktok_url';
 
 async function loadProperties() {
   const fetchProperties = (columns) => supabaseClient
@@ -895,8 +896,7 @@ propGridEl.addEventListener('click', (e) => {
   if (!tile) return;
   const property = tile.__property;
   if (e.target.closest('[data-tile-wa]')) {
-    trackEvent(property.id, 'whatsapp_click');
-    window.open(whatsappUrl(propertyWhatsappMessage(property), property.whatsapp), '_blank', 'noopener');
+    trackEvent(property.id, 'whatsapp_click');        // el enlace del ícono abre WhatsApp por sí solo
     return;
   }
   if (e.target.closest('a')) return; // redes sociales: abren su enlace sin abrir la ficha

@@ -114,7 +114,7 @@ async function handleSession(session) {
 
   const { data: profile, error } = await supabaseClient
     .from('profiles')
-    .select('role, is_active, display_name, avatar_url, facebook_url, instagram_url, tiktok_url')
+    .select('role, is_active, display_name, avatar_url, contact_whatsapp, facebook_url, instagram_url, tiktok_url')
     .eq('id', session.user.id)
     .maybeSingle();
 
@@ -1311,6 +1311,7 @@ const profileAvatarPreview = document.getElementById('profile-avatar-preview');
 function populateProfileForm() {
   if (!currentProfile) return;
   document.getElementById('profile-name-input').value = currentProfile.display_name || '';
+  document.getElementById('profile-whatsapp-input').value = currentProfile.contact_whatsapp || '';
   document.getElementById('profile-facebook-input').value = currentProfile.facebook_url || '';
   document.getElementById('profile-instagram-input').value = currentProfile.instagram_url || '';
   document.getElementById('profile-tiktok-input').value = currentProfile.tiktok_url || '';
@@ -1365,8 +1366,16 @@ profileForm.addEventListener('submit', async (e) => {
   profileFormError.classList.add('hidden');
   profileFormSuccess.classList.add('hidden');
 
+  const whatsapp = document.getElementById('profile-whatsapp-input').value.trim();
+  if (whatsapp && !/^\+?[0-9 ()-]{7,30}$/.test(whatsapp)) {
+    profileFormError.textContent = 'Escribe un WhatsApp válido (solo números, con código de país si es de otro país).';
+    profileFormError.classList.remove('hidden');
+    return;
+  }
+
   const payload = {
     display_name: document.getElementById('profile-name-input').value.trim() || null,
+    contact_whatsapp: whatsapp || null,
     avatar_url: profileAvatarUrl,
     facebook_url: document.getElementById('profile-facebook-input').value.trim() || null,
     instagram_url: document.getElementById('profile-instagram-input').value.trim() || null,

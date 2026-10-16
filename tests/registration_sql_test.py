@@ -136,6 +136,13 @@ chk("anónimo no puede", as_(None, "select attach_payment_proof(%s, %s)", (rid, 
 as_(adm, "select admin_resolve_subscription_request(%s, true, null)", (rid,))
 chk("ya resuelta: no se adjunta", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/2.png')), True)
 eq("admin ve la ruta", as_(adm, "select proof_path from subscription_requests where id=%s", (rid,))[1][0][0], str(plain) + '/1700-comprobante.png')
+
+# WhatsApp de contacto del agente (agent-whatsapp.sql)
+chk("anónimo lee contact_whatsapp (columna pública)", as_(None, "select contact_whatsapp from profiles limit 1"), False)
+chk("el agente guarda su WhatsApp", as_(own, "update profiles set contact_whatsapp='+591 77123456' where id=%s", (own,)), False)
+eq("quedó guardado", one("select contact_whatsapp from profiles where id=%s", (own,)), '+591 77123456')
+chk("WhatsApp inválido rechazado", as_(own, "update profiles set contact_whatsapp='no-es-un-numero' where id=%s", (own,)), True)
+eq("registro con interés agente copia su WhatsApp", one("select contact_whatsapp from profiles where id=%s", (emp,)), None)
 # idempotencia del SQL
 su("select 1")
 for _ in range(2): cur.execute(tail)
