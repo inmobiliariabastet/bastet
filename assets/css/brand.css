@@ -83,7 +83,7 @@ body.brand .navbar-install svg { stroke: var(--br-green); }
   padding: clamp(40px, 6vw, 84px) clamp(20px, 6vw, 96px) clamp(64px, 8vw, 110px);
 }
 .home-hero-eyebrow { margin: 0 0 18px; font-size: 13px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: var(--br-green); opacity: .8; }
-.home-hero-title { margin: 0; font-family: var(--font-serif); font-weight: 400; font-size: clamp(46px, 6.4vw, 92px); line-height: 1.02; letter-spacing: -.01em; color: var(--br-green); }
+.home-hero-title { margin: 0; max-width: 12em; font-family: var(--font-serif); font-weight: 400; font-size: clamp(40px, 5.4vw, 78px); line-height: 1.02; letter-spacing: -.01em; color: var(--br-green); }
 .home-hero-tagline { margin: 26px 0 0; font-family: var(--font-serif); font-size: clamp(20px, 2vw, 27px); line-height: 1.3; color: var(--br-ink); }
 .home-hero-sub { margin: 14px 0 0; max-width: 520px; font-size: 17px; line-height: 1.65; color: var(--br-muted); }
 .home-hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 36px; }
