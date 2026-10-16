@@ -25,6 +25,7 @@ alter table public.profiles add column if not exists company       text;
 alter table public.profiles add column if not exists interest      text;
 alter table public.profiles add column if not exists registered_at timestamptz;
 alter table public.profiles add column if not exists trial_used_at timestamptz;
+alter table public.profiles add column if not exists age_confirmed_at timestamptz;   -- confirmó tener 18 años o más (verificación de edad)
 alter table public.profiles drop constraint if exists profiles_interest_check;
 alter table public.profiles add constraint profiles_interest_check check (interest is null or interest in ('propietario', 'agente', 'empresa'));
 
@@ -47,6 +48,7 @@ begin
     if coalesce(current_setting('uno.reg_rpc', true), '') <> '1' then
       new.registered_at := old.registered_at;
       new.trial_used_at := old.trial_used_at;
+      new.age_confirmed_at := old.age_confirmed_at;
     end if;
   end if;
   -- Desde 2026-09-29 no se crean administradores nuevos desde la app: el rol solo se cambia desde el SQL Editor
@@ -109,7 +111,9 @@ begin
 end $$;
 
 -- 4) Formulario de registro (y, si lo pide, empieza la prueba)
-create or replace function public.complete_registration(p_full_name text, p_whatsapp text, p_city text, p_company text, p_interest text, p_consent boolean, p_start_trial boolean default false)
+-- Se cambió la firma (nuevo parámetro p_adult): se elimina la anterior para que no queden dos versiones
+drop function if exists public.complete_registration(text, text, text, text, text, boolean, boolean);
+create or replace function public.complete_registration(p_full_name text, p_whatsapp text, p_city text, p_company text, p_interest text, p_consent boolean, p_start_trial boolean default false, p_adult boolean default false)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare uid uuid := auth.uid(); nm text := btrim(coalesce(p_full_name, '')); wa text := btrim(coalesce(p_whatsapp, ''));
 begin
@@ -120,12 +124,13 @@ begin
   if char_length(btrim(coalesce(p_city, ''))) > 80 or char_length(btrim(coalesce(p_company, ''))) > 120 then raise exception 'Ciudad o empresa demasiado largas'; end if;
   if p_interest is null or p_interest not in ('propietario', 'agente', 'empresa') then raise exception 'Elige cómo usarás Bastet: propietario, agente o empresa'; end if;
   if p_start_trial and p_interest is distinct from 'propietario' then raise exception 'La prueba gratuita de 7 días es solo para propietarios. Para agente o empresa elige un plan de pago'; end if;
+  if p_adult is not true then raise exception 'Debes confirmar que tienes 18 años o más para crear una cuenta'; end if;
   if p_consent is not true then raise exception 'Debes aceptar el uso de tus datos para continuar'; end if;
 
   perform set_config('uno.reg_rpc', '1', true);
   update public.profiles
      set full_name = nm, whatsapp = wa, city = nullif(btrim(coalesce(p_city, '')), ''), company = nullif(btrim(coalesce(p_company, '')), ''),
-         interest = p_interest, registered_at = coalesce(registered_at, now()),
+         interest = p_interest, registered_at = coalesce(registered_at, now()), age_confirmed_at = coalesce(age_confirmed_at, now()),
          display_name = coalesce(nullif(btrim(coalesce(display_name, '')), ''), nm)
    where id = uid;
   if p_start_trial then perform public._start_trial(uid); end if;
@@ -192,10 +197,10 @@ end $$;
 revoke all on function public._email_key(text) from public, anon, authenticated;
 revoke all on function public._trial_eligible(uuid) from public, anon, authenticated;
 revoke all on function public._start_trial(uuid) from public, anon, authenticated;
-revoke all on function public.complete_registration(text, text, text, text, text, boolean, boolean) from public, anon;
+revoke all on function public.complete_registration(text, text, text, text, text, boolean, boolean, boolean) from public, anon;
 revoke all on function public.start_free_trial() from public, anon;
 revoke all on function public.my_subscription() from public, anon;
-grant execute on function public.complete_registration(text, text, text, text, text, boolean, boolean) to authenticated;
+grant execute on function public.complete_registration(text, text, text, text, text, boolean, boolean, boolean) to authenticated;
 grant execute on function public.start_free_trial() to authenticated;
 grant execute on function public.my_subscription() to authenticated;
 

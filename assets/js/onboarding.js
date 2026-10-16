@@ -40,6 +40,7 @@
             '<option value="propietario">Cuenta de propietario</option>' +
             '<option value="agente">Cuenta de agente</option>' +
             '<option value="empresa">Cuenta de empresa</option></select></div>' +
+          '<label class="ob-consent"><input type="checkbox" id="ob-adult"> <span>Confirmo que tengo <b>18 años o más</b>. Bastet no está dirigido a menores de edad.</span></label>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-consent"> <span>Acepto que Bastet use estos datos para gestionar mi cuenta y contactarme. <a href="../privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></span></label>' +
           '<p id="ob-error" class="form-error" role="alert" hidden></p>' +
           '<div class="ob-actions">' +
@@ -81,12 +82,13 @@
       if (!/^\+?[0-9 ()-]{7,30}$/.test(val('ob-wa'))) return fail('Escribe un WhatsApp válido (solo números).');
       if (!val('ob-city')) return fail('Elige tu ciudad.');
       if (!val('ob-interest')) return fail('Elige cómo usarás Bastet: propietario, agente o empresa.');
+      if (!form.querySelector('#ob-adult').checked) return fail('Debes confirmar que tienes 18 años o más para crear una cuenta.');
       if (!form.querySelector('#ob-consent').checked) return fail('Debes aceptar el uso de tus datos para continuar.');
       const buttons = form.querySelectorAll('button[type="submit"]');
       buttons.forEach((b) => { b.disabled = true; });
       const { error } = await supabaseClient.rpc('complete_registration', {
         p_full_name: val('ob-name'), p_whatsapp: val('ob-wa'), p_city: val('ob-city'), p_company: val('ob-company'),
-        p_interest: val('ob-interest') || null, p_consent: true, p_start_trial: mode === 'trial',
+        p_interest: val('ob-interest') || null, p_consent: true, p_adult: true, p_start_trial: mode === 'trial',
       });
       if (error) { buttons.forEach((b) => { b.disabled = false; }); return fail(error.message || 'No se pudo guardar tu registro.'); }
       close();
