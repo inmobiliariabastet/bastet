@@ -1,6 +1,6 @@
 /* Herramienta "Contrato de Exclusividad" del panel de agentes.
    - Asistente de 4 pasos + vista previa en vivo (el contrato tal cual saldrá en el PDF).
-   - Sin cobro en créditos: la función SQL create_exclusivity_contract exige un plan vigente (Agente o Empresa), numera y guarda en una
+   - Sin costo adicional: la función SQL create_exclusivity_contract exige un plan vigente (Agente o Empresa), numera y guarda en una
      sola transacción. Antes de cobrar se hace una prueba de generación del PDF; si falla, no se cobra.
    - El PDF se genera siempre desde los datos guardados: volver a descargarlo es gratis.
    Usa el cliente global `supabaseClient` y las bibliotecas de assets/js/contracts/. */
@@ -364,7 +364,7 @@
         : '<button type="button" class="btn btn-accent ct-generate" data-ct="generate">Generar contrato</button>') + '</div>' +
       (s === STEPS.length - 1 ? '<p class="ct-balance-note' + (blocked ? ' is-low' : '') + '">' + (blocked
         ? esc(planMessage()) + ' <button type="button" class="ct-link" data-ct="buy">Ver planes</button>'
-        : 'Incluido en tu plan: no tiene costo en créditos.') + '</p>' : '');
+        : 'Incluido en tu plan.') + '</p>' : '');
     return draft +
       '<div class="ct-mobile-toggle" role="tablist"><button type="button" class="ct-seg-btn' + (state.previewOpen ? '' : ' is-on') + '" data-ct="show-form">Formulario</button><button type="button" class="ct-seg-btn' + (state.previewOpen ? ' is-on' : '') + '" data-ct="show-preview">Vista previa</button></div>' +
       '<div class="ct-layout' + (state.previewOpen ? ' show-preview' : '') + '">' +

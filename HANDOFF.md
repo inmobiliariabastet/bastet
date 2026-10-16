@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Se quitó toda mención a los créditos de la versión anterior (2026-10-16, `subscription.js?v=20261025b`, `contracts-ui.js?v=20261025a`, `main.js?v=20261025c`)**: fuera el aviso «Conservas N créditos de la versión anterior…» y la consulta a `credit_wallets` en Suscripción; el contrato dice «Incluido en tu plan.» (sin «costo en créditos»); comentarios actualizados. Quedan solo nombres internos (clases CSS `credits-*`, `credits.css`) y las tablas/funciones antiguas de créditos en la base de datos, sin uso.
+
 - ✅ **Textos de acceso sin «de agente» (2026-10-16, `admin.js?v=20261025e`)**: la pantalla de inicio de sesión del panel y el modal del landing dicen «¿Primera vez? Entra con Google y tu cuenta se crea al instante.»
 
 - ✅ **WhatsApp de contacto del agente + ícono en la tarjeta (2026-10-16, SQL aplicado y verificado)**: «Mi cuenta» tiene el campo «WhatsApp de contacto» (`profiles.contact_whatsapp`, columna aparte y PÚBLICA para el anon; el `whatsapp` del registro sigue privado). En la tarjeta de cada propiedad el botón «Consultar por WhatsApp» se reemplazó por el ícono de WhatsApp (`assets/img/social-whatsapp.svg`) junto a Facebook/Instagram/TikTok; abre WhatsApp con el mensaje de la propiedad (código BST-xxxx) al número del agente, o al de la propiedad si el agente no puso uno, o al general de Bastet. El SQL copia el WhatsApp del registro a quienes se registraron como agente/empresa. `admin.js?v=20261025d`, `main.js?v=20261025b`.

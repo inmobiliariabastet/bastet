@@ -660,7 +660,7 @@ async function loadProperties() {
 
   // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
   const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
-  // Si algún SQL aún no se corrió (moneda, vigencia, créditos), esa columna no existe (42703): se reintenta sin ella, de la más nueva a la más antigua.
+  // Si algún SQL aún no se corrió (moneda, vigencia, plan), esa columna no existe (42703): se reintenta sin ella, de la más nueva a la más antigua.
   const noCurrency = PUBLIC_PROPERTY_COLUMNS.replace('currency,', '');
   const attempts = [
     () => fetchActive(PUBLIC_PROPERTY_COLUMNS),
@@ -815,7 +815,7 @@ function filteredProperties() {
   return base.filter((p) => (p.location || '').startsWith(cityFilter));
 }
 
-// Destacada = marcada por un admin (featured) o con créditos vigentes (featured_until en el futuro).
+// Destacada = marcada por un admin (featured) o con un destacado vigente (featured_until en el futuro).
 function isFeatured(p) {
   return !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
 }

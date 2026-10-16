@@ -1,4 +1,4 @@
-/* Pestaña "Comisiones" (cobranzas). Autónomo (como credits.js y leads.js): usa el cliente global `supabaseClient`;
+/* Pestaña "Comisiones" (cobranzas). Autónomo (como leads.js): usa el cliente global `supabaseClient`;
    admin.js ya muestra/oculta el panel por data-tab.
    El sistema no calcula honorarios por política: el admin carga cada cobranza (venta, % y comisión; la comisión puede
    calcularse como venta × % y el admin la corrige). El agente solo lee las suyas (RLS en Supabase). */

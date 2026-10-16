@@ -1,4 +1,4 @@
-/* Pestaña "Suscripción" del panel de usuario (reemplaza a "Créditos").
+/* Pestaña "Suscripción" del panel de usuario.
  * Muestra el plan y su uso, compara los 3 planes (Propietario / Agente / Empresa), solicita un plan (pago manual: un
  * administrador confirma el pago), permite destacar propiedades dentro del cupo del plan y, para administradores,
  * confirmar pagos y dar de alta planes. Los precios y límites salen de la base de datos (subscription_plans): aquí solo se muestran.
@@ -56,12 +56,11 @@
       state.uid = auth && auth.user && auth.user.id;
       if (!state.uid) { host.innerHTML = '<p class="credits-empty">Inicia sesión para ver tu suscripción.</p>'; return; }
 
-      const [subRes, plansRes, reqsRes, propsRes, walletRes] = await Promise.all([
+      const [subRes, plansRes, reqsRes, propsRes] = await Promise.all([
         supabaseClient.rpc('my_subscription'),
         supabaseClient.from('subscription_plans').select('*').eq('active', true).order('sort_order'),
         supabaseClient.from('subscription_requests').select('*').eq('user_id', state.uid).order('created_at', { ascending: false }).limit(10),
         supabaseClient.from('properties').select('id,title,code_number,status,expires_at,featured_until').eq('owner_id', state.uid).order('code_number'),
-        supabaseClient.from('credit_wallets').select('balance').eq('user_id', state.uid).maybeSingle(),
       ]);
       const failed = [subRes, plansRes, reqsRes, propsRes].find((r) => r.error);
       if (failed) throw failed.error;
@@ -79,7 +78,7 @@
         if (pending.error) throw pending.error;
         admin = { pending: pending.data || [], subs: subs.data || [], people: people.data || [] };
       }
-      render({ sub, plans: state.plans, reqs: reqsRes.data || [], props: propsRes.data || [], legacyCredits: (walletRes.data && walletRes.data.balance) || 0, admin });
+      render({ sub, plans: state.plans, reqs: reqsRes.data || [], props: propsRes.data || [], admin });
       if (window.UnoPublications) window.UnoPublications.refresh();
     } catch (e) {
       host.innerHTML = '<p class="form-error">No se pudo cargar la suscripción. ' + esc(errText(e)) + '</p>';
@@ -186,8 +185,7 @@
     return '<h2 class="admin-subheading">Mis solicitudes de plan</h2><div class="credits-table-wrap">' + (d.reqs.length ?
       '<table class="credits-table"><thead><tr><th>Fecha</th><th>Plan</th><th>Monto</th><th>Pago</th><th>Estado</th></tr></thead><tbody>' +
       d.reqs.map((r) => '<tr><td>' + fdate(r.created_at) + '</td><td>' + esc(r.plan_code) + '</td><td>' + bs(r.price_bs) + '</td><td>' + (METHOD[r.method] || esc(r.method)) + (r.reference ? ' · ' + esc(r.reference) : '') + '</td><td>' + (STATUS[r.status] || esc(r.status)) + (r.note ? ' · ' + esc(r.note) : '') + '</td></tr>').join('') +
-      '</tbody></table>' : '<p class="credits-empty">Todavía no hiciste ninguna solicitud.</p>') + '</div>' +
-      (d.legacyCredits > 0 ? '<p class="credits-muted sb-legacy">Conservas <b>' + d.legacyCredits + '</b> créditos de la versión anterior. Ya no se usan ni se venden; tu historial se mantiene.</p>' : '');
+      '</tbody></table>' : '<p class="credits-empty">Todavía no hiciste ninguna solicitud.</p>') + '</div>';
   }
 
   function adminHtml(a) {

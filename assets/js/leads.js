@@ -1,5 +1,5 @@
 /* Pestaña "Clientes interesados": tablero por etapas con los contactos que dejan los visitantes en el landing.
-   Autónomo (como credits.js): usa el cliente global `supabaseClient`; admin.js ya muestra/oculta el panel por data-tab.
+   Autónomo: usa el cliente global `supabaseClient`; admin.js ya muestra/oculta el panel por data-tab.
    Privacidad: el tablero NO descarga el WhatsApp ni el mensaje; solo se piden al abrir el detalle de un cliente.
    RLS en Supabase garantiza que cada agente solo reciba sus leads (el admin recibe todos). */
 (function () {
