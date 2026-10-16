@@ -69,7 +69,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
-- 🟡 **Verificación de edad (18+) en el registro (2026-10-16, listo en local, PENDIENTE de correr `supabase/registration.sql`)**: casilla obligatoria «Confirmo que tengo 18 años o más»; `complete_registration` gana el parámetro `p_adult` (se elimina la firma anterior) y guarda `profiles.age_confirmed_at` (protegida contra edición manual). `onboarding.js?v=20261024q`. Tests en `tests/registration_sql_test.py`.
+- ✅ **Verificación de edad (18+) en el registro (2026-10-16, SQL aplicado, `onboarding.js?v=20261024q`)**: casilla obligatoria «Confirmo que tengo 18 años o más»; `complete_registration` gana el parámetro `p_adult` (se elimina la firma anterior) y guarda `profiles.age_confirmed_at` (protegida contra edición manual). `onboarding.js?v=20261024q`. Tests en `tests/registration_sql_test.py`.
 
 - ✅ **Revisión legal (2026-10-16)**: (a) nueva `dmca.html` (agente designado, notificación y contranotificación) enlazada en los pies de página; (b) condiciones de renovación/cancelación junto a los planes y al botón «Enviar solicitud» (`subscription.js?v=20261024g`); (c) `supabase/email-templates/marketing-footer.html` (dirección postal + baja) para futuros correos promocionales — hoy no se envía ninguno; (d) `privacidad.html`: menores y «sin grabación de sesiones». Verificado sin cambios: las fuentes ya son propias (`assets/fonts`, no hay Google Fonts) y no hay herramientas de grabación de sesiones ni analítica de terceros.
 
