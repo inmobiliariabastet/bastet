@@ -196,3 +196,24 @@
 .stays-page .stays-cta-inner a.stays-cta-btn { color: var(--br-ink, #1E2629); }
 .stays-page .stays-cta-inner a.stays-cta-btn:hover { color: var(--br-green, #3D4C3A); }
 .stays-page a.sd-cta:hover, .stays-page .stays-empty a.stays-cta-btn:hover { color: #fff; }
+
+/* ── Celular: los filtros se pliegan detrás de «Más filtros»; los chips de tipo quedan siempre a la vista ── */
+.stays-filters-toggle { display: none; }
+@media (max-width: 700px) {
+  .stays-filters-inner { gap: 10px; padding-top: 12px; padding-bottom: 12px; }
+  .stays-filters-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 12px 18px; border: 1px solid var(--br-line, rgba(30,38,41,.2)); border-radius: 999px; background: #fff; color: var(--br-green, #3D4C3A); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .stays-filters-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .stays-filters-toggle .sft-left { display: inline-flex; align-items: center; gap: 10px; }
+  .stays-filters-toggle .sft-badge { min-width: 22px; padding: 1px 8px; border-radius: 999px; background: var(--br-green, #3D4C3A); color: #fff; font-size: 12px; text-align: center; }
+  .stays-filters-toggle .sft-badge:empty { display: none; }
+  .stays-filters-toggle .sft-chevron { transition: transform .25s ease; }
+  .stays-filters-toggle[aria-expanded="true"] .sft-chevron { transform: rotate(180deg); }
+  .stays-filters-toggle[aria-expanded="true"] { background: var(--br-pale, #EFF8E7); border-color: var(--br-green, #3D4C3A); }
+  .stays-selects:not(.is-open) { display: none; }
+  .stays-selects.is-open { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; padding: 14px; border: 1px solid var(--br-line, rgba(30,38,41,.12)); border-radius: 24px; background: var(--br-cloud, #F7F9FB); }
+  .stays-selects.is-open .stays-select:nth-of-type(3), .stays-selects.is-open .stays-fav-toggle { grid-column: 1 / -1; }
+  .stays-selects.is-open .stays-fav-toggle { justify-content: center; align-self: stretch; }
+  .stays-chips { padding-bottom: 2px; }
+  .stays-chip { padding: 10px 18px; }
+}
+@media (max-width: 700px) { .stays-filters { max-height: calc(100vh - 150px); overflow-y: auto; } }

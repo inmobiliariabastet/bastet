@@ -245,7 +245,20 @@
     return el;
   }
 
+  // Botón «Más filtros» (solo celular): pliega el panel y muestra cuántos filtros hay activos
+  const panel = $('st-filter-panel'), toggle = $('st-filters-toggle');
+  function syncFiltersBadge() {
+    const n = (state.rooms ? 1 : 0) + (state.price ? 1 : 0) + (state.sort !== 'rec' ? 1 : 0) + (state.favsOnly ? 1 : 0);
+    $('st-filters-badge').textContent = n ? String(n) : '';
+  }
+  toggle.addEventListener('click', () => {
+    const open = !panel.classList.contains('is-open');
+    panel.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
   function render() {
+    syncFiltersBadge();
     const list = filtered();
     const grid = $('st-grid');
     grid.innerHTML = '';

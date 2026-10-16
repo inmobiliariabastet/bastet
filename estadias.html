@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="assets/css/style.css?v=20261023a">
 <link rel="stylesheet" href="assets/css/brand.css?v=20261026b">
-<link rel="stylesheet" href="assets/css/estadias.css?v=20261026e">
+<link rel="stylesheet" href="assets/css/estadias.css?v=20261027b">
 </head>
 <body class="brand stays-page">
 
@@ -90,7 +90,8 @@
   <section class="stays-filters" aria-label="Filtros">
     <div class="stays-filters-inner">
       <div class="stays-chips" id="st-types" role="group" aria-label="Tipo de alojamiento"></div>
-      <div class="stays-selects">
+      <button type="button" class="stays-filters-toggle" id="st-filters-toggle" aria-expanded="false" aria-controls="st-filter-panel"><span class="sft-left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Más filtros</span><span class="sft-left"><span class="sft-badge" id="st-filters-badge"></span><svg class="sft-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></button>
+      <div class="stays-selects" id="st-filter-panel">
         <label class="stays-select"><span>Habitaciones</span>
           <select id="st-rooms"><option value="">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select>
         </label>
@@ -176,6 +177,6 @@
 <script src="assets/js/supabase-config.js?v=20261014b"></script>
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/estadias.js?v=20261026b"></script>
+<script src="assets/js/estadias.js?v=20261027a"></script>
 </body>
 </html>
