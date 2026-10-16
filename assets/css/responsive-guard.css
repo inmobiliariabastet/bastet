@@ -12,9 +12,7 @@ h1, h2, h3, h4, h5, p, li, td, th, dt, dd, label, summary, figcaption, blockquot
 .btn, .cta-button, .nav-pill, button, a { overflow-wrap: break-word; }
 
 /* 3) Imágenes y medios nunca más anchos que su contenedor */
-img, video, canvas, iframe { max-width: 100%; }
-img { height: auto; }
-img[width][height] { height: auto; }
+img, video, canvas, iframe { max-width: 100%; }   /* NO forzar height:auto: pisa la altura que cada logo/foto define en su propio CSS */
 
 /* 4) Hijos de REJILLAS pueden encogerse (si no, un texto largo ensancha toda la columna). No se aplica a filas flexibles: ahí min-width:0 hace que los hermanos colapsen. */
 .features-grid > *, .ap-grid > *, .stays-grid > *, .prop-grid > *, .credits-packs > *, .pay-list > * { min-width: 0; }
