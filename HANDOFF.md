@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Logo de color en el menú principal (2026-10-16, `main.js?v=20261025f`)**: arriba el menú de `index.html` y `marketplace.html` usa `assets/img/bastet-logo-horizontal-color.png` (gato con collar en dorado #FABC1E, «BASTET» en verde #0F4021 y «PROPIEDADES • INMOBILIARIAS» en casi negro), generado recoloreando el logo blanco oficial con los colores exactos de `LOGO COLORES`; al hacer scroll cambia a `-blanco.png`. Las páginas legales, app y verificador siguen con `bastet-logo-horizontal.png` (gato sentado).
+
 - ✅ **Logo blanco oficial en el menú fijo (2026-10-16, `main.js?v=20261025e`)**: al hacer scroll el logotipo cambia a `assets/img/bastet-logo-horizontal-blanco.png` (imagotipo de gato con collar + «BASTET» + «PROPIEDADES • INMOBILIARIAS», todo en blanco), recortado desde `LOGOS BASTET/LOGO BLANCO/BASTET LOGO OFICIAL-09.png` a 1200×295 px. Reemplaza al `-negativo` (crema) en ese menú; el archivo `-negativo` sigue en el repo sin uso en la barra.
 
 - ✅ **bastet.uno abre directo en Propiedades (2026-10-16)**: `index.html` redirige con JS (`location.replace('marketplace.html')`, y `<noscript>` meta refresh) cuando la URL no trae ancla; con ancla (`index.html#hero`, `#vender`…) se queda en el inicio, así «Inicio» y «Publica aquí» (el formulario de vender vive en `index.html`) siguen funcionando. Los enlaces «Inicio» de `marketplace.html` y `app.html` apuntan a `index.html#hero`. Se evitó un `.htaccess` a propósito (podría pisar las reglas HTTPS de Hostinger). Para volver a mostrar el inicio al entrar: quitar el bloque `<script>` de redirección en `index.html`.

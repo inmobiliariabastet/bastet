@@ -32,7 +32,7 @@ mobilePanel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () 
 // Al bajar, la barra se vuelve verde de marca con efecto vidrio y el logotipo cambia a su versión clara (blanco oficial)
 const navLogo = navbar.querySelector('.navbar-logo-img');
 const LOGO_DARK = navLogo ? navLogo.getAttribute('src') : '';
-const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal.png', 'bastet-logo-horizontal-blanco.png');
+const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal-color.png', 'bastet-logo-horizontal-blanco.png');
 if (navLogo) { const pre = new Image(); pre.src = LOGO_LIGHT; }
 function updateNavbarScroll() {
   const scrolled = window.scrollY > 40;
