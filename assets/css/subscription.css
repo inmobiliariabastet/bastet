@@ -43,3 +43,5 @@
 body.ob-open { overflow: hidden; }
 .sb-trial { margin-top: 12px; }
 @media (max-width: 560px) { .ob-row { grid-template-columns: 1fr; } }
+.ob-trial { display: grid; gap: 4px; padding: 12px 14px; margin: 0 0 16px; border-radius: 16px; background: #FBE6AB; color: #1E2629; font-size: 14px; }
+.ob-trial b { font-size: 15px; }

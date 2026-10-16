@@ -25,6 +25,7 @@
       '<div class="modal-panel ob-panel" role="dialog" aria-modal="true" aria-labelledby="ob-title">' +
         '<h2 id="ob-title">Bienvenido a Bastet</h2>' +
         '<p class="ob-lead">Cuéntanos quién eres para crear tu cuenta. ' + (canTrial ? 'Después podrás <b>probar gratis por 7 días</b> o elegir un plan desde ya.' : 'Después podrás seguir al panel.') + '</p>' +
+        (canTrial ? '<div class="ob-trial"><b>Prueba gratuita de 7 días</b><span>Al aceptar con «Probar 7 días gratis», tu cuenta queda habilitada y puedes publicar por 7 días sin suscripción. Pasados los 7 días debes suscribirte a un plan; si no lo haces, tu cuenta se da de baja y tus propiedades dejan de mostrarse en el marketplace.</span></div>' : '') +
         '<form id="ob-form" novalidate>' +
           '<div class="field"><label for="ob-name">Nombre completo</label><input type="text" id="ob-name" maxlength="120" autocomplete="name" required value="' + esc(meta.full_name || meta.name || '') + '"></div>' +
           '<div class="field"><label for="ob-wa">WhatsApp</label><input type="tel" id="ob-wa" maxlength="30" autocomplete="tel" placeholder="Ej: 77123456 o +591 77123456" required></div>' +
@@ -43,7 +44,7 @@
               ? '<button type="submit" class="btn btn-accent" data-ob="trial">Probar 7 días gratis</button><button type="submit" class="btn btn-primary" data-ob="plan">Elegir un plan ahora</button>'
               : '<button type="submit" class="btn btn-accent" data-ob="plan">Guardar y continuar</button>') +
           '</div>' +
-          (canTrial ? '<p class="ob-fine">La prueba gratuita dura 7 días e incluye las funciones del plan Agente. Al terminar deberás elegir un plan para seguir publicando. Solo se puede usar una vez.</p>' : '') +
+          (canTrial ? '<p class="ob-fine">La prueba incluye las funciones del plan Agente y solo se puede usar una vez. Si eliges un plan ahora, no se aplica la prueba.</p>' : '') +
           '<button type="button" class="ob-logout" id="ob-logout">Salir de esta cuenta</button>' +
         '</form>' +
       '</div>';

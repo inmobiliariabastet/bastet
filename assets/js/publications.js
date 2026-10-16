@@ -101,65 +101,19 @@
       el.classList.add('is-low');
       el.innerHTML = '<b>Llegaste al límite de ' + max + ' propiedades activas</b> del plan ' + esc(s.plan.name) + '. Marca alguna como vendida o cambia de plan. <button type="button" class="ct-link" data-pub-buy>Ver planes</button>';
     } else {
-      el.innerHTML = 'Esta será tu propiedad activa <b>' + (used + 1) + ' de ' + max + '</b> del plan ' + esc(s.plan.name) + ' y se mostrará hasta el <b>' + esc(longDate(s.period_end)) + '</b>.';
+      el.innerHTML = 'Esta será tu propiedad activa <b>' + (used + 1) + ' de ' + max + '</b> del plan ' + esc(s.plan.name) + '. Se mantiene publicada mientras ' + (s.source === 'trial' ? 'dure tu prueba gratuita (hasta el ' : 'tu suscripción esté vigente (hasta el ') + '<b>' + esc(longDate(s.period_end)) + '</b>).';
     }
   }
 
-  /* ───────── Vigencia de cada publicación (hasta el fin del periodo pagado) ───────── */
-  function timeLeft(expiresAt) {
-    const ms = new Date(expiresAt).getTime() - Date.now();
-    if (ms <= 0) {
-      const d = Math.floor(-ms / DAY);
-      return { ms, expired: true, text: d >= 1 ? 'Venció hace ' + d + ' ' + plural(d, 'día', 'días') : 'Venció hoy', level: 'bad', pct: 0 };
-    }
-    const d = Math.floor(ms / DAY);
-    const h = Math.floor((ms % DAY) / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    const text = d >= 1 ? d + ' ' + plural(d, 'día', 'días') + ' ' + h + ' h' : h + ' h ' + m + ' min';
-    return { ms, expired: false, text, level: d < 7 ? 'warn' : 'ok', pct: Math.max(2, Math.min(100, (ms / (30 * DAY)) * 100)), soon: d < 7 };
-  }
-
-  function paintLife(life) {
-    const card = life.closest('.prop-card');
-    const t = timeLeft(life.dataset.expires);
-    life.dataset.level = t.level;
-    const time = life.querySelector('.prop-life-time');
-    if (time) time.textContent = t.expired ? t.text : 'Quedan ' + t.text;
-    const bar = life.querySelector('.prop-life-bar i');
-    if (bar) bar.style.width = t.pct + '%';
-    if (card) {
-      card.classList.toggle('is-expired', t.expired);
-      const renew = card.querySelector('[data-pub-renew]');
-      if (renew) renew.classList.toggle('hidden', !(t.expired || t.soon));
-      let badge = card.querySelector('.pub-expired-badge');
-      if (t.expired && !badge) {
-        badge = document.createElement('span'); badge.className = 'badge b-bad pub-expired-badge'; badge.textContent = 'Vencida · oculta del sitio';
-        const ph = card.querySelector('.prop-ph'); if (ph) ph.insertBefore(badge, ph.firstChild.nextSibling);
-      } else if (!t.expired && badge) badge.remove();
-    }
-  }
-
-  function tick() { document.querySelectorAll('.prop-life[data-expires]').forEach(paintLife); }
-  setInterval(tick, 30000);
-
+  /* Las publicaciones están activas mientras el plan (o la prueba de 7 días) esté vigente: no hay cuenta regresiva por
+     propiedad. Solo si el plan venció la tarjeta se marca como oculta del sitio. */
   function decorateCard(card, p) {
     if (!p || !p.expires_at || p.status === 'sold') return;       // sin el SQL (o vendida) la tarjeta queda como antes
-    const life = document.createElement('div');
-    life.className = 'prop-life';
-    life.dataset.expires = p.expires_at;
-    life.innerHTML =
-      '<div class="prop-life-top"><span class="prop-life-label">Vigencia</span><b class="prop-life-time"></b></div>' +
-      '<div class="prop-life-bar"><i></i></div>' +
-      '<div class="prop-life-date">Hasta el ' + esc(longDate(p.expires_at)) + ' · fin del periodo de tu plan</div>';
-    const actions = card.querySelector('.prop-row-actions');
-    if (actions) actions.parentNode.insertBefore(life, actions);
-    if (actions) {
-      const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'btn btn-accent btn-sm hidden'; btn.dataset.pubRenew = '1'; btn.textContent = 'Renovar';
-      btn.addEventListener('click', (e) => { e.stopPropagation(); renewDialog(p); });
-      actions.insertBefore(btn, actions.firstChild);
-    }
-    paintLife(life);
+    const expired = new Date(p.expires_at).getTime() <= Date.now();
+    card.classList.toggle('is-expired', expired);
+    if (!expired || card.querySelector('.pub-expired-badge')) return;
+    const badge = document.createElement('span'); badge.className = 'badge b-bad pub-expired-badge'; badge.textContent = 'Oculta del sitio · suscripción vencida';
+    const ph = card.querySelector('.prop-ph'); if (ph && ph.firstChild) ph.insertBefore(badge, ph.firstChild.nextSibling);
   }
 
   /* ───────── Ventanas ───────── */
