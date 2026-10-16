@@ -1,8 +1,10 @@
 const WHATSAPP_PHONE = '59177666205';
 const WHATSAPP_GENERIC_MESSAGE = 'Hola Bastet, quiero solicitar una evaluación gratuita para vender mi inmueble, esta es la ubicación del mismo ⬇️';
 
+// Solo dígitos; un celular boliviano de 8 dígitos (empieza con 6 o 7) lleva el código de país 591 para que WhatsApp abra el chat
 function normalizePhone(phone) {
-  return (phone || '').replace(/[^0-9]/g, '');
+  const digits = (phone || '').replace(/[^0-9]/g, '');
+  return /^[67][0-9]{7}$/.test(digits) ? '591' + digits : digits;
 }
 
 function whatsappUrl(message, phone) {
