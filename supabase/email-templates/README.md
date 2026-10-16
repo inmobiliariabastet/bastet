@@ -10,3 +10,7 @@ Si se cambian en el Dashboard, actualizar también estos archivos.
 | Reset password | `reset-password.html` | Crea una nueva contraseña para tu cuenta Bastet |
 
 `{{ .ConfirmationURL }}` y `{{ .Email }}` son variables de Supabase: no tocarlas.
+
+## Correos de marketing
+
+Hoy Bastet **no envía correos de marketing**: los de arriba son transaccionales (invitación y restablecer contraseña), que no requieren enlace de baja y ya llevan la dirección postal. Si algún día se envían promociones o boletines, cada correo debe terminar con `marketing-footer.html` (dirección postal + enlace de baja) y solo se debe escribir a quien dio su consentimiento.

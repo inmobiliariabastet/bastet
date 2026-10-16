@@ -130,7 +130,13 @@
   function plansHtml(d) {
     const s = d.sub, pending = s.pending_request;
     const current = hasPlan(s) ? s.plan.code : (s.status === 'expired' ? s.plan.code : null);
-    return '<h2 class="admin-subheading">Planes</h2><div class="credits-packs sb-plans">' + d.plans.map((p) => {
+    return '<div class="sb-terms" role="note"><b>Condiciones de la suscripción</b><ul>' +
+        '<li><b>Duración:</b> cada pago activa tu plan por 30 días.</li>' +
+        '<li><b>Renovación:</b> no hay cobro automático ni débito a tu tarjeta o cuenta. Para continuar, vuelve a solicitar tu plan y paga antes de que venza; si no renuevas, tus propiedades dejan de mostrarse al terminar el periodo.</li>' +
+        '<li><b>Cómo cancelar:</b> pulsa «No renovar» en tu plan (lo conservas hasta el final del periodo pagado) o simplemente no vuelvas a pagar. Si ya enviaste una solicitud de pago y quieres anularla, escríbenos por WhatsApp.</li>' +
+        '<li><b>Prueba gratuita:</b> solo para cuentas de propietario, por 7 días y una sola vez. No requiere pago ni se convierte en suscripción de forma automática.</li>' +
+      '</ul></div>' +
+      '<h2 class="admin-subheading">Planes</h2><div class="credits-packs sb-plans">' + d.plans.map((p) => {
       const isCurrent = hasPlan(s) && s.plan.code === p.code;
       const label = isCurrent ? 'Renovar mi plan' : (current && hasPlan(s) ? 'Cambiar a ' + p.name : PLAN_LABEL[p.code] || 'Suscribirme');
       return '<article class="credits-pack' + (p.code === 'agente' ? ' is-top' : '') + (isCurrent ? ' is-current' : '') + '">' +
@@ -144,7 +150,7 @@
     }).join('') + '</div>' +
     '<form id="sb-method-form" class="credits-method" hidden>' +
       '<p><b id="sb-method-title"></b></p>' +
-      '<p class="credits-muted">Elige cómo pagarás. Un administrador confirmará tu pago y se activará tu plan por 30 días. No hay cobro automático: cuando quieras renovar, vuelve a solicitarlo.</p>' +
+      '<p class="credits-muted">Elige cómo pagarás. Un administrador confirmará tu pago y se activará tu plan por 30 días. <b>No hay cobro automático ni renovación automática:</b> cuando quieras renovar, vuelve a solicitarlo; para no renovar, pulsa «No renovar» en tu plan o no vuelvas a pagar.</p>' +
       '<div class="credits-method-row"><label><input type="radio" name="sb-method" value="transferencia" checked> Transferencia</label><label><input type="radio" name="sb-method" value="qr"> QR</label><label><input type="radio" name="sb-method" value="efectivo"> Efectivo</label></div>' +
       '<div class="field"><label for="sb-reference">N.º de transferencia o comprobante (opcional)</label><input type="text" id="sb-reference" maxlength="120" placeholder="Ej: 004512389"></div>' +
       '<p class="credits-muted">¿Necesitas los datos para pagar? Escríbenos por <a id="sb-wa-link" href="' + waLink(null) + '" target="_blank" rel="noopener">WhatsApp</a>.</p>' +

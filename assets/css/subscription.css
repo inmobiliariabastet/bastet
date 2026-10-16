@@ -52,3 +52,6 @@ body.ob-open { overflow: hidden; }
 .ob-consent input { accent-color: #3D4C3A; }
 .ob-panel a { color: #3D4C3A; }
 .ob-panel [hidden], .ob-actions .btn[hidden] { display: none !important; }
+.sb-terms { margin: 18px 0 8px; padding: 14px 18px; border-radius: 16px; background: #EFF8E7; border: 1px solid #B7BEAD; color: #3D4C3A; font-size: 14px; line-height: 1.55; }
+.sb-terms b:first-child { display: block; margin-bottom: 6px; font-size: 15px; }
+.sb-terms ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
