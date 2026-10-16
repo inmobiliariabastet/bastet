@@ -12,10 +12,13 @@
   const P = window.ContractPdf;
   const SCRIPT_V = (() => { try { return new URL(document.currentScript.src).searchParams.get('v') || ''; } catch (e) { return ''; } })();
   const asset = (p) => '../assets/' + p + (SCRIPT_V ? '?v=' + SCRIPT_V : '');
-  const TEMPLATE_VERSION = 'exclusividad-v1';
+  // Venta usa el contrato base de Bastet (v2); alquiler y anticrético siguen con la plantilla anterior (v1).
+  // Cada contrato guardado se vuelve a descargar con la plantilla con la que se generó (template_version).
+  const TEMPLATE_VERSIONS = ['exclusividad-v1', 'exclusividad-v2'];
+  const templateVersionFor = (op) => (op === 'venta' ? 'exclusividad-v2' : 'exclusividad-v1');
   const TOOL_CODE = 'contrato_exclusividad';
-  const CONTRACT_COLS = 'id,agent_id,contract_number,verification_code,data,created_at,voided_at,void_reason';
-  const CONTRACT_COLS_BASE = 'id,agent_id,contract_number,verification_code,data,created_at';
+  const CONTRACT_COLS = 'id,agent_id,contract_number,verification_code,template_version,data,created_at,voided_at,void_reason';
+  const CONTRACT_COLS_BASE = 'id,agent_id,contract_number,verification_code,template_version,data,created_at';
   // Si el SQL de anulación aún no se corrió, las columnas voided_* no existen (42703): se reintenta sin ellas y la herramienta sigue funcionando.
   async function contractsQuery(own, limit) {
     const run = (cols) => { let q = supabaseClient.from('exclusivity_contracts').select(cols); if (own) q = q.eq('agent_id', state.uid); return q.order('created_at', { ascending: false }).limit(limit); };
@@ -54,7 +57,7 @@
   const state = {
     uid: null, ready: false, loading: false, view: 'new', step: 0,
     agent: { nombre: '', ci: '', telefono: '', email: '', registro: '', agencia_nombre: AGENCY.nombre, agencia_domicilio: AGENCY.domicilio },
-    editAgent: false, balance: 0, cost: 5, template: null, contracts: [], search: '',
+    editAgent: false, balance: 0, cost: 5, templates: {}, contracts: [], search: '',
     form: null, errors: {}, touchedMoneda: false, previewOpen: false, draft: null,
     idem: null, busy: false, success: null, previewTimer: null, saveTimer: null,
     isAdmin: false, allContracts: [], people: {}, fa: { q: '', agent: '', op: '', status: '' },
@@ -479,11 +482,12 @@
 
   function renderPreview() {
     const box = document.getElementById('ct-preview');
-    if (!box || !state.template) return;
+    const tpl = state.templates[templateVersionFor(state.form && state.form.operacion)];
+    if (!box || !tpl) return;
     try {
       const data = buildData(state.form);
       const year = H.todayBolivia().slice(0, 4);
-      const blocks = T.renderBlocks(state.template, data, { numero_contrato: 'BST-CE-' + year + '-XXXX', codigo_verificacion: 'XXXXXXXX' }, { mark: true, lenient: true, placeholder: '________' });
+      const blocks = T.renderBlocks(tpl, data, { numero_contrato: 'BST-CE-' + year + '-XXXX', codigo_verificacion: 'XXXXXXXX' }, { mark: true, lenient: true, placeholder: '________' });
       box.innerHTML = T.blocksToHtml(blocks);
     } catch (e) {
       box.innerHTML = '<p class="credits-muted">La vista previa aparecerá cuando completes los datos del paso 1.</p>';
@@ -525,10 +529,10 @@
         supabaseClient.from('credit_wallets').select('balance').eq('user_id', state.uid).maybeSingle(),
         supabaseClient.from('credit_tool_prices').select('cost').eq('code', TOOL_CODE).maybeSingle(),
         contractsQuery(true, 300),
-        state.template ? Promise.resolve(null) : fetch(asset('contracts/exclusividad-v1.md')).then((r) => { if (!r.ok) throw new Error('No se pudo cargar la plantilla del contrato'); return r.text(); }),
+        Promise.all(TEMPLATE_VERSIONS.map((v) => (state.templates[v] ? Promise.resolve(null) : fetch(asset('contracts/' + v + '.md')).then((r) => { if (!r.ok) throw new Error('No se pudo cargar la plantilla del contrato'); return r.text(); })))),
       ]);
       if (list.error) throw list.error;
-      if (tpl) state.template = tpl;
+      TEMPLATE_VERSIONS.forEach((v, i) => { if (tpl[i]) state.templates[v] = tpl[i]; });
       state.balance = (wallet.data && wallet.data.balance) || 0;
       state.cost = (price.data && price.data.cost) || 5;
       state.contracts = list.data || [];
@@ -649,11 +653,13 @@
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Comprar créditos</button></div>');
   }
 
-  async function prepareDoc(data, number, code, voided) {
+  async function prepareDoc(data, number, code, voided, version) {
     await P.ensureLibs(asset('js/contracts/contract-fonts.js'));
-    const logo = await P.fetchDataUrl(asset('img/uno-logo-bastet.png'));
-    const blocks = T.renderBlocks(state.template, data, { numero_contrato: number, codigo_verificacion: code });
-    return P.build({ blocks, number, code, agentName: data.agente_nombre, logoDataUrl: logo, voided: !!voided });
+    const letterhead = await P.fetchDataUrl(asset('img/membrete-bastet.jpg'));
+    const tpl = state.templates[version || templateVersionFor(data.operacion)];
+    if (!tpl) throw new Error('Plantilla del contrato no disponible');
+    const blocks = T.renderBlocks(tpl, data, { numero_contrato: number, codigo_verificacion: code });
+    return P.build({ blocks, number, code, agentName: data.agente_nombre, letterheadDataUrl: letterhead, voided: !!voided });
   }
 
   async function confirmGenerate() {
@@ -667,11 +673,12 @@
       const data = buildData(state.form);
       setBtn('Preparando el PDF…', true);
       // 1) Prueba de generación: si el PDF no se puede armar, no se cobra nada
-      const dry = await prepareDoc(data, 'BST-CE-0000-0000', 'XXXXXXXX');
+      const version = templateVersionFor(data.operacion);
+      const dry = await prepareDoc(data, 'BST-CE-0000-0000', 'XXXXXXXX', false, version);
       await P.getBlob(dry);
       // 2) Cobro + numeración + guardado, todo en el servidor y en una sola transacción
       setBtn('Cobrando y guardando…', true);
-      const { data: res, error } = await supabaseClient.rpc('create_exclusivity_contract', { p_data: data, p_idempotency_key: state.idem.key, p_template_version: TEMPLATE_VERSION });
+      const { data: res, error } = await supabaseClient.rpc('create_exclusivity_contract', { p_data: data, p_idempotency_key: state.idem.key, p_template_version: version });
       if (error) {
         const msg = String(error.message || '');
         if (/Saldo insuficiente/i.test(msg)) {
@@ -686,7 +693,7 @@
       let blob = null; let downloadFailed = false;
       const name = P.fileName(res.contract_number, data.propietario_nombre);
       try {
-        const doc = await prepareDoc(data, res.contract_number, res.verification_code);
+        const doc = await prepareDoc(data, res.contract_number, res.verification_code, false, version);
         blob = await P.download(doc, name);
       } catch (e) { downloadFailed = true; }
       clearDraft();
@@ -725,7 +732,7 @@
     if (!c || (btn && btn.disabled)) return;
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.innerHTML = '<span class="ct-spin"></span>'; }
     try {
-      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code, !!c.voided_at);
+      const doc = await prepareDoc(c.data, c.contract_number, c.verification_code, !!c.voided_at, c.template_version);
       await P.download(doc, P.fileName(c.contract_number, c.data.propietario_nombre));
     } catch (e) { toast('No se pudo preparar el PDF: ' + ((e && e.message) || 'error'), true); }
     finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Descargar PDF'; } }

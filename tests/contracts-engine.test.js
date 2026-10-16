@@ -271,3 +271,62 @@ test('estructura: 18 cláusulas, tabla de firmas y anexo', () => {
   assert.equal(blocks[0].type, 'title');
   assert.equal(blocks[1].type, 'number');
 });
+
+/* ───────── Plantilla v2 (contrato base de Bastet, solo venta) ───────── */
+const TEMPLATE_V2 = fs.readFileSync(path.join(__dirname, '..', 'assets', 'contracts', 'exclusividad-v2.md'), 'utf8');
+const BASE_V2 = { ...BASE, plazo_dias: 120, dias_proteccion: 120, dias_preaviso: 7, renovacion_automatica: true, comision_porcentaje: 3, moneda: 'Bs', precio: 600000 };
+const renderV2 = (over) => T.blocksToPlain(T.renderBlocks(TEMPLATE_V2, { ...BASE_V2, ...(over || {}) }, META));
+
+test('v2: contrato de venta sin marcas de plantilla y con los datos del formulario', () => {
+  const text = renderV2();
+  assert.ok(!/\{\{|\}\}|\[\[|\]\]|[⟦⟧]/.test(text), 'quedaron marcas');
+  assert.ok(!/Convenciones de la plantilla/.test(text));
+  assert.match(text, /CONTRATO DE PRESTACIÓN DE SERVICIOS \(CONSIGNACIÓN DE VENTA CON EXCLUSIVIDAD\)/);
+  assert.match(text, /SILVANA ARACELY VASQUEZ URIBE con C\.I\. Nº 4824980/);
+  assert.match(text, /Juan Pérez Mamani con C\.I\. Nº 4567890 LP/);
+  assert.match(text, /Bs 600\.000,00 \(SEISCIENTOS MIL 00\/100 BOLIVIANOS\)/);
+  assert.match(text, /equivalente al 3% del precio final/);
+  assert.match(text, /penalidad el 3% del valor total/);
+  assert.match(text, /será de 120 días \(4 meses\)/);
+  assert.match(text, /dentro de los \(7\) días calendario/);
+  assert.match(text, /dentro de los 120 días \(4 meses\) posteriores/);
+  assert.match(text, /plazo señalado de 120 días \(4 meses\)/);
+  assert.match(text, /conforme se tiene a la CLÁUSULA OCTAVA/);
+  assert.match(text, /ASESOR ASOCIADO/);
+  assert.match(text, /Ana Agente/);
+  assert.doesNotMatch(text, /CLAUSURA|CONDIGNATARIO|PROPIETARO|táctica/);
+});
+
+test('v2: 14 cláusulas, viñetas, firmas (propietario y Bastet) y sin anexo', () => {
+  const blocks = T.renderBlocks(TEMPLATE_V2, BASE_V2, META);
+  assert.equal(blocks.filter((b) => b.type === 'clause').length, 14);
+  assert.equal(blocks.filter((b) => b.type === 'annex').length, 0);
+  assert.ok(blocks.filter((b) => b.type === 'bullet').length >= 20);
+  assert.equal(blocks.filter((b) => b.type === 'table').length, 2);
+  const withCo = T.renderBlocks(TEMPLATE_V2, { ...BASE_V2, tiene_copropietario: true, copropietario_nombre: 'Ana Quispe', copropietario_ci: '123456' }, META);
+  assert.equal(withCo.filter((b) => b.type === 'table').length, 2);
+  const text = T.blocksToPlain(withCo);
+  assert.match(text, /Ana Quispe con C\.I\. Nº 123456/);
+  assert.match(text, /JUAN PÉREZ MAMANI y ANA QUISPE de las generales/);
+});
+
+test('v2: el plazo que no es múltiplo de 30 días no inventa meses; renovación y apoderado opcionales', () => {
+  const t = renderV2({ plazo_dias: 100, dias_proteccion: 45, renovacion_automatica: false, tiene_apoderado: true, apoderado_nombre: 'Luis Rojas', apoderado_ci: '999', poder_numero: '12', poder_fecha: '2026-03-01', poder_notaria: '5' });
+  assert.match(t, /será de 100 días, mismo/);
+  assert.match(t, /dentro de los 45 días posteriores/);
+  assert.match(t, /concluirá de pleno derecho/);
+  assert.doesNotMatch(t, /renovado de forma tácita/);
+  assert.match(t, /representado legalmente por Luis Rojas/);
+  assert.match(renderV2({ plazo_dias: 30, dias_proteccion: 30 }), /de 30 días \(1 mes\)/);
+});
+
+test('v2: gravámenes y precio mínimo', () => {
+  const t = renderV2({ con_gravamenes: true, gravamenes_detalle: 'hipoteca a favor del Banco X', precio_minimo: 550000 });
+  assert.match(t, /sobre el inmueble pesa el siguiente gravamen: hipoteca a favor del Banco X/);
+  assert.match(t, /a partir de Bs 550\.000,00/);
+  assert.match(renderV2(), /libre de hipotecas u\/o gravámenes/);
+});
+
+test('v2: sigue exigiendo los datos (falla si falta el nombre del propietario)', () => {
+  assert.throws(() => T.renderBlocks(TEMPLATE_V2, { ...BASE_V2, propietario_nombre: '' }, META), /Falta el dato: propietario_nombre/);
+});

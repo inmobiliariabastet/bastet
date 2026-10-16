@@ -1,4 +1,4 @@
-/* PDF del contrato (pdfmake, en el navegador). A4, márgenes 2,5 cm, marca UNO · Bastet.
+/* PDF del contrato (pdfmake, en el navegador). Tamaño del membrete de Bastet (210 × 280 mm), que va de fondo en cada página.
    Entrada: bloques de contract-template.js. El PDF se genera siempre desde los datos guardados, así que
    volver a descargarlo es gratis y sale idéntico. Paleta del manual de marca; fuentes embebidas (contract-fonts.js). */
 (function (root) {
@@ -9,8 +9,13 @@
   // Paleta sin verde: ébano para los títulos, oro profundo para los acentos, tonos cálidos para lo secundario.
   const C = { ebony: '#1C160E', warmGrey: '#6B5E49', gold: '#F2B035', neutral: '#F8EBC8', ink: '#1A1A16', night: '#0F0C08', goldLight: '#F8DA8C', deepGold: '#8A5A12' };
   const MM = 72 / 25.4;
-  const PAGE_W = 595.28;
+  // Medidas del membrete oficial (MEMBRETE BASTET.pdf): 595,276 × 793,701 pt. Su logo ocupa hasta ~99 pt desde arriba
+  // y el pie con los datos de contacto empieza en ~745 pt, así que el texto vive entre esas dos franjas.
+  const PAGE_W = 595.276;
+  const PAGE_H = 793.701;
   const MARGIN_X = 25 * MM; // 2,5 cm
+  const MARGIN_TOP = 116;
+  const MARGIN_BOTTOM = 96;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -38,15 +43,15 @@
     return libsPromise;
   }
 
-  // PNG del logo -> data URL (para incrustarlo en el PDF)
+  // Imagen (membrete) -> data URL (para incrustarla en el PDF)
   async function fetchDataUrl(url) {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('No se pudo cargar el logo');
+    if (!res.ok) throw new Error('No se pudo cargar el membrete');
     const blob = await res.blob();
     return new Promise((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(r.result);
-      r.onerror = () => reject(new Error('No se pudo leer el logo'));
+      r.onerror = () => reject(new Error('No se pudo leer el membrete'));
       r.readAsDataURL(blob);
     });
   }
@@ -83,6 +88,8 @@
         return { text: b.text, style: 'clause', pageBreak: 'before', margin: [0, 0, 0, 10] };
       case 'spacer':
         return { text: ' ', margin: [0, 16, 0, 0] };
+      case 'bullet':
+        return { columns: [{ text: '•', width: 10, color: C.deepGold }, { text: runs(b.segs), style: 'body', margin: [0, 0, 0, 0] }], columnGap: 4, margin: [10, 0, 0, 4] };
       case 'note':
         return { text: runs(b.segs), style: 'note', margin: [0, 14, 0, 0] };
       case 'table':
@@ -131,7 +138,7 @@
   }
 
   function build(opts) {
-    const { blocks, number, code, agentName, logoDataUrl, voided } = opts;
+    const { blocks, number, code, agentName, letterheadDataUrl, voided } = opts;
     const verifyUrl = VERIFY_BASE + code;
     const content = [];
     blocks.forEach((b) => {
@@ -152,52 +159,52 @@
       merged = content.slice(0, start).concat([{ unbreakable: true, stack: group }], content.slice(lastSig + 1));
     }
 
-    // Un título de cláusula siempre viaja con el primer párrafo que le sigue (nunca queda solo al pie de una página)
-    const bound = [];
-    for (let i = 0; i < merged.length; i++) {
-      const cur = merged[i];
-      const next = merged[i + 1];
-      if (cur && cur.headlineLevel === 1 && next && !next.unbreakable && !next.pageBreak) { bound.push({ unbreakable: true, stack: [cur, next] }); i++; }
-      else bound.push(cur);
-    }
+    // Un título de cláusula nunca queda solo al pie de una página: pageBreakBefore (abajo) lo pasa a la siguiente.
+    // (No se ata al párrafo entero: con cláusulas largas dejaba media página en blanco.)
+    const bound = merged;
 
     return {
-      pageSize: 'A4',
+      pageSize: { width: PAGE_W, height: PAGE_H },
       // Un contrato anulado se puede volver a descargar, pero siempre sale marcado
       ...(voided ? { watermark: { text: 'ANULADO', color: '#A63D2F', opacity: 0.16, bold: true, fontSize: 120, font: 'Cormorant' } } : {}),
-      pageMargins: [MARGIN_X, 86, MARGIN_X, 72],
+      pageMargins: [MARGIN_X, MARGIN_TOP, MARGIN_X, MARGIN_BOTTOM],
       info: { title: 'Contrato de Exclusividad Nº ' + number, author: agentName, subject: 'Contrato de corretaje inmobiliario con exclusividad', creator: 'bastet.uno', producer: 'bastet.uno' },
       defaultStyle: { font: 'Jost', fontSize: 10.3, lineHeight: 1.4, color: C.ink },
-      background: (page) => ({
-        canvas: [
-          { type: 'rect', x: 0, y: 0, w: PAGE_W, h: page === 1 ? 70 : 34, color: C.night },
-          { type: 'rect', x: 0, y: page === 1 ? 70 : 34, w: PAGE_W, h: 2, color: C.gold },
-        ],
+      images: { membrete: letterheadDataUrl },
+      // Membrete de Bastet como fondo de TODAS las páginas (sello "Verificado por Bastet")
+      background: () => ({ chrome: true, image: 'membrete', width: PAGE_W, height: PAGE_H, absolutePosition: { x: 0, y: 0 } }),
+      header: (page) => (page === 1 ? { chrome: true, text: '' } : {
+        chrome: true,
+        text: 'CONTRATO DE EXCLUSIVIDAD · Nº ' + number,
+        color: C.warmGrey, fontSize: 8, alignment: 'right', characterSpacing: 0.8,
+        margin: [MARGIN_X, 34, MARGIN_X, 0],
       }),
-      header: (page) => (page === 1
-        ? { image: logoDataUrl, width: 112, absolutePosition: { x: MARGIN_X, y: 10 } }
-        : {
-          columns: [
-            { text: 'CONTRATO DE EXCLUSIVIDAD', color: C.goldLight, fontSize: 8.5, characterSpacing: 1.6, font: 'Cormorant', bold: true },
-            { text: 'Nº ' + number, color: C.goldLight, fontSize: 8.5, alignment: 'right', characterSpacing: 0.6 },
-          ],
-          margin: [MARGIN_X, 11, MARGIN_X, 0],
-        }),
       footer: (page, pages) => ({
-        margin: [MARGIN_X, 12, MARGIN_X, 0],
+        chrome: true,
+        margin: [MARGIN_X, 2, MARGIN_X, 0],
         columns: [
           {
+            chrome: true,
             width: '*',
             stack: [
-              { text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.warmGrey, lineHeight: 1.25 },
-              { text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.25 },
-              { text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 3, 0, 0] },
+              { chrome: true, text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.warmGrey, lineHeight: 1.2 },
+              { chrome: true, text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.2 },
+              { chrome: true, text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 2, 0, 0] },
             ],
           },
-          { qr: verifyUrl, fit: 40, foreground: C.ebony, alignment: 'right', width: 40 },
+          { chrome: true, qr: verifyUrl, fit: 32, foreground: C.ebony, alignment: 'right', width: 32 },
         ],
       }),
-      pageBreakBefore: (node, following) => node.headlineLevel === 1 && following.length === 0, // un título de cláusula nunca queda solo al final de página
+      // Un título de cláusula nunca queda solo al final de página. `following` también trae el encabezado, el pie y el fondo
+      // (pdfmake no conserva marcas propias en esos nodos): se descartan por su texto y por su posición (el pie comparte la misma altura).
+      pageBreakBefore: (node, following) => {
+        if (node.headlineLevel !== 1) return false;
+        const isText = (n, prefix) => typeof n.text === 'string' && n.text.startsWith(prefix);
+        const footerLine = following.find((n) => isText(n, 'Documento generado'));
+        const footerTop = footerLine && footerLine.startPosition ? footerLine.startPosition.top : null;
+        const body = following.filter((n) => !n.image && !isText(n, 'CONTRATO DE EXCLUSIVIDAD') && !(footerTop != null && n.startPosition && n.startPosition.top === footerTop));
+        return body.length === 0;
+      },
       content: bound,
       styles: {
         title: { font: 'Cormorant', bold: true, fontSize: 17, color: C.ebony, alignment: 'center', characterSpacing: 1.1, lineHeight: 1.15, margin: [0, 6, 0, 0] },

@@ -21,6 +21,13 @@
   const positive = (v) => { const n = Number(v); return isFinite(n) && n > 0; };
   // Literal / formato que devuelven '' (en vez de lanzar) cuando el dato aún no está: el modo estricto lo detecta después como "Falta el dato".
   const safeLiteral = (v) => { try { return v === '' || v == null ? '' : H.numberToLiteral(v); } catch (e) { return ''; } };
+  // 120 días -> " (4 meses)" (solo si son meses completos de 30 días; si no, nada)
+  const monthsText = (days) => {
+    const n = Number(days);
+    if (!isFinite(n) || n < 30 || n % 30 !== 0) return '';
+    const m = n / 30;
+    return ' (' + m + (m === 1 ? ' mes' : ' meses') + ')';
+  };
   const safeQty = (v) => (v === '' || v == null || !isFinite(Number(v)) ? '' : H.formatQty(v));
 
   /* ── Del formulario a las variables de la plantilla ──
@@ -60,6 +67,8 @@
       apoderado_nombre: str(f.apoderado_nombre), apoderado_ci: str(f.apoderado_ci), poder_numero: str(f.poder_numero),
       poder_fecha: f.poder_fecha ? H.dateToLong(f.poder_fecha) : '', poder_notaria: str(f.poder_notaria),
       tiene_copropietario: tieneCopropietario, copropietario_nombre: str(f.copropietario_nombre), copropietario_ci: str(f.copropietario_ci),
+      sin_copropietario: !tieneCopropietario,
+      propietario_nombre_upper: str(f.propietario_nombre).toUpperCase(), copropietario_nombre_upper: str(f.copropietario_nombre).toUpperCase(),
       numeral_agente: tieneCopropietario ? '1.3' : '1.2',
       agente_nombre: str(f.agente_nombre), agente_ci: str(f.agente_ci), agente_registro: str(f.agente_registro),
       agencia_nombre: str(f.agencia_nombre), agencia_domicilio: str(f.agencia_domicilio), agente_telefono: str(f.agente_telefono), agente_email: str(f.agente_email),
@@ -81,6 +90,7 @@
       precio_minimo_literal: positive(precioMin) ? H.moneyToWords(precioMin, moneda) : '',
 
       // Plazo
+      plazo_meses_texto: plazoOk ? monthsText(plazo) : '', proteccion_meses_texto: monthsText(f.dias_proteccion),
       plazo_dias: plazoOk ? String(plazo) : '', plazo_dias_literal: plazoOk ? H.numberToLiteral(plazo) : '',
       fecha_inicio_literal: H.dateToLiteral(inicio), fecha_fin_literal: H.dateToLiteral(fin), fecha_firma_literal: H.dateToLiteral(inicio),
       renovacion_automatica: renovacion, sin_renovacion_automatica: !renovacion, dias_preaviso: String(f.dias_preaviso ?? ''),
@@ -133,10 +143,14 @@
     return text;
   }
 
+  // Variables que pueden quedar vacías sin que sea un dato faltante (texto opcional pegado a otra frase).
+  const OPTIONAL_VARS = new Set(['plazo_meses_texto', 'proteccion_meses_texto']);
+
   function resolveVariables(text, ctx, mark, placeholder) {
     return text.replace(/\{\{\s*([a-z0-9_]+)\s*\}\}/g, (all, name) => {
       if (!(name in ctx)) throw new Error('Variable sin resolver: ' + name);
       let v = ctx[name];
+      if (OPTIONAL_VARS.has(name)) return v ? (mark ? MARK_OPEN + v + MARK_CLOSE : String(v)) : '';
       if (typeof v === 'boolean') throw new Error('Falta el dato: ' + name);
       if ((v === '' || v == null) && placeholder) v = placeholder;       // vista previa: línea para completar
       if (v === '' || v == null) throw new Error('Falta el dato: ' + name);
@@ -207,6 +221,7 @@
         blocks.push({ type: 'table', header, align, rows: rows.map((r) => r.map(parseInline)) });
         continue;
       }
+      if (/^-\s+\S/.test(t)) { blocks.push({ type: 'bullet', segs: parseInline(t.replace(/^-\s+/, '')) }); continue; }
       if (/^\*[^*].*\*$/.test(t)) { blocks.push({ type: 'note', segs: parseInline(t.slice(1, -1)) }); continue; }
       if (/^\*\*Nº .*\*\*$/.test(t)) { blocks.push({ type: 'number', segs: parseInline(t) }); continue; }
       blocks.push({ type: 'para', segs: parseInline(t) });
@@ -231,6 +246,7 @@
         case 'clause': return '<h2 class="cdoc-clause">' + escapeHtml(b.text) + '</h2>';
         case 'annex': return '<h2 class="cdoc-clause cdoc-annex">' + escapeHtml(b.text) + '</h2>';
         case 'spacer': return '<div class="cdoc-spacer"></div>';
+        case 'bullet': return '<p class="cdoc-para cdoc-bullet">' + segsHtml(b.segs) + '</p>';
         case 'note': return '<p class="cdoc-note">' + segsHtml(b.segs) + '</p>';
         case 'table': {
           const cell = (tag, c, i) => '<' + tag + ' style="text-align:' + (b.align[i] || 'left') + '">' + segsHtml(c) + '</' + tag + '>';

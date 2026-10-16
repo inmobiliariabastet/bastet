@@ -107,6 +107,8 @@
 .cdoc .cdoc-annex { margin-top: 28px; padding-top: 14px; border-top: 2px solid var(--oro); }
 .cdoc p { margin: 0 0 8px; }
 .cdoc .cdoc-note { margin-top: 14px; text-align: center; font-size: 11px; color: #6B5E49; font-style: italic; }
+.cdoc .cdoc-bullet { position: relative; margin-left: 16px; }
+.cdoc .cdoc-bullet::before { content: "•"; position: absolute; left: -14px; color: #8A5A12; }
 .cdoc .cdoc-spacer { height: 30px; }
 .cdoc .cdoc-table { width: 100%; margin: 6px 0 14px; border-collapse: collapse; }
 .cdoc .cdoc-table td, .cdoc .cdoc-table th { padding: 6px 8px; font-size: 12px; vertical-align: top; overflow-wrap: anywhere; }

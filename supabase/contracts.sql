@@ -162,7 +162,7 @@ begin
     raise exception 'No autorizado' using errcode = '42501';
   end if;
   if char_length(key) < 8 or char_length(key) > 80 then raise exception 'Llave de idempotencia inválida' using errcode = '22023'; end if;
-  if p_template_version is distinct from 'exclusividad-v1' then raise exception 'Plantilla no disponible' using errcode = '22023'; end if;
+  if p_template_version is null or p_template_version not in ('exclusividad-v1', 'exclusividad-v2') then raise exception 'Plantilla no disponible' using errcode = '22023'; end if;
 
   -- Dos peticiones simultáneas con la misma llave se ejecutan una detrás de otra
   perform pg_advisory_xact_lock(hashtext(uid::text || ':' || key));
