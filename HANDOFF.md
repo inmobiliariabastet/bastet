@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Título de Estadías: «Encuentra dónde alojarte en Bolivia» (2026-10-16)**: el título de `estadias.html` incluye «en Bolivia» (se quitó de la frase de apoyo para no repetirlo). Sin SQL.
+
 - ✅ **Razón social: «Bastet Real State S.R.L.» (2026-10-16)**: actualizada en `privacidad.html` (responsable del tratamiento, descripción, pie y fecha de actualización 16 de octubre de 2026), `dmca.html` (agente designado y pie), y en los pies de `index.html`, `marketplace.html`, `estadias.html`, `verificar.html`, `app.html` y `supabase/email-templates/marketing-footer.html`. Sin SQL.
 
 - ✅ **Pantalla «Instala la app»: una sola imagen (2026-10-16, `app.css?v=20261027a`)**: el encabezado de `app.html` usa la nueva maqueta (`assets/img/app-bastet.webp` 1536×1024 y `-800.webp`, bordes redondeados y sombra, ya sin el fondo negro); se eliminaron las dos maquetas anteriores (`mockup-telefonos*.webp` y `mockup-tablet*.webp`) y la sección «Para agentes» quedó solo con texto, centrada. Además se actualizaron dos viñetas desactualizadas de esa sección (ya no hablan de publicaciones gratis ni cuenta regresiva: ahora plan, propiedades activas, destacados y prueba de 7 días para propietarios). Sin SQL.
