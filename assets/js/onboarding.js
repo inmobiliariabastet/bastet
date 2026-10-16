@@ -88,20 +88,28 @@
       if (error) { buttons.forEach((b) => { b.disabled = false; }); return fail(error.message || 'No se pudo guardar tu registro.'); }
       close();
       if (window.UnoPublications) await window.UnoPublications.refresh();
-      if (mode === 'plan' && canTrial) {
-        const tab = document.querySelector('.admin-tab[data-tab="subscription"]');
-        if (tab) tab.click();
-      }
+      // sendToPlans() (más abajo) lleva a Suscripción a quien quedó sin plan; con prueba iniciada se queda en el panel
     });
     const first = form.querySelector('#ob-name'); if (first) first.focus();
   }
 
   // Solo se exige a quien NO es administrador y la base de datos dice expresamente que aún no se registró
+  // Quien ya se registró pero no tiene plan vigente (nunca eligió uno, o su prueba/plan venció) entra directo a «Suscripción»
+  // para elegir un plan. Se hace una sola vez por carga del panel, para no quitarle el control después.
+  let sentToPlans = false;
+  function sendToPlans(s) {
+    if (sentToPlans || !s || s.exempt === true || s.registered !== true) return;
+    if (s.status !== 'none' && s.status !== 'expired') return;
+    const tab = document.querySelector('.admin-tab[data-tab="subscription"]');
+    if (!tab) return;
+    sentToPlans = true;
+    setTimeout(() => tab.click(), 600);          // después de que el panel termine de mostrar su pestaña inicial
+  }
   document.addEventListener('uno:subscription', (e) => {
     const s = e.detail;
-    if (s && s.exempt !== true && s.registered === false) open(s); else close();
+    if (s && s.exempt !== true && s.registered === false) open(s); else { close(); sendToPlans(s); }
   });
   // Si el plan ya se cargó antes de que este archivo se ejecutara, no esperar al próximo evento
   const early = window.UnoPublications && window.UnoPublications.subscription;
-  if (early && early.exempt !== true && early.registered === false) open(early);
+  if (early && early.exempt !== true && early.registered === false) open(early); else sendToPlans(early);
 })();
