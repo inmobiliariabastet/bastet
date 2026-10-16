@@ -1499,36 +1499,4 @@ profileForm.addEventListener('submit', async (e) => {
   profileFormSuccess.classList.remove('hidden');
 });
 
-/* ── Mi cuenta: cambiar contraseña ── */
-document.getElementById('change-password-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById('change-password-error');
-  const successEl = document.getElementById('change-password-success');
-  errorEl.classList.add('hidden');
-  successEl.classList.add('hidden');
-
-  const password = document.getElementById('new-password').value;
-  const confirmPassword = document.getElementById('new-password-confirm').value;
-  if (password !== confirmPassword) {
-    errorEl.textContent = 'Las contraseñas no coinciden.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  const btn = document.getElementById('change-password-submit');
-  btn.disabled = true;
-  const { error } = await supabaseClient.auth.updateUser({ password });
-  btn.disabled = false;
-
-  if (error) {
-    errorEl.textContent = traduceAuthError(error.message);
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  successEl.textContent = 'Contraseña actualizada.';
-  successEl.classList.remove('hidden');
-  document.getElementById('change-password-form').reset();
-});
-
 init();
