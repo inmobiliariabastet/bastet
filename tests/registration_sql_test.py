@@ -31,6 +31,9 @@ cur.execute(stub); cur.execute(core)
 su("select 1")
 for _ in range(2): cur.execute(tail)
 print("esquema completo corrido x2")
+import os
+if os.environ.get("DROP_CREDITS"):
+    su("select 1"); cur.execute(open(R_ + "drop-credits.sql", encoding="utf-8").read()); print("drop-credits.sql aplicado: las pruebas siguientes corren SIN el sistema de créditos")
 cur.execute("insert into auth.users(email,invited_at) values ('admin@x','2026-01-01'),('own@x','2026-01-01'),('own2@x','2026-01-01'),('ag1@x','2026-01-01'),('ag2@x','2026-01-01'),('agx@x','2026-01-01'),('emp@x','2026-01-01'),('plain@x','2026-01-01') returning id")
 adm, own, own2, ag1, ag2, agx, emp, plain = [r[0] for r in cur.fetchall()]
 su("update public.profiles set role='admin' where id=%s", (adm,))

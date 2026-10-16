@@ -39,6 +39,9 @@ su("update public.profiles set role='admin' where id=%s", (adm,))
 su("update public.profiles set is_active=false where id=%s", (oldoff,))
 su("insert into properties(id,title,location,price,area,rooms,baths,owner_id) values (gen_random_uuid(),'Vieja','SC','1','1','1','1',%s)", (old,))
 for _ in range(2): cur.execute(subs_sql)           # idempotente
+import os
+if os.environ.get("DROP_CREDITS"):
+    su("select 1"); cur.execute(open(R_ + "drop-credits.sql", encoding="utf-8").read()); print("drop-credits.sql aplicado: las pruebas siguientes corren SIN el sistema de créditos")
 print("SQL de suscripciones corrido x2")
 
 cur.execute("insert into auth.users(email,invited_at) values ('p@x','2026-01-01'),('a@x','2026-01-01'),('e@x','2026-01-01'),('n@x','2026-01-01'),('p2@x','2026-01-01') returning id")
@@ -237,7 +240,7 @@ chk("sin suscripción: no genera contrato", as_(nosub, CC, (DATA, 'key-nosub-000
 r = as_(prop, CC, (DATA, 'key-prop-00001')); chk("plan Propietario: no incluye el contrato de exclusividad", r, True); eq("…mensaje del plan", 'no incluye' in r[1], True)
 grant(prop2, 'agente')
 r = as_(prop2, CC, (DATA, 'key-agent-0001')); chk("plan Agente: genera el contrato", r, False)
-eq("…sin cobrar créditos", (r[1][0][0]['charged'], one("select credits_charged from exclusivity_contracts where agent_id=%s", (prop2,)), one("select count(*) from credit_ledger where user_id=%s", (prop2,))), (False, 0, 0))
+eq("…sin cobrar créditos", (r[1][0][0]['charged'], one("select credits_charged from exclusivity_contracts where agent_id=%s", (prop2,)), (0 if os.environ.get("DROP_CREDITS") else one("select count(*) from credit_ledger where user_id=%s", (prop2,)))), (False, 0, 0))
 chk("misma llave: devuelve el mismo contrato", as_(prop2, CC, (DATA, 'key-agent-0001')), False)
 eq("…sin duplicar", one("select count(*) from exclusivity_contracts where agent_id=%s", (prop2,)), 1)
 chk("admin genera contrato sin plan", as_(adm, CC, (DATA, 'key-admin-0001')), False)
@@ -246,8 +249,9 @@ chk("plan Agente vencido: no genera contrato", as_(prop2, CC, (DATA, 'key-agent-
 
 # ── Créditos: ya no se compran; el historial queda
 chk("comprar créditos: retirado", as_(nosub, "select request_credit_pack('esencial','qr')"), True)
-su("insert into credit_wallets(user_id,balance) values (%s,40)", (nosub,))
-eq("el saldo antiguo se conserva", as_(nosub, "select balance from credit_wallets where user_id=%s", (nosub,))[1][0][0], 40)
+if not os.environ.get("DROP_CREDITS"):
+    su("insert into credit_wallets(user_id,balance) values (%s,40)", (nosub,))
+    eq("el saldo antiguo se conserva", as_(nosub, "select balance from credit_wallets where user_id=%s", (nosub,))[1][0][0], 40)
 
 # ── Renovación automática antigua: ya no cobra nada
 eq("process_auto_renewals no hace nada", as_(nosub, "select process_auto_renewals()")[1][0][0], 0)
