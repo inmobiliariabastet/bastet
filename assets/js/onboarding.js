@@ -47,7 +47,6 @@
               ? '<button type="submit" class="btn btn-accent" data-ob="trial" id="ob-btn-trial" hidden>Probar 7 días gratis</button><button type="submit" class="btn btn-primary" data-ob="plan" id="ob-btn-plan">Guardar y elegir mi plan</button>'
               : '<button type="submit" class="btn btn-accent" data-ob="plan">Guardar y continuar</button>') +
           '</div>' +
-          (canTrial ? '<p class="ob-fine">Si eliges un plan desde el inicio, no se aplica la prueba gratuita.</p>' : '') +
           '<button type="button" class="ob-logout" id="ob-logout">Salir de esta cuenta</button>' +
         '</form>' +
       '</div>';
