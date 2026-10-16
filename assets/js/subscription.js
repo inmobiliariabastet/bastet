@@ -96,7 +96,7 @@
       return '<section class="cr-card sb-card"><div class="cr-left"><span class="cr-eyebrow">Tu plan</span><div class="cr-figure"><b class="sb-plan-name">' + (expired ? (s.source === 'trial' ? 'Prueba terminada' : 'Vencido') : 'Sin plan') + '</b></div>' +
         '<p class="cr-sub">' + (expired ? (s.source === 'trial' ? 'Tu prueba gratuita terminó el ' : 'Tu plan ' + esc(s.plan.name) + ' terminó el ') + fdate(s.period_end) + (s.source === 'trial' ? '. Elige un plan para seguir publicando; tus propiedades dejaron de mostrarse.' : '. Tus propiedades dejaron de mostrarse.') : 'Elige un plan para publicar y destacar tus propiedades.') + '</p></div>' +
         '<div class="cr-right"><span class="cr-eyebrow cr-eyebrow--soft">Cómo funciona</span><ol class="sb-steps"><li>Elige un plan abajo y solicítalo.</li><li>Paga por transferencia, QR o efectivo.</li><li>Un administrador confirma tu pago y el plan se activa por 30 días.</li></ol>' +
-        (s.trial_eligible && s.registered ? '<button type="button" class="btn btn-accent btn-sm sb-trial" data-sb="trial">Probar 7 días gratis</button><p class="cr-sub">Incluye las funciones del plan que corresponde a tu tipo de cuenta. Solo una vez y si aún no solicitaste un plan.</p>' : '') + '</div></section>';
+        (s.trial_eligible && s.registered && s.interest === 'propietario' ? '<button type="button" class="btn btn-accent btn-sm sb-trial" data-sb="trial">Probar 7 días gratis</button><p class="cr-sub">Prueba de 7 días con el plan Propietario, solo para cuentas de propietario. Solo una vez y si aún no solicitaste un plan.</p>' : '') + '</div></section>';
     }
     const pl = s.plan, u = s.usage;
     const days = Math.max(Math.ceil((new Date(s.period_end).getTime() - Date.now()) / DAY), 0);
