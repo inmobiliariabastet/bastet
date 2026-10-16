@@ -1,6 +1,6 @@
 /* Herramienta "Contrato de Exclusividad" del panel de agentes.
    - Asistente de 4 pasos + vista previa en vivo (el contrato tal cual saldrá en el PDF).
-   - Cobro 100% del servidor: la función SQL create_exclusivity_contract descuenta los créditos, numera y guarda en una
+   - Sin cobro en créditos: la función SQL create_exclusivity_contract exige un plan vigente (Agente o Empresa), numera y guarda en una
      sola transacción. Antes de cobrar se hace una prueba de generación del PDF; si falla, no se cobra.
    - El PDF se genera siempre desde los datos guardados: volver a descargarlo es gratis.
    Usa el cliente global `supabaseClient` y las bibliotecas de assets/js/contracts/. */
@@ -57,7 +57,7 @@
   const state = {
     uid: null, ready: false, loading: false, view: 'new', step: 0,
     agent: { nombre: '', ci: '', telefono: '', email: '', registro: '', agencia_nombre: AGENCY.nombre, agencia_domicilio: AGENCY.domicilio },
-    editAgent: false, balance: 0, cost: 5, templates: {}, contracts: [], search: '',
+    editAgent: false, sub: null, templates: {}, contracts: [], search: '',
     form: null, errors: {}, touchedMoneda: false, previewOpen: false, draft: null,
     idem: null, busy: false, success: null, previewTimer: null, saveTimer: null,
     isAdmin: false, allContracts: [], people: {}, fa: { q: '', agent: '', op: '', status: '' },
@@ -314,8 +314,25 @@
 
   /* ───────── Vista general ───────── */
   const money = (n) => Number(n).toLocaleString('es-BO');
+  // ¿Puede generar contratos? El administrador siempre; los demás con un plan vigente que incluya las herramientas de agente.
+  function canGenerate() {
+    const sub = state.sub;
+    if (!sub) return true;            // sin el SQL de suscripciones no se bloquea nada desde aquí (la base de datos decide)
+    if (sub.exempt) return true;
+    return (sub.status === 'active' || sub.status === 'canceling') && !!(sub.plan && sub.plan.agent_tools);
+  }
+  function planMessage() {
+    const sub = state.sub;
+    if (!sub || sub.exempt) return '';
+    if (sub.status === 'none') return 'Necesitas un plan Agente o Empresa para generar contratos.';
+    if (sub.status === 'expired') return 'Tu plan venció. Renueva tu suscripción para generar contratos.';
+    if (!(sub.plan && sub.plan.agent_tools)) return 'Tu plan ' + sub.plan.name + ' no incluye el contrato de exclusividad (plan Agente o Empresa).';
+    return '';
+  }
   function balanceChip() {
-    return '<div class="ct-balance" title="Saldo de créditos"><i></i><span>Saldo</span><b>' + state.balance + ' cr.</b><button type="button" class="btn btn-ghost btn-sm" data-ct="buy">Comprar créditos</button></div>';
+    const sub = state.sub;
+    const label = !sub ? '' : sub.exempt ? 'Administrador' : (sub.plan ? 'Plan ' + sub.plan.name : 'Sin plan');
+    return '<div class="ct-balance" title="Tu plan"><i></i><span>' + esc(label) + '</span>' + (canGenerate() ? '<b>Incluido</b>' : '<button type="button" class="btn btn-ghost btn-sm" data-ct="buy">Ver planes</button>') + '</div>';
   }
 
   function render() {
@@ -340,13 +357,14 @@
     const stepHtml = [stepOperation, stepOwner, stepProperty, stepConditions][s]();
     const progress = '<ol class="ct-progress" aria-label="Pasos">' + STEPS.map((t, i) =>
       '<li class="' + (i === s ? 'is-current' : i < s ? 'is-done' : '') + '"><button type="button" data-ct="go-step" data-step="' + i + '"' + (i > s ? ' tabindex="-1"' : '') + '><span>' + (i < s ? '✓' : i + 1) + '</span><em>' + t + '</em></button></li>').join('') + '</ol>';
-    const insufficient = state.balance < state.cost;
+    const blocked = !canGenerate();
     const nav = '<div class="ct-nav">' + (s > 0 ? '<button type="button" class="btn btn-ghost" data-ct="prev">← Atrás</button>' : '<span></span>') +
       (s < STEPS.length - 1
         ? '<button type="button" class="btn btn-accent" data-ct="next">Siguiente →</button>'
-        : '<button type="button" class="btn btn-accent ct-generate" data-ct="generate">Generar contrato · ' + state.cost + ' créditos</button>') + '</div>' +
-      (s === STEPS.length - 1 ? '<p class="ct-balance-note' + (insufficient ? ' is-low' : '') + '">Tu saldo: <b>' + state.balance + ' créditos</b>' +
-        (insufficient ? ' — no alcanza para generar este contrato. <button type="button" class="ct-link" data-ct="buy">Comprar créditos</button>' : '') + '</p>' : '');
+        : '<button type="button" class="btn btn-accent ct-generate" data-ct="generate">Generar contrato</button>') + '</div>' +
+      (s === STEPS.length - 1 ? '<p class="ct-balance-note' + (blocked ? ' is-low' : '') + '">' + (blocked
+        ? esc(planMessage()) + ' <button type="button" class="ct-link" data-ct="buy">Ver planes</button>'
+        : 'Incluido en tu plan: no tiene costo en créditos.') + '</p>' : '');
     return draft +
       '<div class="ct-mobile-toggle" role="tablist"><button type="button" class="ct-seg-btn' + (state.previewOpen ? '' : ' is-on') + '" data-ct="show-form">Formulario</button><button type="button" class="ct-seg-btn' + (state.previewOpen ? ' is-on' : '') + '" data-ct="show-preview">Vista previa</button></div>' +
       '<div class="ct-layout' + (state.previewOpen ? ' show-preview' : '') + '">' +
@@ -361,7 +379,7 @@
     const canShare = !!(navigator.canShare && s.blob && navigator.canShare({ files: [new File([s.blob], s.fileName, { type: 'application/pdf' })] }));
     return '<div class="ct-success"><div class="ct-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l8 8 15-17"/></svg></div>' +
       '<h2>¡Contrato listo para firmar!</h2><p class="ct-success-num">' + esc(s.number) + '</p>' +
-      '<p class="credits-muted">Se descontaron ' + s.cost + ' créditos. Saldo actual: <b>' + state.balance + ' cr.</b> Volver a descargarlo desde “Mis contratos” es gratis.</p>' +
+      '<p class="credits-muted">Incluido en tu plan. Volver a descargarlo desde “Mis contratos” es gratis.</p>' +
       (s.downloadFailed ? '<p class="form-error">La descarga automática no funcionó, pero tu contrato quedó guardado. Descárgalo aquí abajo (gratis).</p>' : '') +
       '<div class="ct-success-actions"><button type="button" class="btn btn-accent" data-ct="download-success">Descargar PDF</button>' +
       (canShare ? '<button type="button" class="btn btn-primary" data-ct="share-success">Compartir por WhatsApp</button>' : '') +
@@ -445,7 +463,7 @@
     if (!c) return;
     openOverlay('<h2>Anular contrato</h2>' +
       '<p><b>' + esc(c.contract_number) + '</b> · ' + esc(c.data.propietario_nombre) + '<br><span class="credits-muted">Agente: ' + esc(agentLabel(c.agent_id)) + '</span></p>' +
-      '<div class="ct-warn">Esto <b>no se puede deshacer</b> desde el panel. No devuelve los créditos. La página de verificación mostrará “Anulado” y el PDF saldrá con la marca ANULADO. El agente verá el motivo.</div>' +
+      '<div class="ct-warn">Esto <b>no se puede deshacer</b> desde el panel.  La página de verificación mostrará “Anulado” y el PDF saldrá con la marca ANULADO. El agente verá el motivo.</div>' +
       '<div class="field"><label for="ct-void-reason">Motivo de la anulación</label><textarea id="ct-void-reason" rows="3" maxlength="300" placeholder="Ej: Datos del propietario incorrectos; se emitió uno nuevo"></textarea></div>' +
       '<p id="ct-modal-error" class="form-error hidden"></p>' +
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cancelar</button><button type="button" class="btn btn-danger" id="ct-confirm-void" data-ct="confirm-void" data-id="' + esc(id) + '">Anular contrato</button></div>');
@@ -523,22 +541,19 @@
       const { data: auth } = await supabaseClient.auth.getUser();
       state.uid = auth && auth.user && auth.user.id;
       if (!state.uid) { host.innerHTML = '<p class="property-empty">Inicia sesión para usar esta herramienta.</p>'; return; }
-      const [prof, legal, wallet, price, list, tpl] = await Promise.all([
+      const [prof, legal, subRes, list, tpl] = await Promise.all([
         supabaseClient.from('profiles').select('display_name,email,role').eq('id', state.uid).maybeSingle(),
         supabaseClient.from('agent_legal_profiles').select('ci,phone,registration').eq('user_id', state.uid).maybeSingle(),
-        supabaseClient.from('credit_wallets').select('balance').eq('user_id', state.uid).maybeSingle(),
-        supabaseClient.from('credit_tool_prices').select('cost').eq('code', TOOL_CODE).maybeSingle(),
+        supabaseClient.rpc('my_subscription'),
         contractsQuery(true, 300),
         Promise.all(TEMPLATE_VERSIONS.map((v) => (state.templates[v] ? Promise.resolve(null) : fetch(asset('contracts/' + v + '.md')).then((r) => { if (!r.ok) throw new Error('No se pudo cargar la plantilla del contrato'); return r.text(); })))),
       ]);
       if (list.error) throw list.error;
       TEMPLATE_VERSIONS.forEach((v, i) => { if (tpl[i]) state.templates[v] = tpl[i]; });
-      state.balance = (wallet.data && wallet.data.balance) || 0;
-      state.cost = (price.data && price.data.cost) || 5;
+      state.sub = subRes.error ? null : subRes.data;
       state.contracts = list.data || [];
       state.isAdmin = !!(prof.data && prof.data.role === 'admin');
       if (state.isAdmin) await loadAdminData();
-      const costEl = document.getElementById('ct-cost'); if (costEl) costEl.textContent = state.cost;
       if (!state.ready) {
         const saved = (() => { try { return JSON.parse(localStorage.getItem(agencyKey()) || 'null') || {}; } catch (e) { return {}; } })();
         state.agent = {
@@ -554,11 +569,6 @@
     } catch (e) {
       host.innerHTML = '<p class="form-error">No se pudo cargar la herramienta. ' + esc((e && e.message) || '') + '</p>';
     } finally { state.loading = false; }
-  }
-
-  async function refreshBalance() {
-    const { data } = await supabaseClient.from('credit_wallets').select('balance').eq('user_id', state.uid).maybeSingle();
-    state.balance = (data && data.balance) || 0;
   }
 
   /* ───────── Mensajes ───────── */
@@ -636,21 +646,19 @@
       state.idem = saved && saved.json === json && saved.key ? saved : { key: (crypto.randomUUID ? crypto.randomUUID() : 'k-' + Date.now() + '-' + Math.random().toString(36).slice(2)), json };
     }
     writeIdem(state.idem);
-    const after = state.balance - state.cost;
-    if (state.balance < state.cost) { insufficientModal(state.balance); return; }
+    if (!canGenerate()) { noPlanModal(); return; }
     const o = openOverlay('<h2>Generar contrato</h2>' +
-      '<p>Se descontarán <b>' + state.cost + ' créditos</b> de tu saldo.</p>' +
-      '<div class="ct-sum"><div><span>Saldo actual</span><b>' + state.balance + '</b></div><div><span>Costo del contrato</span><b>−' + state.cost + '</b></div><div><span>Saldo después</span><b>' + after + '</b></div></div>' +
-      '<p class="credits-muted">Descargarás el PDF listo para firmar. Volver a descargarlo después es gratis.</p>' +
+      '<p>El contrato está <b>incluido en tu plan</b>: no se descuenta nada.</p>' +
+      '<p class="credits-muted">Descargarás el PDF listo para firmar, con el membrete de Bastet. Volver a descargarlo después es gratis.</p>' +
       '<p id="ct-modal-error" class="form-error hidden"></p>' +
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Revisar</button><button type="button" class="btn btn-accent" id="ct-confirm" data-ct="confirm-generate">Generar y descargar</button></div>');
     const btn = o.querySelector('#ct-confirm'); if (btn) btn.focus();
   }
 
-  function insufficientModal(balance) {
-    openOverlay('<h2>Saldo insuficiente</h2><p>Este contrato cuesta <b>' + state.cost + ' créditos</b> y tu saldo es <b>' + balance + '</b>.</p>' +
-      '<p class="credits-muted">Tu borrador se conserva: compra créditos y vuelve para generar el contrato.</p>' +
-      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Comprar créditos</button></div>');
+  function noPlanModal() {
+    openOverlay('<h2>Necesitas un plan</h2><p>' + esc(planMessage()) + '</p>' +
+      '<p class="credits-muted">Tu borrador se conserva: elige un plan y vuelve para generar el contrato.</p>' +
+      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Ver planes</button></div>');
   }
 
   async function prepareDoc(data, number, code, voided, version) {
@@ -676,18 +684,14 @@
       const version = templateVersionFor(data.operacion);
       const dry = await prepareDoc(data, 'BST-CE-0000-0000', 'XXXXXXXX', false, version);
       await P.getBlob(dry);
-      // 2) Cobro + numeración + guardado, todo en el servidor y en una sola transacción
-      setBtn('Cobrando y guardando…', true);
+      // 2) Numeración + guardado, todo en el servidor y en una sola transacción (el plan lo cubre; no hay cobro)
+      setBtn('Guardando…', true);
       const { data: res, error } = await supabaseClient.rpc('create_exclusivity_contract', { p_data: data, p_idempotency_key: state.idem.key, p_template_version: version });
       if (error) {
         const msg = String(error.message || '');
-        if (/Saldo insuficiente/i.test(msg)) {
-          const m = /balance=(\d+)/.exec(String(error.details || ''));
-          closeOverlay(); insufficientModal(m ? Number(m[1]) : state.balance); return;
-        }
+        if (/suscripci[oó]n|plan .* no incluye/i.test(msg)) { closeOverlay(); noPlanModal(); return; }
         throw new Error(/No autorizado/i.test(msg) ? 'Tu sesión no tiene permiso para generar contratos.' : msg || 'No se pudo generar el contrato.');
       }
-      state.balance = res.balance;
       // 3) PDF definitivo con el número y el código reales
       setBtn('Descargando…', true);
       let blob = null; let downloadFailed = false;
@@ -699,12 +703,12 @@
       clearDraft();
       state.idem = null;
       writeIdem(null);
-      state.success = { number: res.contract_number, code: res.verification_code, cost: state.cost, data, blob, fileName: name, downloadFailed };
+      state.success = { number: res.contract_number, code: res.verification_code, data, blob, fileName: name, downloadFailed };
       closeOverlay();
       await loadContractsOnly();
       render();
     } catch (e) {
-      err.textContent = (e && e.message) || 'No se pudo generar el contrato. No se cobró nada.';
+      err.textContent = (e && e.message) || 'No se pudo generar el contrato.';
       err.classList.remove('hidden');
       setBtn('Intentar de nuevo', false);
     } finally { state.busy = false; }
@@ -807,7 +811,7 @@
       case 'generate': generate(); break;
       case 'confirm-generate': confirmGenerate(); break;
       case 'close-overlay': closeOverlay(); break;
-      case 'buy': closeOverlay(); { const tab = document.querySelector('.admin-tab[data-tab="credits"]'); if (tab) tab.click(); } break;
+      case 'buy': closeOverlay(); { const tab = document.querySelector('.admin-tab[data-tab="subscription"]'); if (tab) tab.click(); } break;
       case 'show-preview': state.previewOpen = true; document.querySelector('.ct-layout').classList.add('show-preview'); document.querySelectorAll('.ct-mobile-toggle .ct-seg-btn').forEach((x, i) => x.classList.toggle('is-on', i === 1)); renderPreview(); break;
       case 'show-form': state.previewOpen = false; document.querySelector('.ct-layout').classList.remove('show-preview'); document.querySelectorAll('.ct-mobile-toggle .ct-seg-btn').forEach((x, i) => x.classList.toggle('is-on', i === 0)); break;
       case 'edit-agent': state.editAgent = true; render(); break;

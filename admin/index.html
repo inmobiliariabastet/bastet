@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="../assets/css/admin.css?v=20261019a">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261018e">
+<link rel="stylesheet" href="../assets/css/subscription.css?v=20261021a">
 <link rel="stylesheet" href="../assets/css/contracts.css?v=20261019e">
 </head>
 <body>
@@ -107,9 +108,9 @@
       <div class="admin-nav-group">Cobranzas</div>
       <button type="button" class="admin-tab" data-tab="collections"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg>Comisiones</button>
       <div class="admin-nav-group">Herramientas</div>
-      <button type="button" class="admin-tab" data-tab="contracts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Contrato de Exclusividad <span class="tab-count" id="contracts-menu-cost" title="Costo por contrato">5 cr.</span></button>
+      <button type="button" class="admin-tab" data-tab="contracts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Contrato de Exclusividad</button>
       <div class="admin-nav-group">Cuenta</div>
-      <button type="button" class="admin-tab" data-tab="credits"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5C9.5 8.5 10.6 8 12 8s2.5.6 2.5 1.7c0 2.4-5 1.4-5 4 0 1.1 1.1 1.8 2.5 1.8s2.5-.6 2.5-1.6"/></svg>Créditos</button>
+      <button type="button" class="admin-tab" data-tab="subscription"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg>Suscripción</button>
       <button type="button" class="admin-tab" data-tab="analytics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analítica</button>
       <button type="button" class="admin-tab" data-tab="account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>Mi cuenta</button>
       <div class="admin-nav-group admin-only-tab hidden">Administración</div>
@@ -155,7 +156,7 @@
         <button id="new-property-btn" class="btn btn-accent">+ Nueva propiedad</button>
       </div>
 
-      <section id="pub-quota" class="pq-card hidden" aria-live="polite" aria-label="Publicaciones gratis este mes"></section>
+      <section id="pub-quota" class="pq-card hidden" aria-live="polite" aria-label="Tu plan"></section>
 
       <div id="property-list" class="property-list"></div>
     </div>
@@ -202,7 +203,7 @@
       <div class="admin-toolbar">
         <div>
           <h1>Contrato de Exclusividad</h1>
-          <p class="admin-toolbar-hint">Genera y descarga en 1 minuto un contrato de corretaje con exclusividad, listo para firmar. Cada contrato descargado cuesta <b id="ct-cost">5</b> créditos; volver a descargarlo es gratis.</p>
+          <p class="admin-toolbar-hint">Genera y descarga en 1 minuto un contrato de corretaje con exclusividad, listo para firmar. Está incluido en los planes Agente y Empresa; volver a descargarlo es gratis.</p>
         </div>
       </div>
       <div id="contracts-root"></div>
@@ -219,14 +220,14 @@
       <div id="analytics-table" class="property-list"></div>
     </div>
 
-    <div id="tab-panel-credits" class="tab-panel hidden">
+    <div id="tab-panel-subscription" class="tab-panel hidden">
       <div class="admin-toolbar">
         <div>
-          <h1>Créditos</h1>
-          <p class="admin-toolbar-hint">Compra créditos y úsalos para destacar tus propiedades en el landing.</p>
+          <h1>Suscripción</h1>
+          <p class="admin-toolbar-hint">Tu plan, los cupos de propiedades y destacados, y los planes disponibles. Los pagos los confirma un administrador.</p>
         </div>
       </div>
-      <div id="credits-root"></div>
+      <div id="subscription-root"></div>
     </div>
 
     <div id="tab-panel-partners" class="tab-panel hidden">
@@ -527,10 +528,6 @@
           </select>
         </div>
       </div>
-      <div class="field hidden" id="field-auto-renew-wrap">
-        <label class="checkbox-label"><input type="checkbox" id="field-auto-renew"> Renovar automáticamente cada 30 días</label>
-        <p class="field-hint">Se renueva sola 1 hora antes de vencer, con una de tus publicaciones gratis del mes o, si no te quedan, con créditos. Si no alcanzan, la publicación vence y se oculta del sitio.</p>
-      </div>
       <div class="field admin-only-field hidden" id="field-featured-wrap">
         <label class="checkbox-label">
           <input type="checkbox" id="field-featured">
@@ -637,16 +634,16 @@
 <script src="../assets/js/bolivia-cities.js?v=20261014a"></script>
 <script src="../assets/js/password-toggle.js?v=20261014a"></script>
 <script src="../assets/js/property-fields.js?v=20261020a"></script>
-<script src="../assets/js/credits.js?v=20261018h"></script>
-<script src="../assets/js/publications.js?v=20261018f"></script>
+<script src="../assets/js/subscription.js?v=20261021a"></script>
+<script src="../assets/js/publications.js?v=20261021a"></script>
 <script src="../assets/js/leads.js?v=20261018a"></script>
-<script src="../assets/js/sell-admin.js?v=20261020a"></script>
+<script src="../assets/js/sell-admin.js?v=20261021a"></script>
 <script src="../assets/js/collections.js?v=20261014a"></script>
 <script src="../assets/js/contracts/contract-helpers.js?v=20261014a"></script>
 <script src="../assets/js/contracts/contract-template.js?v=20261019e"></script>
 <script src="../assets/js/contracts/contract-pdf.js?v=20261019f"></script>
-<script src="../assets/js/contracts/contracts-ui.js?v=20261019f"></script>
+<script src="../assets/js/contracts/contracts-ui.js?v=20261021a"></script>
 <script src="../assets/js/admin-nav.js?v=20261016a"></script>
-<script src="../assets/js/admin.js?v=20261020a"></script>
+<script src="../assets/js/admin.js?v=20261021a"></script>
 </body>
 </html>
