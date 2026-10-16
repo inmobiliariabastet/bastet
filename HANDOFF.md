@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **bastet.uno abre directo en Propiedades (2026-10-16)**: `index.html` redirige con JS (`location.replace('marketplace.html')`, y `<noscript>` meta refresh) cuando la URL no trae ancla; con ancla (`index.html#hero`, `#vender`…) se queda en el inicio, así «Inicio» y «Publica aquí» (el formulario de vender vive en `index.html`) siguen funcionando. Los enlaces «Inicio» de `marketplace.html` y `app.html` apuntan a `index.html#hero`. Se evitó un `.htaccess` a propósito (podría pisar las reglas HTTPS de Hostinger). Para volver a mostrar el inicio al entrar: quitar el bloque `<script>` de redirección en `index.html`.
+
 - ✅ **WhatsApp con código de país (2026-10-16, `main.js?v=20261025d`)**: `normalizePhone` antepone 591 a los celulares bolivianos de 8 dígitos (empiezan con 6 o 7); antes un número como 70139318 abría un enlace de WhatsApp sin país y no funcionaba.
 
 - ✅ **`supabase/drop-credits.sql` (corrido por la dueña el 2026-10-16; tablas y funciones de créditos eliminadas, verificado)**: borra las 6 tablas `credit_*` y las 5 funciones antiguas de créditos (`request_credit_pack`, `admin_resolve_credit_request`, `admin_grant_credits`, `my_publication_quota`, `_consume_publication`); se detiene si otra función aún las usa. Conserva las columnas históricas `credits_charged`. Verificado: las pruebas de suscripciones, servicios del propietario y registro pasan igual con `DROP_CREDITS=1` (el esquema se aplica y luego se borran los créditos). Antes de correrlo en producción: exportar a CSV lo que se quiera conservar.

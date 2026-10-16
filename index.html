@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+// Al entrar a bastet.uno se va directo a Propiedades. Los enlaces con ancla (index.html#hero, #vender…) siguen mostrando el inicio.
+if (!window.location.hash) window.location.replace('marketplace.html' + window.location.search);
+</script>
+<noscript><meta http-equiv="refresh" content="0;url=marketplace.html"></noscript>
 <title>Bastet · Propiedades e inmobiliarias en Bolivia</title>
 <meta name="description" content="Bastet, propiedades e inmobiliaria en Bolivia. Certeza legal, resultados en 30 días.">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/bastet-favicon-32.png">
