@@ -21,6 +21,10 @@
 
   // Funciones anunciadas como "Próximamente": hoy ninguna (las del plan Propietario ya existen en la pestaña "Mi gestión").
   const COMING_SOON = { propietario: [], agente: [], empresa: [] };
+  // Mensaje de WhatsApp para pedir los datos de pago: incluye el plan elegido y su monto
+  const waLink = (p) => 'https://api.whatsapp.com/send?phone=' + WHATSAPP + '&text=' + encodeURIComponent(p
+    ? 'Hola, quiero pagar mi suscripción en Bastet. Elegí el plan ' + p.name + ' (' + bs(p.price_bs) + ' por 30 días). ¿Me envían los datos de pago?'
+    : 'Hola, quiero pagar mi suscripción en Bastet. ¿Me envían los datos de pago?');
   const PLAN_LABEL = { propietario: 'Suscribirme como propietario', agente: 'Suscribirme como agente', empresa: 'Suscribirme como empresa' };
 
   function flash(msg, isError) {
@@ -143,7 +147,7 @@
       '<p class="credits-muted">Elige cómo pagarás. Un administrador confirmará tu pago y se activará tu plan por 30 días. No hay cobro automático: cuando quieras renovar, vuelve a solicitarlo.</p>' +
       '<div class="credits-method-row"><label><input type="radio" name="sb-method" value="transferencia" checked> Transferencia</label><label><input type="radio" name="sb-method" value="qr"> QR</label><label><input type="radio" name="sb-method" value="efectivo"> Efectivo</label></div>' +
       '<div class="field"><label for="sb-reference">N.º de transferencia o comprobante (opcional)</label><input type="text" id="sb-reference" maxlength="120" placeholder="Ej: 004512389"></div>' +
-      '<p class="credits-muted">¿Necesitas los datos para pagar? Escríbenos por <a href="https://api.whatsapp.com/send?phone=' + WHATSAPP + '&text=' + encodeURIComponent('Hola Bastet, quiero pagar mi suscripción de UNO. ¿Me envían los datos de pago?') + '" target="_blank" rel="noopener">WhatsApp</a>.</p>' +
+      '<p class="credits-muted">¿Necesitas los datos para pagar? Escríbenos por <a id="sb-wa-link" href="' + waLink(null) + '" target="_blank" rel="noopener">WhatsApp</a>.</p>' +
       '<div class="credits-method-row"><button type="submit" class="btn btn-accent btn-sm" id="sb-method-submit">Enviar solicitud</button><button type="button" class="btn btn-ghost btn-sm" id="sb-method-cancel">Cancelar</button></div>' +
     '</form>';
   }
@@ -204,6 +208,7 @@
       state.pickedPlan = b.dataset.plan;
       const p = d.plans.find((x) => x.code === state.pickedPlan);
       host.querySelector('#sb-method-title').textContent = 'Plan ' + p.name + ' · ' + bs(p.price_bs) + ' por 30 días';
+      host.querySelector('#sb-wa-link').href = waLink(p);
       form.hidden = false;
       form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }));

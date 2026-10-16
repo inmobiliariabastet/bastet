@@ -274,7 +274,7 @@ section[id], footer[id] { scroll-margin-top: 76px; }
 }
 .hero-content { max-width: 680px; display: flex; flex-direction: column; gap: 26px; }
 .hero-content { gap: 22px; }
-/* Título principal: "Marketplace Inmobiliario" en dorado degradado, como el logotipo UNO */
+/* Título principal: "Marketplace Inmobiliario" en dorado degradado, como el logotipo Bastet */
 .hero-title {
   font-family: var(--font-serif); font-weight: 400;
   font-size: clamp(40px,6.2vw,76px); line-height: 1.06; letter-spacing: -0.01em;
