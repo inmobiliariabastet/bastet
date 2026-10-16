@@ -121,6 +121,55 @@
     return ctx;
   }
 
+  /* ── Oferta de colaboración propietario → agente (plantilla colaboracion-v1) ──
+     `offer` = fila de owner_offers (property_data, owner_data, agent_data, terms, doc_number, created_at, responded_at, status).
+     El documento sale siempre de esta copia: no cambia si después se edita la propiedad. */
+  const OFFER_OPERATION_TEXT = { venta: 'la venta', alquiler: 'el alquiler', anticretico: 'el anticrético', temporal: 'el alquiler temporal (por día)' };
+  const PROPERTY_TYPE_TEXT = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno' };
+  const withUnit = (v, unit) => { const t = str(v); return /^\d+([.,]\d+)?$/.test(t) ? t + ' ' + unit : t; };
+
+  function buildCollaborationContext(offer) {
+    const o = offer || {};
+    const p = o.property_data || {}, ow = o.owner_data || {}, ag = o.agent_data || {}, t = o.terms || {};
+    const digits = str(p.price).replace(/[^0-9]/g, '');
+    const price = digits ? parseInt(digits, 10) : 0;
+    const bob = p.currency === 'BOB';
+    const moneda = bob ? 'Bs' : 'USD';
+    const created = o.created_at ? H.todayBolivia(new Date(o.created_at)) : H.todayBolivia();
+    const accepted = o.status === 'accepted' && o.responded_at;
+    const location = str(p.location);
+    const ubic = [str(p.address), location].filter(Boolean).join(', ');
+    const pct = t.comision_porcentaje;
+    return {
+      numero_documento: str(o.doc_number),
+      fecha_literal: H.dateToLong(created),
+      ciudad_jurisdiccion: location.split(',')[0].trim() || 'La Paz',
+      propietario_nombre: str(ow.nombre), propietario_ci: str(ow.ci), propietario_telefono: str(ow.telefono), propietario_email: str(ow.email) || 'sin correo registrado',
+      agente_nombre: str(ag.nombre) || 'Agente de Bastet',
+      agente_ci: str(ag.ci), agente_registro: str(ag.registro), sin_agente_ci: !str(ag.ci),
+      agente_ci_firma: str(ag.ci) || '______________',
+      inmueble_titulo: str(p.title), inmueble_codigo: p.code_number ? 'BST-' + p.code_number : 'sin código',
+      inmueble_ubicacion: ubic || 'ubicación por confirmar',
+      inmueble_area: withUnit(p.area, 'm²') || 'superficie por confirmar',
+      inmueble_habitaciones: withUnit(p.rooms, 'habitaciones') || 'habitaciones por confirmar',
+      inmueble_banos: withUnit(p.baths, 'baños') || 'baños por confirmar',
+      operacion_texto: OFFER_OPERATION_TEXT[p.operation] || 'la comercialización',
+      moneda_simbolo: moneda,
+      precio: price > 0 ? H.formatMoney(price) : '', precio_literal: price > 0 ? H.moneyToWords(price, moneda) : '',
+      comision_porcentaje: pct != null ? H.formatQty(pct) : '', comision_porcentaje_literal: pct != null ? H.numberToLiteral(pct) : '',
+      plazo_dias: t.plazo_dias != null ? String(t.plazo_dias) : '', plazo_dias_literal: t.plazo_dias != null ? H.numberToLiteral(t.plazo_dias) : '',
+      exclusividad: !!t.exclusividad, sin_exclusividad: !t.exclusividad,
+      mensaje: str(t.mensaje),
+      aceptada: !!accepted, fecha_aceptacion: accepted ? H.dateToLong(H.todayBolivia(new Date(o.responded_at))) : '',
+      numeral_validez: str(t.mensaje) ? 'NOVENA' : 'OCTAVA',
+    };
+  }
+
+  function renderCollaborationBlocks(templateMd, offer, options) {
+    const ctx = buildCollaborationContext(offer);
+    return parseBlocks(renderText(templateMd, ctx, options));
+  }
+
   /* ── Plantilla -> texto resuelto ── */
   function stripConventions(md) {
     // Las líneas "> …" son notas para quien mantiene la plantilla: nunca se imprimen.
@@ -277,5 +326,5 @@
     }).join('\n');
   }
 
-  return { buildExclusivityContext, renderText, parseBlocks, renderBlocks, blocksToHtml, blocksToPlain, MARK_OPEN, MARK_CLOSE };
+  return { buildExclusivityContext, buildCollaborationContext, renderCollaborationBlocks, renderText, parseBlocks, renderBlocks, blocksToHtml, blocksToPlain, MARK_OPEN, MARK_CLOSE };
 });

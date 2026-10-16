@@ -330,3 +330,58 @@ test('v2: gravámenes y precio mínimo', () => {
 test('v2: sigue exigiendo los datos (falla si falta el nombre del propietario)', () => {
   assert.throws(() => T.renderBlocks(TEMPLATE_V2, { ...BASE_V2, propietario_nombre: '' }, META), /Falta el dato: propietario_nombre/);
 });
+
+/* ───────── Oferta de colaboración propietario → agente (colaboracion-v1) ───────── */
+const TEMPLATE_COLAB = fs.readFileSync(path.join(__dirname, '..', 'assets', 'contracts', 'colaboracion-v1.md'), 'utf8');
+const OFFER = {
+  doc_number: 'BST-CO-2026-0001', created_at: '2026-10-16T15:00:00Z', responded_at: null, status: 'pending',
+  property_data: { title: 'Casa en Achumani', location: 'La Paz, Achumani', address: 'Calle 31', price: '600000', currency: 'BOB', area: '250', rooms: '4 habitaciones', baths: '3', property_type: 'casa', operation: 'venta', code_number: 1004 },
+  owner_data: { nombre: 'María Mondaca', ci: '4764766', telefono: '70012345', email: 'maria@example.com' },
+  agent_data: { nombre: 'Ana Agente' },
+  terms: { comision_porcentaje: 3, plazo_dias: 90, exclusividad: true, mensaje: null },
+};
+const renderOffer = (over) => T.blocksToPlain(T.renderCollaborationBlocks(TEMPLATE_COLAB, { ...OFFER, ...(over || {}) }));
+
+test('oferta de colaboración: se genera con los datos copiados y sin marcas de plantilla', () => {
+  const text = renderOffer();
+  assert.ok(!/\{\{|\}\}|\[\[|\]\]|[⟦⟧]/.test(text), 'quedaron marcas');
+  assert.ok(!/Convenciones de la plantilla/.test(text));
+  assert.match(text, /Nº BST-CO-2026-0001/);
+  assert.match(text, /OFERTA DE COLABORACIÓN/);
+  assert.match(text, /Borrador generado por la plataforma/);
+  assert.match(text, /requiere validación legal/i);
+  assert.match(text, /María Mondaca, con C\.I\. Nº 4764766/);
+  assert.match(text, /Casa en Achumani/);
+  assert.match(text, /BST-1004/);
+  assert.match(text, /Calle 31, La Paz, Achumani/);
+  assert.match(text, /250 m²/);
+  assert.match(text, /4 habitaciones/);
+  assert.match(text, /3 baños/);
+  assert.match(text, /Bs 600\.000,00 \(SEISCIENTOS MIL 00\/100 BOLIVIANOS\)/);
+  assert.match(text, /3% \(tres por ciento\)/);
+  assert.match(text, /90 \(noventa\) días calendario/);
+  assert.match(text, /con exclusividad/);
+  assert.match(text, /OCTAVA.- \(DE LA ACEPTACIÓN/);
+  assert.match(text, /a 16 de octubre de 2026/);
+  assert.match(text, /Los datos de identificación de EL AGENTE se completan al firmar/);
+  assert.doesNotMatch(text, /fue aceptada por EL AGENTE/);
+});
+
+test('oferta de colaboración: aceptada, sin exclusividad y con mensaje', () => {
+  const text = renderOffer({ status: 'accepted', responded_at: '2026-10-17T16:00:00Z', agent_data: { nombre: 'Ana Agente', ci: '7654321', registro: 'REG-9' }, terms: { ...OFFER.terms, exclusividad: false, mensaje: 'Prefiero visitas por la tarde' } });
+  assert.match(text, /fue aceptada por EL AGENTE el 17 de octubre de 2026/);
+  assert.match(text, /Ana Agente, con C\.I\. Nº 7654321, registro Nº REG-9/);
+  assert.match(text, /sin exclusividad/);
+  assert.match(text, /Prefiero visitas por la tarde/);
+  assert.match(text, /NOVENA.- \(DE LA ACEPTACIÓN/);
+  assert.doesNotMatch(text, /se completan al firmar/);
+});
+
+test('oferta de colaboración: precio en dólares, alquiler temporal y propiedad sin datos opcionales', () => {
+  const text = renderOffer({ property_data: { title: 'Depto', location: 'Cochabamba', price: '45', currency: 'USD', operation: 'temporal' } });
+  assert.match(text, /USD 45,00/);
+  assert.match(text, /el alquiler temporal \(por día\)/);
+  assert.match(text, /sin código/);
+  assert.match(text, /en Cochabamba/);
+  assert.match(text, /En la ciudad de Cochabamba/);
+});

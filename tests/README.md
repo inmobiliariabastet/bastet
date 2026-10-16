@@ -2,6 +2,7 @@
 
 - `node --test tests/contracts-engine.test.js` — motor de contratos: números, montos y fechas en letras, formatos, plantilla (21 pruebas). No necesita instalar nada.
 - `python tests/contracts_admin_sql_test.py` — anulación de contratos y verificación pública; corre el esquema completo dos veces.
+- `python tests/owner_services_sql_test.py` — plan Propietario: directorio de agentes, ofertas de colaboración (validaciones, numeración BST-CO, respuesta del agente, cancelación, aislamiento) y solicitudes a Maat Fima Legal (estados, límites, solo admin avanza).
 - `python tests/subscriptions_sql_test.py` — suscripciones: planes y precios (Bs 150/350/650), límites de propiedades activas (3/15/50) y de destacados (1/3/3) con concurrencia, pago manual confirmado por el admin (idempotente), vencimientos, cambio de plan, contratos cubiertos por el plan, aislamiento de datos y transición de agentes existentes. Reemplaza a la prueba antigua de publicaciones con créditos.
 - `python tests/sell_requests_sql_test.py` — solicitudes "Vender mi inmueble": alta pública validada, límites por teléfono, apoyo legal obligatorio sin documentos, solo admin lee, documentos en carpeta privada.
 - `python tests/property_currency_sql_test.py` — moneda del precio de las propiedades: USD por defecto, BOB opcional, rechaza otras monedas.

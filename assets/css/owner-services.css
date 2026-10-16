@@ -1,0 +1,40 @@
+/* Servicios del plan Propietario, bandeja de ofertas del agente y asesoría legal (reutiliza las clases de credits.css y subscription.css) */
+#owner-root, #offers-root, #legal-root { display: flex; flex-direction: column; gap: 18px; }
+#owner-root [hidden], #offers-root [hidden], #legal-root [hidden] { display: none; }
+
+.os-lock { padding: 28px; background: #fff; border: 1px dashed var(--oro); border-radius: 14px; display: grid; gap: 10px; justify-items: start; }
+.os-lock h2 { margin: 0; font-size: 26px; }
+
+.os-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.os-stat { display: grid; gap: 4px; padding: 18px; background: #fff; border: 1px solid var(--linea); border-radius: 14px; }
+.os-stat span { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--oro-p); }
+.os-stat b { font-family: var(--serif); font-size: 32px; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.os-stat small { font-size: 12.5px; color: var(--tinta-2); overflow-wrap: anywhere; }
+
+.os-search { max-width: 360px; }
+.os-agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.os-agent { display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: center; padding: 16px; background: #fff; border: 1px solid var(--linea); border-radius: 14px; transition: border-color .2s ease, box-shadow .2s ease; }
+.os-agent:hover { border-color: var(--oro); box-shadow: 0 14px 30px -22px rgba(138,90,18,.6); }
+.os-agent .btn { grid-column: 1 / -1; }
+.os-agent.hidden { display: none; }
+.os-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--oro); background: #FAF8F3; }
+.os-avatar--initial { display: grid; place-items: center; font-family: var(--serif); font-size: 22px; color: var(--oro-p); }
+.os-agent-info { display: grid; gap: 2px; min-width: 0; }
+.os-agent-info strong { font-weight: 500; overflow-wrap: anywhere; }
+.os-socs { display: flex; gap: 6px; margin-top: 4px; }
+.os-soc img { width: 22px; height: 22px; display: block; }
+
+.os-status { display: inline-block; align-self: flex-start; margin-top: 4px; padding: 3px 11px; border-radius: 99px; font-size: 12px; letter-spacing: .04em; background: #F1ECDD; color: var(--tinta-2); }
+.os-status--accepted, .os-status--completed { background: rgba(217,164,65,.22); color: var(--oro-p); }
+.os-status--pending, .os-status--in_review, .os-status--in_progress { background: #FBF1D4; color: #7A5410; }
+.os-status--rejected, .os-status--canceled, .os-status--cancelled { background: #F3E3E0; color: #8C3A2C; }
+.os-fine { font-size: 12.5px; }
+.os-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.os-modal { max-width: 560px; }
+.os-modal form { display: grid; gap: 12px; }
+.os-modal textarea, #os-legal-desc { width: 100%; }
+.os-desc { font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.os-legal-actions { align-items: center; max-width: 420px; }
+.os-legal-actions input[type="text"] { flex: 1 1 200px; min-width: 0; padding: 8px 12px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; font: inherit; }
+.os-legal-actions select { padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; font: inherit; }
+@media (max-width: 560px) { .os-grid2 { grid-template-columns: 1fr; } }

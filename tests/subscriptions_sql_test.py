@@ -12,7 +12,9 @@ core = sch[:sch.index("-- ── Tabla property_events")]
 i = sch.index("-- UNO · Créditos para agentes")
 tail = sch[sch.rindex("\n", 0, i - 5) + 1:]
 mk = tail.index("-- =====================================================================\n-- UNO · Suscripciones mensuales")
-tail_pre, subs_sql = tail[:mk], tail[mk:]
+rest = tail[mk:]
+mk2 = rest.find("-- =====================================================================\n-- UNO · Servicios del plan Propietario")
+tail_pre, subs_sql = tail[:mk], (rest if mk2 < 0 else rest[:mk2])      # (después de las suscripciones puede venir el bloque de servicios del propietario)
 assert subs_sql.strip() == open(R_ + "subscriptions.sql", encoding='utf-8').read().strip(), "schema.sql no tiene el mismo bloque que subscriptions.sql"
 stub = """
 create role anon nologin; create role authenticated nologin;

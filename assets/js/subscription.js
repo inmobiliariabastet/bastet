@@ -19,11 +19,8 @@
   const DAY = 86400000;
   const plural = (n, one, many) => (n === 1 ? one : many);
 
-  // Funciones del plan que dependen de módulos que todavía no existen: se muestran como "Próximamente", nunca como disponibles.
-  const COMING_SOON = {
-    propietario: ['Asesoramiento personalizado con Maat Fima Legal', 'Contrato para ofrecer tu inmueble a un agente externo', 'Búsqueda y selección de agentes registrados', 'Solicitud de trámites, saneamiento e impuestos'],
-    agente: [], empresa: [],
-  };
+  // Funciones anunciadas como "Próximamente": hoy ninguna (las del plan Propietario ya existen en la pestaña "Mi gestión").
+  const COMING_SOON = { propietario: [], agente: [], empresa: [] };
   const PLAN_LABEL = { propietario: 'Suscribirme como propietario', agente: 'Suscribirme como agente', empresa: 'Suscribirme como empresa' };
 
   function flash(msg, isError) {
@@ -116,7 +113,11 @@
       '<b>' + p.max_featured_per_period + '</b> ' + plural(p.max_featured_per_period, 'propiedad destacada', 'propiedades destacadas') + ' por periodo mensual',
     ];
     if (p.agent_tools) f.push('Herramientas profesionales de agente (contrato de exclusividad, clientes interesados, comisiones, analítica)');
-    else f.push('Panel para administrar tus propiedades, clientes interesados y analítica');
+    else {
+      f.push('Panel para administrar tus propiedades, clientes interesados y analítica');
+      f.push('Elige un agente registrado y ofrécele tu propiedad con un documento de oferta (borrador sujeto a validación legal)');
+      f.push('Solicita asesoría y trámites a Maat Fima Legal: compra y venta, trámites, saneamiento e impuestos');
+    }
     if (p.code === 'empresa') f.push('Cuenta de empresa para gestionar un inventario de hasta ' + p.max_active_properties + ' propiedades');
     return f;
   }

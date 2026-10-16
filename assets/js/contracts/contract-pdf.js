@@ -139,7 +139,9 @@
 
   function build(opts) {
     const { blocks, number, code, agentName, letterheadDataUrl, voided } = opts;
-    const verifyUrl = VERIFY_BASE + code;
+    const docTitle = opts.docTitle || 'CONTRATO DE EXCLUSIVIDAD';   // encabezado de las páginas 2 en adelante
+    const docSubject = opts.docSubject || 'Contrato de corretaje inmobiliario con exclusividad';
+    const verifyUrl = code ? VERIFY_BASE + code : null;                // sin código: el documento no se verifica en la página pública
     const content = [];
     blocks.forEach((b) => {
       const c = blockToContent(b);
@@ -167,14 +169,14 @@
       // Un contrato anulado se puede volver a descargar, pero siempre sale marcado
       ...(voided ? { watermark: { text: 'ANULADO', color: '#A63D2F', opacity: 0.16, bold: true, fontSize: 120, font: 'Cormorant' } } : {}),
       pageMargins: [MARGIN_X, MARGIN_TOP, MARGIN_X, MARGIN_BOTTOM],
-      info: { title: 'Contrato de Exclusividad Nº ' + number, author: agentName, subject: 'Contrato de corretaje inmobiliario con exclusividad', creator: 'bastet.uno', producer: 'bastet.uno' },
+      info: { title: (opts.docTitle ? opts.docTitle.charAt(0) + opts.docTitle.slice(1).toLowerCase() : 'Contrato de Exclusividad') + ' Nº ' + number, author: agentName, subject: docSubject, creator: 'bastet.uno', producer: 'bastet.uno' },
       defaultStyle: { font: 'Jost', fontSize: 10.3, lineHeight: 1.4, color: C.ink },
       images: { membrete: letterheadDataUrl },
       // Membrete de Bastet como fondo de TODAS las páginas (sello "Verificado por Bastet")
       background: () => ({ chrome: true, image: 'membrete', width: PAGE_W, height: PAGE_H, absolutePosition: { x: 0, y: 0 } }),
       header: (page) => (page === 1 ? { chrome: true, text: '' } : {
         chrome: true,
-        text: 'CONTRATO DE EXCLUSIVIDAD · Nº ' + number,
+        text: docTitle + ' · Nº ' + number,
         color: C.warmGrey, fontSize: 8, alignment: 'right', characterSpacing: 0.8,
         margin: [MARGIN_X, 40, MARGIN_X, 0],
       }),
@@ -187,11 +189,11 @@
             width: '*',
             stack: [
               { chrome: true, text: 'Documento generado en bastet.uno · Nº ' + number, fontSize: 7.5, color: C.warmGrey, lineHeight: 1.2 },
-              { chrome: true, text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.2 },
+              ...(code ? [{ chrome: true, text: 'Verificación: ' + code, fontSize: 7.5, color: C.deepGold, bold: true, lineHeight: 1.2 }] : []),
               { chrome: true, text: 'Página ' + page + ' de ' + pages, fontSize: 8, color: C.ebony, margin: [0, 2, 0, 0] },
             ],
           },
-          { chrome: true, qr: verifyUrl, fit: 32, foreground: C.ebony, alignment: 'right', width: 32 },
+          ...(verifyUrl ? [{ chrome: true, qr: verifyUrl, fit: 32, foreground: C.ebony, alignment: 'right', width: 32 }] : []),
         ],
       }),
       // Un título de cláusula nunca queda solo al final de página. `following` también trae el encabezado, el pie y el fondo

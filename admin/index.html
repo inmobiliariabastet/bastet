@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="../assets/css/admin.css?v=20261019a">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261018e">
 <link rel="stylesheet" href="../assets/css/subscription.css?v=20261021a">
+<link rel="stylesheet" href="../assets/css/owner-services.css?v=20261022a">
 <link rel="stylesheet" href="../assets/css/contracts.css?v=20261019e">
 </head>
 <body>
@@ -104,6 +105,8 @@
     <nav class="admin-nav" aria-label="Secciones">
       <div class="admin-nav-group">Ventas</div>
       <button type="button" class="admin-tab is-active" data-tab="properties"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg>Propiedades</button>
+      <button type="button" class="admin-tab hidden" data-tab="owner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Mi gestión</button>
+      <button type="button" class="admin-tab hidden" data-tab="offers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Ofertas recibidas</button>
       <button type="button" class="admin-tab" data-tab="leads"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Clientes interesados <span class="tab-count hidden" id="leads-count"></span></button>
       <div class="admin-nav-group">Cobranzas</div>
       <button type="button" class="admin-tab" data-tab="collections"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg>Comisiones</button>
@@ -119,6 +122,7 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="admins"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Usuarios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Propietarios <span class="tab-count hidden" id="sell-count"></span></button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="requests"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 14h5l1 2h4l1-2h5"/></svg>Solicitudes <span class="tab-count hidden" id="requests-count"></span></button>
+      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="legal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-2 6a3 3 0 0 0 4 0zM19 7l-2 6a3 3 0 0 0 4 0zM8 21h8"/></svg>Asesoría legal</button>
     </nav>
     <div class="admin-side-foot">
       <a href="../index.html" target="_blank" rel="noopener" class="admin-landing-link">Ver landing ↗</a>
@@ -228,6 +232,24 @@
         </div>
       </div>
       <div id="subscription-root"></div>
+    </div>
+
+    <div id="tab-panel-owner" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>Mi gestión</h1>
+        <p class="admin-toolbar-hint">Tus propiedades, los agentes registrados, tus ofertas y la asesoría de Maat Fima Legal, en un solo lugar.</p></div></div>
+      <div id="owner-root"></div>
+    </div>
+
+    <div id="tab-panel-offers" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>Ofertas recibidas</h1>
+        <p class="admin-toolbar-hint">Propietarios que te ofrecen una propiedad para comercializar.</p></div></div>
+      <div id="offers-root"></div>
+    </div>
+
+    <div id="tab-panel-legal" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>Asesoría legal</h1>
+        <p class="admin-toolbar-hint">Solicitudes de propietarios a Maat Fima Legal: asesoramiento, trámites, saneamiento e impuestos.</p></div></div>
+      <div id="legal-root"></div>
     </div>
 
     <div id="tab-panel-partners" class="tab-panel hidden">
@@ -634,15 +656,16 @@
 <script src="../assets/js/bolivia-cities.js?v=20261014a"></script>
 <script src="../assets/js/password-toggle.js?v=20261014a"></script>
 <script src="../assets/js/property-fields.js?v=20261020a"></script>
-<script src="../assets/js/subscription.js?v=20261021a"></script>
+<script src="../assets/js/subscription.js?v=20261022a"></script>
 <script src="../assets/js/publications.js?v=20261021a"></script>
 <script src="../assets/js/leads.js?v=20261018a"></script>
 <script src="../assets/js/sell-admin.js?v=20261021a"></script>
 <script src="../assets/js/collections.js?v=20261014a"></script>
 <script src="../assets/js/contracts/contract-helpers.js?v=20261014a"></script>
-<script src="../assets/js/contracts/contract-template.js?v=20261019e"></script>
-<script src="../assets/js/contracts/contract-pdf.js?v=20261019f"></script>
+<script src="../assets/js/contracts/contract-template.js?v=20261022a"></script>
+<script src="../assets/js/contracts/contract-pdf.js?v=20261022a"></script>
 <script src="../assets/js/contracts/contracts-ui.js?v=20261021a"></script>
+<script src="../assets/js/owner-services.js?v=20261022a"></script>
 <script src="../assets/js/admin-nav.js?v=20261016a"></script>
 <script src="../assets/js/admin.js?v=20261021a"></script>
 </body>
