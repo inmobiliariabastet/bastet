@@ -43,5 +43,11 @@
 body.ob-open { overflow: hidden; }
 .sb-trial { margin-top: 12px; }
 @media (max-width: 560px) { .ob-row { grid-template-columns: 1fr; } }
-.ob-trial { display: grid; gap: 4px; padding: 12px 14px; margin: 0 0 16px; border-radius: 16px; background: #FBE6AB; color: #1E2629; font-size: 14px; }
-.ob-trial b { font-size: 15px; }
+.ob-trial { display: grid; gap: 4px; padding: 14px 16px; margin: 0 0 16px; border-radius: 16px; background: #EFF8E7; border: 1px solid #B7BEAD; color: #3D4C3A; font-size: 14px; line-height: 1.5; }
+.ob-trial[hidden] { display: none; }
+.ob-trial b { font-size: 15px; font-family: var(--font-serif, inherit); color: #3D4C3A; }
+.ob-paid { background: #F7F9FB; border-color: #CEDDDE; }
+.ob-panel .form-error { margin: 10px 0 0; padding: 10px 14px; border-radius: 14px; background: #EFF8E7; border: 1px solid #3D4C3A; color: #3D4C3A; font-weight: 500; }
+.ob-panel .form-error[hidden] { display: none; }
+.ob-consent input { accent-color: #3D4C3A; }
+.ob-panel a { color: #3D4C3A; }

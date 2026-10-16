@@ -69,6 +69,8 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+- ✅ **Formulario de registro en verde de marca (2026-10-16, `subscription.css?v=20261024c`)**: los avisos de la prueba y del plan de pago usan el verde pálido #EFF8E7 con borde salvia y texto verde #3D4C3A (antes crema/amarillo); los errores del formulario también en verde de marca; casilla con `accent-color` verde. Corregido que se vieran a la vez los dos avisos (el atributo `hidden` quedaba anulado por `display:grid`).
+
 - ✅ **Sin plan → directo a «Suscripción» (2026-10-16, `onboarding.js?v=20261024l`)**: al abrir el panel, quien ya está registrado pero no tiene plan vigente (nunca eligió uno, o su prueba/plan venció) es llevado una vez a la pestaña Suscripción para elegir plan; también después de registrarse eligiendo agente/empresa. Antes solo pasaba al elegir «plan ahora» con prueba disponible. Sin SQL.
 
 - ✅ **Se quitó la palabra «Marketplace» de los textos visibles (2026-10-16)**: el botón de la portada dice «Ver propiedades»; el título de la página y la pestaña de la barra inferior dicen «Propiedades»; títulos, descripciones, `manifest.json`, `app.html`, privacidad y el aviso de la prueba actualizados. Quedan solo nombres internos (archivo `marketplace.html`, clases CSS `marketplace-*`, comentarios) para no romper enlaces.
