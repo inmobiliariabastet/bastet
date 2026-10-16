@@ -27,3 +27,19 @@
 .sb-soon { margin: 0 0 16px !important; opacity: .72; }
 .sb-soon li::before { content: "◦" !important; }
 .sb-legacy { margin: 4px 2px 0; }
+
+/* ── Registro de nuevos usuarios (onboarding.js) ── */
+.ob-overlay { z-index: 1000; align-items: flex-start; overflow-y: auto; }
+.ob-panel { max-width: 520px; width: 100%; margin: 4vh auto; }
+.ob-panel h2 { margin-bottom: 8px; }
+.ob-lead { margin: 0 0 18px; color: var(--muted, #5b6460); }
+.ob-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ob-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; margin: 6px 0 14px; }
+.ob-consent input { margin-top: 3px; flex: none; }
+.ob-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ob-actions .btn { flex: 1 1 200px; }
+.ob-fine { font-size: 13px; color: var(--muted, #5b6460); margin: 12px 0 0; }
+.ob-logout { background: none; border: 0; padding: 0; margin-top: 14px; font: inherit; font-size: 13px; text-decoration: underline; color: inherit; cursor: pointer; opacity: .7; }
+body.ob-open { overflow: hidden; }
+.sb-trial { margin-top: 12px; }
+@media (max-width: 560px) { .ob-row { grid-template-columns: 1fr; } }

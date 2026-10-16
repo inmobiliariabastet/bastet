@@ -12,7 +12,9 @@ core = sch[:sch.index("-- ── Tabla property_events")]
 i = sch.index("-- UNO · Créditos para agentes")
 tail = sch[sch.rindex("\n", 0, i - 5) + 1:]
 mk = tail.index("-- =====================================================================\n-- UNO · Servicios del plan Propietario")
-assert tail[mk:].strip() == open(R_ + "owner-services.sql", encoding='utf-8').read().strip(), "schema.sql no tiene el mismo bloque que owner-services.sql"
+EQ = "-- =====================================================================" + chr(10) + "-- UNO · Registro de nuevos usuarios"
+end = tail.index(EQ) if EQ in tail else len(tail)
+assert tail[mk:end].strip() == open(R_ + "owner-services.sql", encoding="utf-8").read().strip(), "schema.sql no tiene el mismo bloque que owner-services.sql"
 stub = """
 create role anon nologin; create role authenticated nologin;
 create schema auth;

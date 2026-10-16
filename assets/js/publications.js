@@ -48,7 +48,7 @@
     if (!hasPlan(s)) {
       const expired = s && s.status === 'expired';
       return '<div class="pq-main"><div class="pq-top"><span class="pq-badge">' + ICON.doc + '</span><div class="pq-text">' +
-        '<h2 class="pq-title">' + (expired ? 'Tu plan venció' : 'Aún no tienes un plan') + '</h2>' +
+        '<h2 class="pq-title">' + (expired ? (s.source === 'trial' ? 'Tu prueba gratuita terminó' : 'Tu plan venció') : 'Aún no tienes un plan') + '</h2>' +
         '<p class="pq-renew">' + (expired ? 'Tus propiedades dejan de verse al terminar el periodo pagado. ' : '') + 'Elige un plan para publicar y destacar propiedades.</p></div></div></div>' +
         '<aside class="pq-credits" aria-label="Plan"><button type="button" class="pq-btn" data-pub-buy><span>' + (expired ? 'Renovar mi plan' : 'Ver planes') + '</span>' + ICON.arrow + '</button></aside>';
     }
@@ -59,9 +59,9 @@
         '<div class="pq-top">' +
           '<span class="pq-badge">' + ICON.doc + '</span>' +
           '<div class="pq-count" aria-label="' + u.active_properties + ' de ' + pl.max_active_properties + ' propiedades activas"><div class="pq-num"><b>' + u.active_properties + '</b><span>/ ' + pl.max_active_properties + '</span></div>' + circles(u.active_properties, pl.max_active_properties) + '</div>' +
-          '<div class="pq-text"><h2 class="pq-title">Plan ' + esc(pl.name) + '</h2>' +
+          '<div class="pq-text"><h2 class="pq-title">' + (s.source === 'trial' ? 'Prueba gratuita · ' + esc(pl.name) : 'Plan ' + esc(pl.name)) + '</h2>' +
             '<p class="pq-renew"><span class="pq-ico">' + ICON.calendar + '</span><span>Propiedades activas. ' + (left > 0 ? 'Te ' + plural(left, 'queda', 'quedan') + ' <b>' + left + '</b> ' + plural(left, 'cupo', 'cupos') + '. ' : '<b>Llegaste al límite</b> de tu plan. ') +
-            (s.status === 'canceling' ? 'No se renovará: termina el ' : 'Vigente hasta el ') + '<b>' + esc(longDate(s.period_end)) + '</b> (' + days + ' ' + plural(days, 'día', 'días') + ').</span></p></div>' +
+            (s.source === 'trial' ? 'Tu prueba termina el ' : s.status === 'canceling' ? 'No se renovará: termina el ' : 'Vigente hasta el ') + '<b>' + esc(longDate(s.period_end)) + '</b> (' + days + ' ' + plural(days, 'día', 'días') + ').</span></p></div>' +
         '</div>' +
         '<div class="pq-notes">' +
           '<p class="pq-note"><span class="pq-note-ico">' + ICON.info + '</span><span>Tus propiedades se muestran en Bastet hasta el fin del periodo pagado. Vendidas o vencidas no ocupan cupo.</span></p>' +

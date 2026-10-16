@@ -15,7 +15,7 @@
   const fdate = (d) => new Date(d).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
   const METHOD = { transferencia: 'Transferencia', qr: 'QR', efectivo: 'Efectivo' };
   const STATUS = { pending: 'Pendiente', approved: 'Confirmado', rejected: 'Rechazado' };
-  const SOURCE = { payment: 'Pago', grace: 'Cortesía', admin: 'Alta manual' };
+  const SOURCE = { payment: 'Pago', grace: 'Cortesía', admin: 'Alta manual', trial: 'Prueba gratis' };
   const DAY = 86400000;
   const plural = (n, one, many) => (n === 1 ? one : many);
 
@@ -89,21 +89,22 @@
     }
     if (!hasPlan(s)) {
       const expired = s.status === 'expired';
-      return '<section class="cr-card sb-card"><div class="cr-left"><span class="cr-eyebrow">Tu plan</span><div class="cr-figure"><b class="sb-plan-name">' + (expired ? 'Vencido' : 'Sin plan') + '</b></div>' +
-        '<p class="cr-sub">' + (expired ? 'Tu plan ' + esc(s.plan.name) + ' terminó el ' + fdate(s.period_end) + '. Tus propiedades dejaron de mostrarse.' : 'Elige un plan para publicar y destacar tus propiedades.') + '</p></div>' +
-        '<div class="cr-right"><span class="cr-eyebrow cr-eyebrow--soft">Cómo funciona</span><ol class="sb-steps"><li>Elige un plan abajo y solicítalo.</li><li>Paga por transferencia, QR o efectivo.</li><li>Un administrador confirma tu pago y el plan se activa por 30 días.</li></ol></div></section>';
+      return '<section class="cr-card sb-card"><div class="cr-left"><span class="cr-eyebrow">Tu plan</span><div class="cr-figure"><b class="sb-plan-name">' + (expired ? (s.source === 'trial' ? 'Prueba terminada' : 'Vencido') : 'Sin plan') + '</b></div>' +
+        '<p class="cr-sub">' + (expired ? (s.source === 'trial' ? 'Tu prueba gratuita terminó el ' : 'Tu plan ' + esc(s.plan.name) + ' terminó el ') + fdate(s.period_end) + (s.source === 'trial' ? '. Elige un plan para seguir publicando; tus propiedades dejaron de mostrarse.' : '. Tus propiedades dejaron de mostrarse.') : 'Elige un plan para publicar y destacar tus propiedades.') + '</p></div>' +
+        '<div class="cr-right"><span class="cr-eyebrow cr-eyebrow--soft">Cómo funciona</span><ol class="sb-steps"><li>Elige un plan abajo y solicítalo.</li><li>Paga por transferencia, QR o efectivo.</li><li>Un administrador confirma tu pago y el plan se activa por 30 días.</li></ol>' +
+        (s.trial_eligible && s.registered ? '<button type="button" class="btn btn-accent btn-sm sb-trial" data-sb="trial">Probar 7 días gratis</button><p class="cr-sub">Incluye las funciones del plan Agente. Solo una vez y si aún no solicitaste un plan.</p>' : '') + '</div></section>';
     }
     const pl = s.plan, u = s.usage;
     const days = Math.max(Math.ceil((new Date(s.period_end).getTime() - Date.now()) / DAY), 0);
     const canceling = s.status === 'canceling';
     return '<section class="cr-card sb-card"><div class="cr-left"><span class="cr-eyebrow">Tu plan</span>' +
       '<div class="cr-figure"><b class="sb-plan-name">' + esc(pl.name) + '</b><span>' + bs(pl.price_bs) + ' / mes</span></div>' +
-      '<p class="cr-sub">' + (canceling ? 'Cancelado: termina el ' : 'Vigente hasta el ') + '<b>' + fdate(s.period_end) + '</b> · ' + days + ' ' + plural(days, 'día', 'días') + ' restantes' + (s.source === 'grace' ? ' · <em>cortesía de transición</em>' : '') + '</p></div>' +
+      '<p class="cr-sub">' + (canceling ? 'Cancelado: termina el ' : 'Vigente hasta el ') + '<b>' + fdate(s.period_end) + '</b> · ' + days + ' ' + plural(days, 'día', 'días') + ' restantes' + (s.source === 'grace' ? ' · <em>cortesía de transición</em>' : s.source === 'trial' ? ' · <em>prueba gratuita: elige un plan antes de que termine</em>' : '') + '</p></div>' +
       '<div class="cr-right"><span class="cr-eyebrow cr-eyebrow--soft">Uso de tu plan</span>' +
       meter('Propiedades activas', u.active_properties, pl.max_active_properties) +
       meter('Destacados de este periodo', u.featured_used, pl.max_featured_per_period) +
       '<div class="sb-actions">' +
-        (canceling ? '<button type="button" class="btn btn-ghost btn-sm" data-sb="resume">Reanudar</button>' : '<button type="button" class="btn btn-ghost btn-sm" data-sb="cancel">No renovar</button>') +
+        (s.source === 'trial' ? '' : canceling ? '<button type="button" class="btn btn-ghost btn-sm" data-sb="resume">Reanudar</button>' : '<button type="button" class="btn btn-ghost btn-sm" data-sb="cancel">No renovar</button>') +
       '</div></div></section>';
   }
 
@@ -230,6 +231,13 @@
     }));
 
     host.querySelectorAll('[data-sb]').forEach((b) => b.addEventListener('click', async () => {
+      if (b.dataset.sb === 'trial') {
+        b.disabled = true;
+        const { error } = await supabaseClient.rpc('start_free_trial');
+        if (error) { await reload(errText(error), true); return; }
+        await reload('Tu prueba gratuita de 7 días empezó.');
+        return;
+      }
       const cancel = b.dataset.sb === 'cancel';
       if (cancel && !confirm('¿No renovar tu plan? Lo conservas hasta el final del periodo pagado y no se cobra nada más.')) return;
       b.disabled = true;

@@ -1325,19 +1325,22 @@ const userListEl = document.getElementById('user-list');
 
 async function loadUsers() {
   userListEl.innerHTML = '<p class="property-empty">Cargando…</p>';
-  const { data, error } = await supabaseClient
-    .from('profiles')
-    .select('*')
-    .order('created_at', { ascending: true });
+  const [{ data, error }, subsRes] = await Promise.all([
+    supabaseClient.from('profiles').select('*').order('created_at', { ascending: true }),
+    supabaseClient.from('subscriptions').select('user_id,plan_code,current_period_end,source'),
+  ]);
 
   if (error) {
     userListEl.innerHTML = '<p class="property-empty">Error al cargar usuarios: ' + escapeHtml(error.message) + '</p>';
     return;
   }
-  renderUserList(data || []);
+  const subs = {};
+  ((subsRes && subsRes.data) || []).forEach((s) => { subs[s.user_id] = s; });
+  renderUserList(data || [], subs);
 }
 
-function renderUserList(users) {
+function renderUserList(users, subs) {
+  subs = subs || {};
   if (!users.length) {
     userListEl.innerHTML = '<p class="property-empty">No hay usuarios registrados todavía.</p>';
     return;
@@ -1349,14 +1352,25 @@ function renderUserList(users) {
     row.title = 'Ver propiedades publicadas por este usuario';
     const isSelf = currentSession && user.id === currentSession.user.id;
 
+    const sub = subs[user.id];
+    const planLabel = sub ? ({ propietario: 'Propietario', agente: 'Agente', empresa: 'Empresa' }[sub.plan_code] || sub.plan_code) : null;
+    const subOn = sub && new Date(sub.current_period_end) > new Date();
+    const planText = !sub ? "Sin plan" : (sub.source === 'trial' ? 'Prueba ' : 'Plan ') + planLabel + (subOn ? ' · hasta ' + new Date(sub.current_period_end).toLocaleDateString('es-BO', { day: '2-digit', month: 'short' }) : ' · vencido');
+    const details = [user.full_name, user.whatsapp, user.city, user.company].filter(Boolean).map(escapeHtml).join(' · ');
+    const waDigits = (user.whatsapp || '').replace(/[^0-9]/g, '');
     row.innerHTML =
-      '<span class="user-row-email">' + escapeHtml(user.email || user.id) + (isSelf ? ' (tú)' : '') + '</span>' +
+      '<span class="user-row-email">' + escapeHtml(user.email || user.id) + (isSelf ? ' (tú)' : '') +
+        '<small class="user-row-meta">' + (user.registered_at ? (details || 'Registrado') : 'Aún no completó el registro') + ' · ' + escapeHtml(planText) + '</small></span>' +
+      (waDigits ? '<a class="btn btn-sm btn-ghost" data-action="wa" href="https://wa.me/' + (waDigits.length === 8 ? '591' + waDigits : waDigits) + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
       '<span class="role-tag ' + (user.role === 'admin' ? 'admin' : 'agent') + '">' + (user.role === 'admin' ? 'Admin' : 'Agente') + '</span>' +
       (user.is_active
         ? '<span class="user-active-check" title="Activo" aria-label="Activo" role="img">' + CHECK_ICON + '</span>'
         : '<span class="user-inactive-mark" title="Desactivado" aria-label="Desactivado" role="img">' + MINUS_ICON + '</span>') +
       (isSelf ? '' : '<button type="button" class="btn btn-sm ' + (user.is_active ? 'btn-accent' : 'btn-ghost') + '" data-action="toggle">' + (user.is_active ? 'Desactivar' : 'Reactivar') + '</button>') +
       (isSelf ? '' : '<button type="button" class="btn btn-sm btn-icon btn-trash-gold" data-action="delete-user" title="Eliminar usuario" aria-label="Eliminar usuario">' + TRASH_ICON + '</button>');
+
+    const waLink = row.querySelector('[data-action="wa"]');
+    if (waLink) waLink.addEventListener('click', (e) => e.stopPropagation());
 
     const toggleBtn = row.querySelector('[data-action="toggle"]');
     if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleUserActive(user); });

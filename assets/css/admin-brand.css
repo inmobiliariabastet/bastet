@@ -262,3 +262,7 @@ a { color: var(--br-green); }
   .os-stat b { font-size: 24px; }
   .os-stat:last-child { grid-column: 1 / -1; }
 }
+
+/* Usuarios: datos de registro bajo el correo */
+.user-row-email { white-space: normal; }
+.user-row-meta { display: block; font-size: 12px; font-weight: 400; opacity: .7; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
