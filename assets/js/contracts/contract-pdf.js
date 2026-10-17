@@ -45,6 +45,12 @@
   }
 
   // Imagen (membrete) -> data URL (para incrustarla en el PDF)
+  // Membrete: se lee del .js embebido (ver contract-membrete.js); si no estuviera, se cae a la imagen suelta
+  async function fetchLetterhead(scriptUrl, fallbackImgUrl) {
+    if (!root.CONTRACT_MEMBRETE) { try { await loadScript(scriptUrl); } catch (e) { /* se usa la imagen suelta */ } }
+    return root.CONTRACT_MEMBRETE || fetchDataUrl(fallbackImgUrl);
+  }
+
   async function fetchDataUrl(url) {
     const res = await fetch(url);
     if (!res.ok) throw new Error('No se pudo cargar el membrete');
@@ -296,5 +302,5 @@
     return blob;
   }
 
-  root.ContractPdf = { ensureLibs, fetchDataUrl, build, getBlob, download, fileName, surnameForFile, VERIFY_BASE };
+  root.ContractPdf = { ensureLibs, fetchDataUrl, fetchLetterhead, build, getBlob, download, fileName, surnameForFile, VERIFY_BASE };
 })(typeof self !== 'undefined' ? self : this);

@@ -663,7 +663,7 @@
 
   async function prepareDoc(data, number, code, voided, version, issuedAt) {
     await P.ensureLibs(asset('js/contracts/contract-fonts.js'));
-    const letterhead = await P.fetchDataUrl(asset('img/membrete-bastet.jpg'));
+    const letterhead = await P.fetchLetterhead(asset('js/contracts/contract-membrete.js'), asset('img/membrete-bastet.jpg'));
     const tpl = state.templates[version || templateVersionFor(data.operacion)];
     if (!tpl) throw new Error('Plantilla del contrato no disponible');
     const blocks = T.renderBlocks(tpl, data, { numero_contrato: number, codigo_verificacion: code });
