@@ -317,6 +317,9 @@
   // Solo lo que el alojamiento SÍ ofrece, con iconos de línea
   const ic = (d) => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
   const OFFER_ICONS = {
+    rooms: ic('<path d="M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11.500" r="1.500"/>'),
+    baths: ic('<path d="M4 12h16v2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-2zM6 12V6a2 2 0 0 1 3.500-1.300M7 19l-1 2M17 19l1 2"/>'),
+    area: ic('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),
     floors: ic('<path d="M4 20V9l8-5 8 5v11M4 20h16M9 20v-5h6v5"/>'),
     garage: ic('<path d="M3 11l2-5h14l2 5M3 11v6h18v-6M3 11h18M7 17v2M17 17v2"/><circle cx="7.500" cy="14" r=".6"/><circle cx="16.500" cy="14" r=".6"/>'),
     storage: ic('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M10 8h4M10 16h4"/>'),
@@ -324,8 +327,12 @@
     kids: ic('<circle cx="12" cy="7" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2M9 14.500L12 17l3-2.500"/>'),
   };
   function offeredList(p) {
-    if (p.property_type === 'terreno') return [];
     const out = [];
+    const [r, b, a] = [unit(p.rooms, 'habitación', 'habitaciones'), unit(p.baths, 'baño', 'baños'), /^\d+([.,]\d+)?$/.test(String(p.area ?? '').trim()) ? p.area + ' m²' : String(p.area ?? '').trim()];
+    if (r && p.property_type !== 'terreno') out.push({ icon: OFFER_ICONS.rooms, text: r });
+    if (b && p.property_type !== 'terreno') out.push({ icon: OFFER_ICONS.baths, text: b });
+    if (a) out.push({ icon: OFFER_ICONS.area, text: a });
+    if (p.property_type === 'terreno') return out;
     if (p.floors) out.push({ icon: OFFER_ICONS.floors, text: p.floors === 1 ? '1 planta' : p.floors + ' plantas' });
     if (p.has_garage === true) out.push({ icon: OFFER_ICONS.garage, text: p.garage_spots ? 'Garaje para ' + p.garage_spots + (p.garage_spots === 1 ? ' auto' : ' autos') : 'Garaje' });
     if (p.has_storage === true) out.push({ icon: OFFER_ICONS.storage, text: 'Baulera' });
