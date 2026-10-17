@@ -681,6 +681,7 @@ async function loadProperties() {
     allProperties = [];
   } else {
     allProperties = data || [];
+    await hideBlockedStays();
     await attachAgentInfo(allProperties);
   }
 
@@ -695,6 +696,19 @@ async function loadProperties() {
     rebuildFilters();
   }
   renderPropertyGrid();
+}
+
+// Las estadías temporales que el anfitrión marcó como no disponibles hoy se ocultan (vuelven solas al terminar el periodo)
+async function hideBlockedStays() {
+  const ids = allProperties.filter((p) => p.operation === 'temporal').map((p) => p.id);
+  if (!ids.length) return;
+  try {
+    const { data, error } = await supabaseClient.rpc('stay_blocked_ranges', { p_ids: ids });
+    if (error || !data) return;
+    const today = new Date(Date.now() - 4 * 3600 * 1000).toISOString().slice(0, 10);
+    const off = new Set(data.filter((b) => b.from_date <= today && (!b.to_date || b.to_date >= today)).map((b) => b.property_id));
+    if (off.size) allProperties = allProperties.filter((p) => !off.has(p.id));
+  } catch (e) { /* sin el SQL de disponibilidad: se muestran todas */ }
 }
 
 async function attachAgentInfo(properties) {

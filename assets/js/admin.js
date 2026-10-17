@@ -180,6 +180,8 @@ async function loadProperties() {
   }
   properties = data || [];
   renderPropertyList();
+  // Calendario de no disponibilidad de las temporales (sin el SQL simplemente no aparece el aviso)
+  if (window.StayAvailability && properties.some((p) => p.operation === 'temporal')) window.StayAvailability.refresh().then((ok) => { if (ok) renderPropertyList(); });
 }
 
 const TRASH_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
@@ -200,8 +202,12 @@ function isPropertyFeatured(property) {
 // Botón visible para destacar una propiedad disponible (o su estado si ya está destacada)
 const STAR_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg>';
 function featureRowHtml(property) {
+  const isStay = property.operation === 'temporal' && window.StayAvailability;
+  const st = isStay ? window.StayAvailability.statusOf(property.id) : null;
+  const availBtn = isStay ? (st && st.now ? '<div class="prop-feature is-off"><span>' + escapeHtml(st.text) + '</span></div>' : '') +
+    '<button type="button" class="prop-feature-btn prop-avail-btn" data-action="avail"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>' + (st ? 'Disponibilidad · ' + escapeHtml(st.text) : 'Disponibilidad (calendario)') + '</span></button>' : '';
   const reviewsBtn = property.operation === 'temporal' && window.StayReviewsAdmin ? '<button type="button" class="prop-feature-btn prop-reviews-btn" data-action="reviews"><span>★ Reseñas de huéspedes</span></button>' : '';
-  return reviewsBtn + featureBtnHtml(property);
+  return availBtn + reviewsBtn + featureBtnHtml(property);
 }
 function featureBtnHtml(property) {
   if (property.status !== 'available' || !window.UnoPublications) return '';
@@ -258,6 +264,8 @@ function renderPropertyList() {
         featureRowHtml(property) +
       '</div>';
 
+    const avBtn = card.querySelector('[data-action="avail"]');
+    if (avBtn) avBtn.addEventListener('click', (e) => { e.stopPropagation(); window.StayAvailability.open(property, renderPropertyList); });
     const revBtn = card.querySelector('[data-action="reviews"]');
     if (revBtn) revBtn.addEventListener('click', (e) => { e.stopPropagation(); window.StayReviewsAdmin.open(property); });
     const featBtn = card.querySelector('[data-action="feature"]');

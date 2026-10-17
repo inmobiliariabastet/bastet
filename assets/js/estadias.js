@@ -62,6 +62,9 @@
   /* ───────── Datos ───────── */
   let stays = [];
   const state = { city: 'Todas', type: '', rooms: '', price: '', sort: 'rec', favsOnly: false, from: '', to: '', guests: 2 };
+  let blocks = {};
+  // ¿Hay un bloqueo que choque con las noches de [from, to)? Con `today` solo se mira ese día.
+  const blockedBetween = (p, from, to, today) => (blocks[p.id] || []).some((b) => today ? (b.from_date <= from && (!b.to_date || b.to_date >= from)) : (b.from_date < to && (!b.to_date || b.to_date >= from)));
   let favs = new Set();
   try { favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch (e) { favs = new Set(); }
   const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch (e) { /* sin almacenamiento: no se recuerdan */ } };
@@ -85,6 +88,13 @@
     }
     favs = new Set([...favs].filter((id) => stays.some((p) => p.id === id)));
     if (window.StayExtras) await window.StayExtras.loadRatings(stays.map((p) => p.id));
+    // Fechas no disponibles que marcó el anfitrión (sin el SQL no hay bloqueos y se muestra todo)
+    blocks = {};
+    if (stays.length) {
+      const { data: bl, error: be } = await supabaseClient.rpc('stay_blocked_ranges', { p_ids: stays.map((p) => p.id) });
+      if (!be) (bl || []).forEach((b) => { (blocks[b.property_id] = blocks[b.property_id] || []).push(b); });
+    }
+    stays = stays.filter((p) => !blockedBetween(p, todayIso(), todayIso(), true));
     fromUrl();
     buildCityOptions();
     buildTypeChips();
@@ -194,6 +204,7 @@
       if (state.type && p.property_type !== state.type) return false;
       if (state.rooms && (roomsOf(p) || 0) < Number(state.rooms)) return false;
       if (state.favsOnly && !favs.has(p.id)) return false;
+      if (state.from && state.to && blockedBetween(p, state.from, state.to, false)) return false;
       if (state.price) {
         const [lo, hi] = state.price.split('-'); const v = nightlyUSD(p);
         if (v === null || v < Number(lo || 0) || (hi && v > Number(hi))) return false;
