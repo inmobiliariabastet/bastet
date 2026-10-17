@@ -268,3 +268,13 @@ a { color: var(--br-green); }
 /* Usuarios: datos de registro bajo el correo */
 .user-row-email { white-space: normal; }
 .user-row-meta { display: block; font-size: 12px; font-weight: 400; opacity: .7; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── «Destacar esta propiedad» en cada tarjeta del panel ── */
+.prop-feature-btn, .prop-feature { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 500; }
+.prop-feature-btn { border: 1px solid var(--br-yellow); background: #FFF8E1; color: var(--br-green); cursor: pointer; transition: background-color .2s ease, transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.prop-feature-btn:hover { background: var(--br-yellow); color: var(--br-ink); }
+.prop-feature-btn:active { transform: scale(.98); }
+.prop-feature-btn svg, .prop-feature svg { flex: none; fill: var(--br-yellow); stroke: var(--br-green); stroke-width: 1.4; stroke-linejoin: round; }
+.prop-feature-btn:hover svg { fill: #fff; }
+.prop-feature.is-on { background: var(--br-green); color: var(--br-yellow); }
+.prop-feature.is-on svg { stroke: var(--br-yellow); }

@@ -187,6 +187,45 @@
     return true;
   }
 
+  /* Destacar una propiedad desde su tarjeta: confirma cuánto cupo se usa y llama a feature_property (la base de datos aplica el límite
+     del plan: 1, 3 o 3 destacados por periodo; el administrador no tiene límite). */
+  async function featureProperty(p) {
+    await refresh();
+    const s = state.sub;
+    const admin = isAdminSub(s);
+    const buy = '<button type="button" class="btn btn-accent" data-pub-buy>Ver planes</button>';
+    const close = '<button type="button" class="btn btn-ghost" data-pub-close>Cerrar</button>';
+    if (!admin && !hasPlan(s)) {
+      openOverlay('<h2>Necesitas un plan para destacar</h2><p>Destacar pone tu propiedad primero en el sitio con la etiqueta «Destacada». Elige un plan y un administrador confirmará tu pago.</p><div class="modal-form-actions">' + close + buy + '</div>');
+      return;
+    }
+    const max = admin ? Infinity : s.plan.max_featured_per_period;
+    const left = admin ? Infinity : max - s.usage.featured_used;
+    if (left <= 0) {
+      openOverlay('<h2>Ya usaste tus destacados</h2><p>Tu plan <b>' + esc(s.plan.name) + '</b> incluye <b>' + max + '</b> ' + plural(max, 'destacado', 'destacados') + ' por periodo y ya los usaste. Se renuevan cuando renueves tu plan, o puedes cambiar a un plan con más destacados.</p><div class="modal-form-actions">' + close + buy + '</div>');
+      return;
+    }
+    const o = openOverlay('<h2>Destacar propiedad</h2><p><b>' + esc(p.title) + '</b></p>' +
+      '<p>Aparecerá primero en el sitio con la etiqueta <b>Destacada</b> durante <b>30 días</b>. ' + (admin ? 'Como administrador no gastas cupo.' : 'Usará <b>1</b> de tus <b>' + left + '</b> ' + plural(left, 'destacado disponible', 'destacados disponibles') + ' de este periodo.') + '</p>' +
+      '<p id="pub-modal-error" class="form-error hidden"></p>' +
+      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-pub-close>Cancelar</button><button type="button" class="btn btn-accent" id="pub-feature-go">Destacar ahora</button></div>');
+    const go = o.querySelector('#pub-feature-go');
+    go.addEventListener('click', async () => {
+      go.disabled = true; go.textContent = 'Destacando…';
+      const { error } = await supabaseClient.rpc('feature_property', { p_property_id: String(p.id), p_service: null });
+      if (error) {
+        const err = o.querySelector('#pub-modal-error');
+        err.textContent = 'No se pudo destacar: ' + (error.message || 'error');
+        err.classList.remove('hidden'); go.disabled = false; go.textContent = 'Reintentar';
+        return;
+      }
+      closeOverlay();
+      toast('Propiedad destacada por 30 días.');
+      if (typeof loadProperties === 'function') loadProperties();
+      refresh();
+    });
+  }
+
   async function refresh() {
     state.sub = await fetchSubscription();
     renderChip();
@@ -218,7 +257,7 @@
   });
 
   window.UnoPublications = {
-    refresh, decorateCard, confirmPublish,
+    refresh, decorateCard, confirmPublish, featureProperty,
     insufficientMessage: () => 'No se pudo publicar: revisa tu plan en la pestaña Suscripción.',
     fillLine: () => {}, supportsAutoRenew: false,
     get subscription() { return state.sub; },

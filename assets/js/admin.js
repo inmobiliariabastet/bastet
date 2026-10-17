@@ -197,6 +197,17 @@ function isPropertyFeatured(property) {
   return !!property.featured || (!!property.featured_until && new Date(property.featured_until) > new Date());
 }
 
+// Botón visible para destacar una propiedad disponible (o su estado si ya está destacada)
+const STAR_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg>';
+function featureRowHtml(property) {
+  if (property.status !== 'available' || !window.UnoPublications) return '';
+  if (isPropertyFeatured(property)) {
+    const until = property.featured_until && new Date(property.featured_until) > new Date() ? ' hasta el ' + new Date(property.featured_until).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    return '<div class="prop-feature is-on">' + STAR_ICON + '<span>Destacada' + until + '</span></div>';
+  }
+  return '<button type="button" class="prop-feature-btn" data-action="feature">' + STAR_ICON + '<span>Destacar esta propiedad</span></button>';
+}
+
 function renderPropertyList() {
   if (!properties.length) {
     propertyListEl.innerHTML = '<p class="property-empty">Aún no hay propiedades. Crea la primera con "+ Nueva propiedad".</p>';
@@ -240,8 +251,11 @@ function renderPropertyList() {
           '<button class="btn btn-ghost btn-sm" data-action="edit">Editar</button>' +
           '<button class="btn btn-sm btn-icon btn-trash-gold" data-action="delete" title="Eliminar propiedad" aria-label="Eliminar propiedad">' + TRASH_ICON + '</button>' +
         '</div>' +
+        featureRowHtml(property) +
       '</div>';
 
+    const featBtn = card.querySelector('[data-action="feature"]');
+    if (featBtn) featBtn.addEventListener('click', (e) => { e.stopPropagation(); if (window.UnoPublications) window.UnoPublications.featureProperty(property); });
     card.querySelector('[data-action="view"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyDetail(property); });
     card.querySelector('[data-action="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyForm(property); });
     card.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deleteProperty(property); });
