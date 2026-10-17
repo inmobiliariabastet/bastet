@@ -618,7 +618,7 @@ function buildTileAgentHtml(property) {
     ? '<img class="prop-tile-avatar" src="' + escapeHtml(agent.avatar_url) + '" alt="" loading="lazy">'
     : (agent && agent.display_name
       ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
-      : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-gato-dorado.png" alt=""></span>');
+      : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-isotipo-cabeza-dorado.png" alt=""></span>');
   // WhatsApp del agente (su perfil) o, si no lo tiene, el de la propiedad; sin ninguno, el número general de Bastet
   const waIcon = '<a class="property-modal-social-link" href="' + escapeHtml(whatsappUrl(propertyWhatsappMessage(property), (agent && agent.contact_whatsapp) || property.whatsapp)) + '" target="_blank" rel="noopener" data-tile-wa aria-label="Escribir por WhatsApp a ' + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   const socials = waIcon + (agent
@@ -1031,7 +1031,7 @@ function buildAgentSectionHtml(agent, property, message) {
     ? '<img class="property-modal-agent-avatar" src="' + escapeHtml(a.avatar_url) + '" alt="">'
     : (hasAgent
       ? '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
-      : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-gato-dorado.png" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
+      : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-isotipo-cabeza-dorado.png" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
   const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + escapeHtml(whatsappUrl(message, (hasAgent && agent.contact_whatsapp) || (property && property.whatsapp))) + '" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp a ' + escapeHtml(a.display_name || 'Bastet') + '" title="Escribir por WhatsApp"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   agent = a;   // el resto de la función usa `agent`
   const socials = waIcon +
