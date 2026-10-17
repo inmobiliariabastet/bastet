@@ -40,7 +40,7 @@
 
   /* ───────── Utilidades ───────── */
   const cityOf = (p) => String(p.location || '').split(',')[0].trim();
-  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+  const num = (v) => { if (v === null || v === undefined || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
   function distM(a, b) {
     const R = 6371000, rad = (d) => d * Math.PI / 180;
     const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);

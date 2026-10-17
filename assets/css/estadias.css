@@ -282,3 +282,9 @@
 
 .sd-layout > *, .sd-main { min-width: 0; }
 .sd-near, .sd-guide, .sd-map { max-width: 100%; }
+
+/* «Lo que ofrece»: solo lo disponible, con iconos de línea */
+.sd-offers { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.sd-offers li { display: flex; align-items: center; gap: 12px; font-size: 15.5px; }
+.sd-offers svg { flex: none; width: 24px; height: 24px; color: var(--br-green, #3D4C3A); }
+@media (max-width: 640px) { .sd-offers { grid-template-columns: 1fr; } }

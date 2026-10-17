@@ -314,10 +314,30 @@
   const detail = $('stay-detail');
   let current = null;
 
+  // Solo lo que el alojamiento SÍ ofrece, con iconos de línea
+  const ic = (d) => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  const OFFER_ICONS = {
+    floors: ic('<path d="M4 20V9l8-5 8 5v11M4 20h16M9 20v-5h6v5"/>'),
+    garage: ic('<path d="M3 11l2-5h14l2 5M3 11v6h18v-6M3 11h18M7 17v2M17 17v2"/><circle cx="7.500" cy="14" r=".6"/><circle cx="16.500" cy="14" r=".6"/>'),
+    storage: ic('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M10 8h4M10 16h4"/>'),
+    pets: ic('<circle cx="6" cy="10" r="1.800"/><circle cx="10" cy="6" r="1.800"/><circle cx="14" cy="6" r="1.800"/><circle cx="18" cy="10" r="1.800"/><path d="M12 11c-3 0-5 2.500-5 5 0 2 1.500 3 3 2.500 1-.3 1.500-.5 2-.5s1 .2 2 .5c1.500.5 3-.5 3-2.500 0-2.500-2-5-5-5z"/>'),
+    kids: ic('<circle cx="12" cy="7" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2M9 14.500L12 17l3-2.500"/>'),
+  };
+  function offeredList(p) {
+    if (p.property_type === 'terreno') return [];
+    const out = [];
+    if (p.floors) out.push({ icon: OFFER_ICONS.floors, text: p.floors === 1 ? '1 planta' : p.floors + ' plantas' });
+    if (p.has_garage === true) out.push({ icon: OFFER_ICONS.garage, text: p.garage_spots ? 'Garaje para ' + p.garage_spots + (p.garage_spots === 1 ? ' auto' : ' autos') : 'Garaje' });
+    if (p.has_storage === true) out.push({ icon: OFFER_ICONS.storage, text: 'Baulera' });
+    if (p.pets_allowed === true) out.push({ icon: OFFER_ICONS.pets, text: 'Se aceptan mascotas' });
+    if (p.kids_allowed === true) out.push({ icon: OFFER_ICONS.kids, text: 'Se aceptan niños' });
+    return out;
+  }
+
   function openDetail(p, push) {
     current = p;
     const photos = (p.photos && p.photos.length) ? p.photos : [];
-    const features = propertyFeatureList(p).filter((f) => f.label !== 'Tipo' && f.label !== 'Operación');
+    const features = offeredList(p);
     const facts = factsOf(p);
     const host = p.agent && p.agent.display_name ? p.agent.display_name : 'Bastet';
     const gallery = photos.length
@@ -337,7 +357,7 @@
             '<div class="sd-host">' + (p.agent && p.agent.avatar_url ? '<img class="sd-avatar" src="' + esc(p.agent.avatar_url) + '" alt="">' : '<span class="sd-avatar sd-avatar--initial">' + esc(host.charAt(0).toUpperCase()) + '</span>') +
               '<div><h2>Anfitrión: ' + esc(host) + '</h2>' + (facts.length ? '<p>' + facts.map(esc).join(' · ') + '</p>' : '') + '</div></div>' +
             (p.description ? '<section class="sd-section"><h2>Sobre este alojamiento</h2><p class="sd-desc">' + esc(p.description).replace(/\n/g, '<br>') + '</p></section>' : '') +
-            (features.length ? '<section class="sd-section"><h2>Lo que ofrece</h2><ul class="sd-features">' + features.map((f) => '<li><span>' + esc(f.label) + '</span><b>' + esc(f.value) + '</b></li>').join('') + '</ul></section>' : '') +
+            (features.length ? '<section class="sd-section"><h2>Lo que ofrece</h2><ul class="sd-offers">' + features.map((f) => '<li>' + f.icon + '<span>' + esc(f.text) + '</span></li>').join('') + '</ul></section>' : '') +
             '<section class="sd-section sd-note"><h2>Cómo reservar</h2><p>Elige tus fechas y toca «Consultar disponibilidad»: abrimos un WhatsApp con tu consulta lista para enviar al anfitrión. Él confirma la disponibilidad, el precio final y la forma de pago. No se cobra nada en este sitio.</p></section>' +
           '</div>' +
           '<aside class="sd-book" aria-label="Reserva"><div id="sd-booking"></div></aside>' +
