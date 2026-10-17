@@ -12,7 +12,7 @@
     { key: 'discarded', label: 'Descartadas' },
   ];
   const TYPES = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', otro: 'Otro' };
-  const OPS = { venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler' };
+  const OPS = { venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' };
   const ROLES = { propietario: 'Propietario', copropietario: 'Copropietario', apoderado: 'Apoderado', heredero: 'Heredero' };
   const DOCS = { en_regla: 'Documentos en regla', por_regularizar: 'Falta regularizar', sin_documentos: 'Sin documentos' };
   const DOC_TYPES = { folio_real: 'Folio Real', testimonio: 'Testimonio / escritura', impuestos: 'Impuestos', plano: 'Plano / catastral', ci: 'Cédula de identidad', otros: 'Otros' };
@@ -97,7 +97,7 @@
       '</div>' +
       '<p class="detail-label">Inmueble</p><div class="detail-grid">' +
         row('Tipo', esc(TYPES[r.property_type])) + row('Operación', esc(OPS[r.operation])) + row('Ciudad', esc(r.city)) + row('Zona', esc(r.zone)) +
-        row('Dirección', esc(r.address)) + row('Precio esperado', esc(money(r.price, r.currency))) + row('Terreno', esc(m2(r.land_area))) + row('Construido', esc(m2(r.built_area))) +
+        row('Dirección', esc(r.address)) + row(r.operation === 'temporal' ? 'Precio por noche' : 'Precio esperado', esc(money(r.price, r.currency))) + row('Terreno', esc(m2(r.land_area))) + row('Construido', esc(m2(r.built_area))) +
         row('Habitaciones', r.rooms == null ? '' : esc(r.rooms)) + row('Baños', r.baths == null ? '' : esc(r.baths)) +
       '</div>' +
       (r.description ? '<p class="detail-label">Descripción</p><p class="detail-desc">' + esc(r.description) + '</p>' : '') +

@@ -52,7 +52,13 @@
   $('sell-modal-close').addEventListener('click', close);
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) close(); });
-  if (window.location.hash === '#vender') { history.replaceState(null, '', window.location.pathname); open(); }
+  // index.html?op=temporal#vender (enlace de «Estadías») abre el formulario con la operación Temporal ya elegida
+  if (window.location.hash === '#vender') {
+    const pre = new URLSearchParams(window.location.search).get('op');
+    if (pre === 'temporal') { $('sell-operation').value = 'temporal'; syncOperation(); }
+    history.replaceState(null, '', window.location.pathname);
+    open();
+  }
 
   /* ───────── Ciudades ───────── */
   if (typeof BOLIVIA_CITIES !== 'undefined') {
@@ -60,6 +66,10 @@
   }
 
   /* ───────── Tipo de inmueble: terreno no tiene habitaciones ni construcción ───────── */
+  // Temporal: el precio es por noche
+  function syncOperation() { const t = $('sell-operation').value === 'temporal'; $('sell-price-label').textContent = t ? 'Precio por noche' : 'Precio esperado'; }
+  $('sell-operation').addEventListener('change', syncOperation);
+
   function syncType() {
     const land = $('sell-type').value === 'terreno';
     document.querySelectorAll('[data-sell-building]').forEach((el) => el.classList.toggle('hidden', land));
@@ -273,6 +283,7 @@
       'Hola Bastet, acabo de enviar mi solicitud para vender mi inmueble desde la web.',
       'Propietario: ' + p.owner_name,
       'Inmueble: ' + ({ casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', otro: 'Otro' }[p.property_type]) + ' en ' + p.city + (p.zone ? ' (' + p.zone + ')' : ''),
+      'Operación: ' + ({ venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' }[p.operation] || p.operation),
       'Ubicación: https://www.google.com/maps?q=' + p.latitude + ',' + p.longitude,
       p.needs_legal_support ? 'Necesito apoyo legal para sanear mis documentos.' : 'Documentos: ' + (p.documents.length ? p.documents.length + ' adjuntos' : 'los enviaré por aquí'),
     ];
@@ -283,5 +294,5 @@
   }
   $('sell-done').addEventListener('click', close);
 
-  syncType(); syncDocs(); renderFiles();
+  syncOperation(); syncType(); syncDocs(); renderFiles();
 })();

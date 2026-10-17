@@ -208,7 +208,7 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
               <select id="sell-type" required><option value="casa">Casa</option><option value="departamento">Departamento</option><option value="terreno">Terreno</option><option value="otro">Otro</option></select>
             </label>
             <label class="agent-field"><span>Operación *</span>
-              <select id="sell-operation"><option value="venta">Venta</option><option value="anticretico">Anticrético</option><option value="alquiler">Alquiler</option></select>
+              <select id="sell-operation"><option value="venta">Venta</option><option value="anticretico">Anticrético</option><option value="alquiler">Alquiler</option><option value="temporal">Temporal (por noche)</option></select>
             </label>
           </div>
           <div class="agent-field-row">
@@ -217,7 +217,7 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
           </div>
           <label class="agent-field"><span>Dirección *</span><input type="text" id="sell-address" required minlength="5" maxlength="250" placeholder="Calle, número, edificio, referencia"></label>
           <div class="agent-field-row">
-            <label class="agent-field"><span>Precio esperado</span><input type="number" id="sell-price" min="0" step="any" inputmode="decimal" placeholder="Opcional"></label>
+            <label class="agent-field"><span id="sell-price-label">Precio esperado</span><input type="number" id="sell-price" min="0" step="any" inputmode="decimal" placeholder="Opcional"></label>
             <label class="agent-field sell-currency"><span>Moneda</span><select id="sell-currency"><option value="USD">USD</option><option value="BOB">Bs</option></select></label>
           </div>
           <div class="agent-field-row">
@@ -305,6 +305,6 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
 <script src="assets/js/main.js?v=20261027c"></script>
-<script src="assets/js/sell.js?v=20261014d"></script>
+<script src="assets/js/sell.js?v=20261028a"></script>
 </body>
 </html>
