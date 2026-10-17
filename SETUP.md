@@ -43,7 +43,7 @@ En el dashboard de Supabase:
 1. **Authentication → Users → Add user** con tu correo y contraseña (o invítate).
 2. En `supabase/schema.sql`, la línea `update public.profiles set role = 'admin' where email in (...)` define quién es admin: agrega tu correo y corre esa línea en el SQL Editor. (También puedes cambiar `role` a `admin` en la tabla `profiles`.)
 3. Si creaste el usuario a mano (no por invitación), su perfil nace **desactivado** por seguridad: actívalo con `update public.profiles set is_active = true where email = 'tu@correo.com';`.
-4. Entra a `https://bastet.uno/admin/`. Desde ahí, los demás usuarios se invitan en la pestaña **Usuarios** o se aprueban en **Solicitudes**.
+4. Entra a `https://bastet.uno/admin/`. Desde ahí, los demás usuarios se invitan en la pestaña **Usuarios** (las personas que entran con Google se crean solas como agentes; ya no hay solicitudes ni invitaciones por correo).
 
 ## 5. Desplegar la función que invita usuarios
 
@@ -127,7 +127,13 @@ supabase/email-templates/           → plantillas de correo en español (paso 3
 - La cinta de logos de auspiciadores va justo debajo del carrusel de propiedades y se alimenta de la tabla `partners` (pestaña **Marcas**).
 - **Roles:** un **administrador** ve y gestiona todo (propiedades, marcas, testimonios, usuarios, solicitudes). Un **agente** solo ve/crea/edita sus propias propiedades, su analítica y "Mi cuenta"; no puede destacar propiedades ni reordenar (protegido también en la base de datos).
 - Un administrador puede **desactivar** o **eliminar** usuarios desde **Usuarios**; al eliminar, sus propiedades quedan "Sin asignar" (no se borran).
-- Los visitantes pueden pedir una cuenta de agente desde **Acceso agentes → Quiero una cuenta**; la solicitud llega a la pestaña **Solicitudes**, donde el admin la aprueba (envía la invitación) o la rechaza.
+- Cualquier persona puede entrar con **Acceder con cuenta** (solo Google): la cuenta se crea sola como agente activo con su prueba gratuita; no hay solicitudes ni aprobación. Los planes (Propietario, Agente, Empresa) se pagan con comprobante y un admin los confirma en **Pagos**.
 - Al eliminar una propiedad, un logo o una foto, también se borra el archivo del bucket de Storage.
 
 **Regalo de créditos en el historial.** Para que el historial de compras muestre "400 + 40 de regalo", corre [`supabase/credit-pack-ledger.sql`](supabase/credit-pack-ledger.sql) en Supabase → SQL Editor (es seguro volver a correrlo; también está al final de `schema.sql`). Solo cambia el texto de los movimientos nuevos.
+
+## Estado vigente (2026-10-17): léelo antes de seguir esta guía
+
+Esta guía se escribió al inicio del proyecto y describe la puesta en marcha desde cero; **algunas partes ya no aplican** (invitaciones por correo y Edge Function `invite-admin`, solicitudes de agentes, créditos). El estado real, los SQL que ya están corridos, las reglas de caché, los tests y las trampas conocidas están en **`HANDOFF.md` → «ESTADO ACTUAL Y GUÍA DE ARRANQUE»**.
+
+**Para una instalación nueva, orden de SQL** (SQL Editor, cada archivo es idempotente): `schema.sql` (ya incluye todos los bloques acumulados hasta `stay-availability.sql`) y después, solo si hace falta correr uno suelto, el `.sql` correspondiente de `supabase/`. Los créditos fueron eliminados (`drop-credits.sql`): los archivos `credits-bs.sql` y `credit-pack-ledger.sql` son históricos.
