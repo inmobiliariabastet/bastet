@@ -69,7 +69,7 @@
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="ct-spin"></span>'; }
     try {
       await P.ensureLibs(asset('js/contracts/contract-fonts.js'));
-      const letterhead = await P.fetchLetterhead(asset('js/contracts/contract-membrete.js'), asset('img/membrete-bastet.jpg'));
+      const letterhead = await P.fetchLetterhead(asset('js/contracts/contract-membrete.js'), asset('img/membrete-bastet.png'));
       if (!state.colabTpl) {
         const r = await fetch(asset('contracts/colaboracion-v1.md'));
         if (!r.ok) throw new Error('No se pudo cargar la plantilla del documento');
