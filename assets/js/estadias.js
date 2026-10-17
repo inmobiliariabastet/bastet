@@ -1,8 +1,8 @@
 /* Estadías temporales (estadias.html): pantalla dedicada a los alojamientos por noche, al estilo Airbnb / Booking.
  * Buscador (destino, llegada, salida, huéspedes), filtros, tarjetas con carrusel de fotos y favoritos, y una ficha a pantalla completa
  * con galería y un panel de reserva que calcula las noches y envía la consulta al anfitrión por WhatsApp.
- * No hay calendario de disponibilidad ni reseñas en la base de datos: las fechas solo sirven para el cálculo y para la consulta,
- * y el anfitrión confirma la disponibilidad. Autónomo: usa el cliente global `supabaseClient`. */
+ * No hay calendario de disponibilidad: las fechas solo sirven para el cálculo y para la consulta, y el anfitrión confirma la disponibilidad.
+ * Calificaciones, reseñas, mapa y lugares cercanos viven en estadias-extras.js (window.StayExtras). Autónomo: usa el cliente global `supabaseClient`. */
 (function () {
   'use strict';
 
@@ -66,14 +66,16 @@
   try { favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch (e) { favs = new Set(); }
   const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch (e) { /* sin almacenamiento: no se recuerdan */ } };
 
-  const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at';
+  const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
   const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp';
 
   async function load() {
     const fetchStays = (columns) => supabaseClient.from('properties').select(columns).eq('status', 'available').eq('operation', 'temporal')
       .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString()).order('sort_order', { ascending: true });
     let res = await fetchStays(PUBLIC_PROPERTY_COLUMNS);
-    if (res.error && res.error.code === '42703') res = await supabaseClient.from('properties').select(PUBLIC_PROPERTY_COLUMNS.replace(',expires_at', '')).eq('status', 'available').eq('operation', 'temporal').order('sort_order', { ascending: true });
+    // Si falta alguna columna (SQL de ubicación o de vencimiento sin correr), se reintenta sin ella
+    if (res.error && res.error.code === '42703') res = await fetchStays(PUBLIC_PROPERTY_COLUMNS.replace(',latitude,longitude', ''));
+    if (res.error && res.error.code === '42703') res = await supabaseClient.from('properties').select(PUBLIC_PROPERTY_COLUMNS.replace(',latitude,longitude', '').replace(',expires_at', '')).eq('status', 'available').eq('operation', 'temporal').order('sort_order', { ascending: true });
     stays = res.error ? [] : (res.data || []);
     const ids = [...new Set(stays.map((p) => p.owner_id).filter(Boolean))];
     if (ids.length) {
@@ -82,6 +84,7 @@
       stays.forEach((p) => { p.agent = by[p.owner_id] || null; });
     }
     favs = new Set([...favs].filter((id) => stays.some((p) => p.id === id)));
+    if (window.StayExtras) await window.StayExtras.loadRatings(stays.map((p) => p.id));
     fromUrl();
     buildCityOptions();
     buildTypeChips();
@@ -89,6 +92,7 @@
     render();
     const open = new URLSearchParams(location.search).get('p');
     if (open) { const p = stays.find((x) => x.id === open || formatPropertyCode(x) === open); if (p) openDetail(p, false); }
+    if (window.StayExtras) window.StayExtras.openReviewFromUrl(async () => { await window.StayExtras.loadRatings(stays.map((p) => p.id)); render(); });
   }
 
   /* ───────── Utilidades ───────── */
@@ -201,7 +205,10 @@
       if (state.sort === 'asc') return (nightlyUSD(a) ?? 1e12) - (nightlyUSD(b) ?? 1e12);
       if (state.sort === 'desc') return (nightlyUSD(b) ?? -1) - (nightlyUSD(a) ?? -1);
       if (state.sort === 'new') return new Date(b.created_at) - new Date(a.created_at);
-      return (isFeatured(b) - isFeatured(a)) || (idx.get(a.id) - idx.get(b.id));
+      const X = window.StayExtras;
+      if (state.sort === 'rating' && X) return (X.score(b.id) - X.score(a.id)) || (idx.get(a.id) - idx.get(b.id));
+      // Recomendados: destacados primero y, dentro de cada grupo, los mejor calificados
+      return (isFeatured(b) - isFeatured(a)) || (X ? X.score(b.id) - X.score(a.id) : 0) || (idx.get(a.id) - idx.get(b.id));
     });
     return list;
   }
@@ -219,6 +226,12 @@
       (n ? '<div class="stay-total">' + n + ' ' + plural(n, 'noche', 'noches') + ': <b>' + money(base * n, p.currency) + '</b> <span>(estimado)</span></div>' : '');
   }
 
+  function ratingChip(p) {
+    const X = window.StayExtras; if (!X || !X.hasReviews) return '';
+    const r = X.of(p.id);
+    return r ? '<span class="stay-rating" title="' + r.n + ' ' + plural(r.n, 'reseña', 'reseñas') + '"><i>★</i> ' + X.fmtAvg(r.avg) + ' <small>(' + r.n + ')</small></span>' : '<span class="stay-rating stay-rating--new">Nuevo</span>';
+  }
+
   function card(p) {
     const photos = (p.photos && p.photos.length) ? p.photos : [];
     const facts = factsOf(p);
@@ -230,13 +243,13 @@
         (photos.length
           ? '<div class="stay-slides">' + photos.map((u, i) => '<img src="' + esc(u) + '" alt="' + esc(p.title) + (photos.length > 1 ? ' — foto ' + (i + 1) : '') + '" loading="' + (i ? 'lazy' : 'eager') + '" draggable="false">').join('') + '</div>'
           : '<div class="stay-noimg">' + esc(p.title) + '</div>') +
-        (isFeatured(p) ? '<span class="stay-badge">Destacada</span>' : '') +
+        (isFeatured(p) ? '<span class="stay-badge">Destacada</span>' : (window.StayExtras && window.StayExtras.isTop(p.id) ? '<span class="stay-badge stay-badge--top">★ Mejor calificado</span>' : '')) +
         '<button type="button" class="stay-fav' + (favs.has(p.id) ? ' is-on' : '') + '" data-fav aria-label="Guardar en favoritos" aria-pressed="' + favs.has(p.id) + '">' + HEART + '</button>' +
         (photos.length > 1 ? '<button type="button" class="stay-arrow stay-arrow--prev" data-slide="-1" aria-label="Foto anterior">' + CHEV_L + '</button><button type="button" class="stay-arrow stay-arrow--next" data-slide="1" aria-label="Foto siguiente">' + CHEV_R + '</button>' +
           '<div class="stay-dots" aria-hidden="true">' + photos.slice(0, 7).map((_, i) => '<i' + (i === 0 ? ' class="is-on"' : '') + '></i>').join('') + '</div>' : '') +
       '</div>' +
       '<div class="stay-body">' +
-        '<div class="stay-row"><span class="stay-place">' + esc(PROPERTY_TYPE_LABELS[p.property_type] || 'Alojamiento') + ' · ' + esc(p.location || '') + '</span></div>' +
+        '<div class="stay-row"><span class="stay-place">' + esc(PROPERTY_TYPE_LABELS[p.property_type] || 'Alojamiento') + ' · ' + esc(p.location || '') + '</span>' + ratingChip(p) + '</div>' +
         '<h3 class="stay-name">' + esc(p.title) + '</h3>' +
         (facts.length ? '<p class="stay-facts">' + facts.map(esc).join(' · ') + '</p>' : '') +
         priceBlock(p) +
@@ -335,6 +348,7 @@
     document.body.dataset.open = formatPropertyCode(p) || p.id;
     if (push) history.pushState({ stay: p.id }, '', location.href); toUrl();
     refreshBooking();
+    if (window.StayExtras) window.StayExtras.mount(p, detail);
     detail.querySelector('.sd-back').focus({ preventScroll: true });
     track(p.id, 'view');
   }
@@ -358,6 +372,7 @@
 
   detail.addEventListener('click', (e) => {
     if (e.target.closest('[data-close]')) { closeDetail(true); return; }
+    const go = e.target.closest('[data-goto]'); if (go) { e.preventDefault(); const t = $(go.dataset.goto); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     if (e.target.closest('[data-fav]') && current) { toggleFav(current.id); e.target.closest('[data-fav]').classList.toggle('is-on', favs.has(current.id)); const cardFav = grid.querySelector('.stay-card[data-id="' + current.id + '"] [data-fav]'); if (cardFav) cardFav.classList.toggle('is-on', favs.has(current.id)); if (state.favsOnly) render(); return; }
     if (e.target.closest('[data-share]') && current) { shareStay(); return; }
     const ph = e.target.closest('[data-photo]'); if (ph) { openLightbox(Number(ph.dataset.photo)); return; }

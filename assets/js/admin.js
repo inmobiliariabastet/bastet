@@ -200,6 +200,10 @@ function isPropertyFeatured(property) {
 // Botón visible para destacar una propiedad disponible (o su estado si ya está destacada)
 const STAR_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8-4.3-4.1 5.9-.9z"/></svg>';
 function featureRowHtml(property) {
+  const reviewsBtn = property.operation === 'temporal' && window.StayReviewsAdmin ? '<button type="button" class="prop-feature-btn prop-reviews-btn" data-action="reviews"><span>★ Reseñas de huéspedes</span></button>' : '';
+  return reviewsBtn + featureBtnHtml(property);
+}
+function featureBtnHtml(property) {
   if (property.status !== 'available' || !window.UnoPublications) return '';
   if (isPropertyFeatured(property)) {
     const until = property.featured_until && new Date(property.featured_until) > new Date() ? ' hasta el ' + new Date(property.featured_until).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
@@ -254,6 +258,8 @@ function renderPropertyList() {
         featureRowHtml(property) +
       '</div>';
 
+    const revBtn = card.querySelector('[data-action="reviews"]');
+    if (revBtn) revBtn.addEventListener('click', (e) => { e.stopPropagation(); window.StayReviewsAdmin.open(property); });
     const featBtn = card.querySelector('[data-action="feature"]');
     if (featBtn) featBtn.addEventListener('click', (e) => { e.stopPropagation(); if (window.UnoPublications) window.UnoPublications.featureProperty(property); });
     card.querySelector('[data-action="view"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyDetail(property); });
@@ -463,7 +469,7 @@ function openPropertyForm(property) {
   updatePropertyTypeFields();
 
   renderPhotoGrid();
-  setUpLocationPicker(currentCity, formState.address);
+  setUpLocationPicker(currentCity, formState.address, formState.latitude, formState.longitude);
   formModal.classList.remove('hidden');
   setTimeout(() => { if (locationMap) locationMap.invalidateSize(); }, 50);
 }
@@ -621,6 +627,8 @@ propertyForm.addEventListener('submit', async (e) => {
     pets_allowed: isLand ? null : selectToBool(document.getElementById('field-pets').value),
     kids_allowed: isLand ? null : selectToBool(document.getElementById('field-kids').value),
   });
+  // Ubicación exacta del pin (para el mapa de Estadías); si nunca se fijó, no se toca lo que ya hubiera
+  if (pinCoords && Number.isFinite(pinCoords.lat) && Number.isFinite(pinCoords.lng)) { payload.latitude = +pinCoords.lat.toFixed(6); payload.longitude = +pinCoords.lng.toFixed(6); }
 
   if (!payload.title || !payload.location || !payload.price || !payload.area || !payload.rooms || !payload.baths || !payload.property_type || !payload.operation) {
     formError.textContent = 'Completa todos los campos obligatorios.';
@@ -654,6 +662,12 @@ propertyForm.addEventListener('submit', async (e) => {
     ({ error } = await save(withoutCurrency));
   }
 
+  // Si el SQL de ubicación (supabase/stays.sql) aún no se corrió, las columnas no existen: se guarda igual sin coordenadas.
+  if (error && /latitude|longitude/i.test(error.message || '')) {
+    const { latitude, longitude, ...withoutCoords } = payload;
+    ({ error } = await save(withoutCoords));
+  }
+
   submitBtn.disabled = false;
 
   if (error) {
@@ -672,6 +686,7 @@ propertyForm.addEventListener('submit', async (e) => {
 /* ── Ubicación: mapa OpenStreetMap + búsqueda Nominatim (gratis, sin API key) ── */
 let locationMap = null;
 let locationMarker = null;
+let pinCoords = null; // {lat, lng} que el anfitrión fijó a mano (clic o búsqueda); se guarda como latitude/longitude
 const DEFAULT_MAP_CENTER = [-16.5, -68.15]; // La Paz, Bolivia
 
 function ensureMapInit() {
@@ -687,8 +702,9 @@ function ensureMapInit() {
   });
 }
 
-function placeMarker(lat, lng) {
+function placeMarker(lat, lng, fromUser) {
   if (!locationMap) return;
+  if (fromUser !== false) pinCoords = { lat, lng };
   if (locationMarker) locationMarker.setLatLng([lat, lng]);
   else locationMarker = L.marker([lat, lng]).addTo(locationMap);
   locationMap.setView([lat, lng], 14);
@@ -729,7 +745,7 @@ async function searchLocation(query, opts) {
       return;
     }
     const r = results[0];
-    placeMarker(parseFloat(r.lat), parseFloat(r.lon));
+    placeMarker(parseFloat(r.lat), parseFloat(r.lon), !(opts && opts.seed));
     applyGeocodedResult(r, opts);
   } catch (err) {
     if (updateCity) alert('No se pudo buscar la ubicación (revisa tu conexión).');
@@ -747,14 +763,20 @@ async function reverseGeocode(lat, lng) {
   }
 }
 
-function setUpLocationPicker(existingCity, existingAddress) {
+function setUpLocationPicker(existingCity, existingAddress, existingLat, existingLng) {
   ensureMapInit();
   document.getElementById('location-search').value = existingAddress || '';
   document.getElementById('location-map-hint').textContent = 'Escribe la dirección y presiona Buscar para ubicarla en el mapa, o haz clic directo en el mapa y la dirección se completa sola arriba.';
   if (locationMarker) { locationMap.removeLayer(locationMarker); locationMarker = null; }
   locationMap.setView(DEFAULT_MAP_CENTER, 12);
+  pinCoords = null;
+  if (existingLat != null && existingLng != null) {
+    pinCoords = { lat: Number(existingLat), lng: Number(existingLng) };
+    placeMarker(pinCoords.lat, pinCoords.lng, false);
+    return;
+  }
   const seed = existingAddress || (existingCity ? existingCity + ', Bolivia' : '');
-  if (seed) searchLocation(seed, { updateCity: false, updateAddress: false });
+  if (seed) searchLocation(seed, { updateCity: false, updateAddress: false, seed: true });
 }
 
 document.getElementById('location-search-btn').addEventListener('click', () => {

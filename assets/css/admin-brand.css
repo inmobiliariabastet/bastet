@@ -278,3 +278,24 @@ a { color: var(--br-green); }
 .prop-feature-btn:hover svg { fill: #fff; }
 .prop-feature.is-on { background: var(--br-green); color: var(--br-yellow); }
 .prop-feature.is-on svg { stroke: var(--br-yellow); }
+
+/* ── Reseñas de huéspedes (estadías temporales) ── */
+.prop-reviews-btn { background: #fff; margin-top: 8px; }
+.sra-panel { max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.sra-sub, .sra-hint { margin: 4px 0 10px; font-size: 14px; color: var(--br-muted, rgba(30,38,41,.66)); }
+.sra-sec { margin-top: 18px; }
+.sra-sec h3 { margin: 0 0 6px; font-size: 16px; }
+.sra-new { display: flex; gap: 8px; flex-wrap: wrap; }
+.sra-new input { flex: 1 1 200px; min-width: 0; }
+.sra-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.sra-list li, .sra-rev { border: 1px solid var(--br-line, rgba(30,38,41,.15)); border-radius: 14px; padding: 12px 14px; }
+.sra-list li { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; }
+.sra-list small { display: block; color: var(--br-muted, rgba(30,38,41,.66)); }
+.sra-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.sra-rev { margin-top: 10px; }
+.sra-rev header { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.sra-rev time { margin-left: auto; font-size: 12.5px; color: var(--br-muted, rgba(30,38,41,.66)); }
+.sra-stars { color: var(--br-yellow, #F1BF46); letter-spacing: 1px; }
+.sra-rev p { margin: 6px 0; overflow-wrap: anywhere; }
+.sra-rev textarea { width: 100%; box-sizing: border-box; margin: 6px 0; font: inherit; }
+.sra-rev.is-hidden { opacity: .6; }
