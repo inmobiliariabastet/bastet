@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="assets/css/style.css?v=20261023a">
 <link rel="stylesheet" href="assets/css/brand.css?v=20261027a">
+<link rel="stylesheet" href="assets/css/prop-extras.css?v=20261030a">
 <link rel="stylesheet" href="assets/css/responsive-guard.css?v=20261027c">
 </head>
 <body class="marketplace-page brand">
@@ -93,7 +94,12 @@
         Limpiar filtros
       </button>
     </div>
+    <div class="view-bar" id="view-bar">
+      <button type="button" class="view-fav" id="view-fav" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg><span>Guardadas</span><i id="view-fav-count"></i></button>
+      <div class="view-switch" role="group" aria-label="Vista"><button type="button" data-view="list" class="is-active" aria-pressed="true">Lista</button><button type="button" data-view="map" aria-pressed="false">Mapa</button></div>
+    </div>
     <h2 class="prop-results-title hidden" id="prop-results-title"></h2>
+    <div class="prop-map-wrap hidden" id="prop-map-wrap"><div class="prop-map" id="prop-map"><p class="pm-error">Cargando mapa…</p></div><p class="prop-map-note" id="prop-map-note"></p><div class="prop-map-card hidden" id="prop-map-card"></div></div>
     <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
     <div class="prop-more-wrap" id="prop-more-wrap"></div>
   </div>
@@ -152,6 +158,7 @@
 <script src="assets/js/bolivia-cities.js?v=20261014b"></script>
 <script src="assets/js/password-toggle.js?v=20261014b"></script>
 <script src="assets/js/property-fields.js?v=20261020a"></script>
-<script src="assets/js/main.js?v=20261029a"></script>
+<script src="assets/js/prop-extras.js?v=20261030a"></script>
+<script src="assets/js/main.js?v=20261030a"></script>
 </body>
 </html>

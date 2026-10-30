@@ -1,0 +1,40 @@
+/* Propiedades: corazón de favoritos, barra Guardadas · Lista | Mapa y vista de mapa con precios (BrandBook BASTET 2026) */
+.prop-tile-ph { position: relative; }
+.prop-tile-fav { position: absolute; top: 12px; right: 12px; z-index: 2; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.94); color: var(--color-charcoal, #1E2629); cursor: pointer; padding: 0; box-shadow: 0 6px 16px -8px rgba(30,38,41,.55); transition: transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.prop-tile-fav:active { transform: scale(.92); }
+.prop-tile-fav svg, .property-modal-fav svg { width: 21px; height: 21px; fill: transparent; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.prop-tile-fav.is-on svg, .property-modal-fav.is-on svg { fill: var(--color-orange, #EC6C2E); stroke: var(--color-orange, #EC6C2E); }
+.prop-tile-fav:focus-visible, .property-modal-fav:focus-visible { outline: 2px solid var(--color-accent, #F1BF46); outline-offset: 2px; }
+
+.property-modal-fav { position: absolute; top: 14px; left: 14px; z-index: 6; display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 999px; background: rgba(255,255,255,.95); color: var(--color-charcoal, #1E2629); padding: 9px 15px 9px 12px; font: inherit; font-size: 14px; cursor: pointer; box-shadow: 0 6px 16px -8px rgba(30,38,41,.55); }
+
+.view-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 6px; }
+.view-fav { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--color-sage, #B7BEAD); background: #fff; color: var(--color-primary, #3D4C3A); border-radius: 999px; padding: 10px 16px; font: inherit; font-size: 14.5px; cursor: pointer; min-height: 44px; }
+.view-fav svg { width: 18px; height: 18px; fill: transparent; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.view-fav.is-active { background: var(--color-primary, #3D4C3A); border-color: var(--color-primary, #3D4C3A); color: #fff; }
+.view-fav.is-active svg { fill: var(--color-orange, #EC6C2E); stroke: var(--color-orange, #EC6C2E); }
+.view-fav i { font-style: normal; font-size: 12px; min-width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 10px; background: var(--color-accent, #F1BF46); color: var(--color-charcoal, #1E2629); padding: 0 6px; }
+.view-fav i:empty { display: none; }
+.view-switch { display: inline-flex; border: 1px solid var(--color-sage, #B7BEAD); border-radius: 999px; padding: 3px; background: #fff; }
+.view-switch button { border: 0; background: transparent; color: var(--color-primary, #3D4C3A); font: inherit; font-size: 14.5px; padding: 8px 18px; border-radius: 999px; cursor: pointer; min-height: 40px; }
+.view-switch button.is-active { background: var(--color-primary, #3D4C3A); color: #fff; }
+
+.prop-map-wrap { position: relative; margin-top: 10px; }
+.prop-map { height: min(68vh, 560px); min-height: 360px; border-radius: 20px; overflow: hidden; background: var(--color-pale, #EFF8E7); display: flex; align-items: center; justify-content: center; position: relative; z-index: 0; border: 1px solid var(--color-sage, #B7BEAD); }
+.pm-error { color: var(--color-muted, #6B6F66); font-size: 14.5px; padding: 20px; text-align: center; margin: 0; }
+.prop-map-note { margin: 8px 4px 0; font-size: 13px; color: var(--color-muted, #6B6F66); }
+.pm-icon { background: none; border: 0; }
+.pm-pin { display: inline-block; transform: translate(-50%, -100%); background: #fff; color: var(--color-primary, #3D4C3A); border: 1.5px solid var(--color-primary, #3D4C3A); border-radius: 999px; padding: 5px 11px; font: 600 13px/1 var(--font-sans, 'Cabinet Grotesk', sans-serif); white-space: nowrap; box-shadow: 0 6px 14px -6px rgba(30,38,41,.6); position: relative; }
+.pm-pin::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 9px; height: 9px; background: inherit; border-right: 1.5px solid var(--color-primary, #3D4C3A); border-bottom: 1.5px solid var(--color-primary, #3D4C3A); transform: translateX(-50%) rotate(45deg); }
+.pm-pin.is-approx { border-style: dashed; }
+.pm-icon.is-sel { z-index: 1000 !important; }
+.pm-icon.is-sel .pm-pin { background: var(--color-primary, #3D4C3A); color: #fff; }
+.pm-icon.is-sel .pm-pin::after { background: var(--color-primary, #3D4C3A); }
+.prop-map-card { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 500; }
+.pm-card-body { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 0; background: #fff; border-radius: 18px; padding: 10px; font: inherit; cursor: pointer; box-shadow: 0 16px 34px -14px rgba(30,38,41,.55); }
+.pm-card-body img, .pm-card-noimg { flex: none; width: 84px; height: 72px; border-radius: 12px; object-fit: cover; background: var(--color-pale, #EFF8E7); }
+.pm-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--color-charcoal, #1E2629); }
+.pm-card-text b { font-size: 17px; color: var(--color-primary, #3D4C3A); }
+.pm-card-text span, .pm-card-text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-card-text small { color: var(--color-muted, #6B6F66); }
+@media (max-width: 480px) { .view-bar { flex-wrap: wrap; } .prop-map { min-height: 420px; } }

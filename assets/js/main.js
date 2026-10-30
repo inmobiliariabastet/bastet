@@ -261,6 +261,8 @@ const modal = document.getElementById('property-modal');
 
 let allProperties = [];
 let cityFilter = 'Todas';
+let favOnly = false;      // solo guardadas (corazón)
+let viewMode = 'list';    // 'list' | 'map' (solo en marketplace)
 let operationFilter = ''; // '' (inicio: destacadas) | 'venta' | 'alquiler' | 'anticretico' | 'temporal'
 let typeFilter = ''; // '' | 'casa' | 'departamento' | 'terreno'
 let roomsFilter = ''; // '' = cualquiera; '3' = 3 o más habitaciones
@@ -577,6 +579,7 @@ function buildPropertyTile(property) {
       (firstPhoto
         ? '<img class="prop-tile-img" src="' + escapeHtml(firstPhoto) + '" alt="' + escapeHtml(property.title) + '" loading="lazy">'
         : '<div class="prop-tile-noimg">' + escapeHtml(property.title || 'BASTET') + '</div>') +
+      (window.PropFavs ? '<button type="button" class="prop-tile-fav' + (window.PropFavs.has(property.id) ? ' is-on' : '') + '" data-fav aria-pressed="' + window.PropFavs.has(property.id) + '" aria-label="Guardar en favoritos">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>' + '</button>' : '') +
       '<div class="prop-tile-badges">' +
         (operation ? '<span class="prop-tile-badge">' + operation + '</span>' : '') +
         (featured ? '<span class="prop-tile-badge prop-tile-badge--gold"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 6.4L21 11l-6.4 2.6L12 20l-2.6-6.4L3 11l6.4-2.6z"/></svg>Destacada</span>' : '') +
@@ -647,7 +650,7 @@ function socialIconLink(url, kind, label) {
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
 const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp,facebook_url,instagram_url,tiktok_url';
 
@@ -663,9 +666,11 @@ async function loadProperties() {
   // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
   const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
   // Si algún SQL aún no se corrió (moneda, vigencia, plan), esa columna no existe (42703): se reintenta sin ella, de la más nueva a la más antigua.
-  const noCurrency = PUBLIC_PROPERTY_COLUMNS.replace('currency,', '');
+  const noCoords = PUBLIC_PROPERTY_COLUMNS.replace(',latitude,longitude', '');
+  const noCurrency = noCoords.replace('currency,', '');
   const attempts = [
     () => fetchActive(PUBLIC_PROPERTY_COLUMNS),
+    () => fetchActive(noCoords),
     () => fetchActive(noCurrency),
     () => fetchProperties(noCurrency),
     () => fetchProperties(noCurrency.replace('featured_until,', '')),
@@ -681,6 +686,7 @@ async function loadProperties() {
     allProperties = [];
   } else {
     allProperties = data || [];
+    if (window.PropFavs) window.PropFavs.prune(allProperties.map((p) => p.id));
     await hideBlockedStays();
     await attachAgentInfo(allProperties);
   }
@@ -832,7 +838,8 @@ citySelectEl?.addEventListener('change', () => {
 
 // Con ciudad elegida se muestran TODAS las propiedades de esa ciudad (destacadas o no).
 function filteredProperties() {
-  const base = propertiesForOperationAndPrice();
+  let base = propertiesForOperationAndPrice();
+  if (favOnly && window.PropFavs) base = base.filter((p) => window.PropFavs.has(p.id));
   if (cityFilter === 'Todas') return base;
   return base.filter((p) => (p.location || '').startsWith(cityFilter));
 }
@@ -845,7 +852,7 @@ function isFeatured(p) {
 const clearFiltersBtn = document.getElementById('clear-filters');
 
 function anyFilterActive() {
-  return operationFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || minPriceFilter !== '' || maxPriceFilter !== '' || cityFilter !== 'Todas';
+  return favOnly || operationFilter !== '' || typeFilter !== '' || roomsFilter !== '' || bathsFilter !== '' || minPriceFilter !== '' || maxPriceFilter !== '' || cityFilter !== 'Todas';
 }
 
 clearFiltersBtn?.addEventListener('click', () => {
@@ -858,6 +865,7 @@ clearFiltersBtn?.addEventListener('click', () => {
   if (minPriceEl) { minPriceEl.value = ''; minPriceEl.classList.remove('is-set'); }
   if (maxPriceEl) { maxPriceEl.value = ''; maxPriceEl.classList.remove('is-set'); }
   cityFilter = 'Todas';
+  favOnly = false;
   rebuildFilters();
   renderPropertyGrid();
 });
@@ -878,6 +886,20 @@ if (filtersToggleEl && selectFiltersEl) {
     filtersToggleEl.setAttribute('aria-expanded', String(open));
   });
 }
+
+// Barra «Guardadas · Lista | Mapa» del marketplace
+function syncViewBar() {
+  const favBtn = document.getElementById('view-fav');
+  if (!favBtn || !window.PropFavs) return;
+  const n = window.PropFavs.ids().filter((id) => allProperties.some((p) => p.id === id)).length;
+  favBtn.classList.toggle('is-active', favOnly); favBtn.setAttribute('aria-pressed', String(favOnly));
+  const c = document.getElementById('view-fav-count'); if (c) c.textContent = n ? String(n) : '';
+  document.querySelectorAll('[data-view]').forEach((b) => { const on = b.dataset.view === viewMode; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on)); });
+}
+const viewFavBtn = document.getElementById('view-fav');
+if (viewFavBtn) viewFavBtn.addEventListener('click', () => { favOnly = !favOnly; renderPropertyGrid(); });
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { viewMode = b.dataset.view; renderPropertyGrid(false); }));
+if (window.PropFavs) window.PropFavs.onChange(syncViewBar);
 
 function renderPropertyGrid(resetPage = true) {
   if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
@@ -913,9 +935,17 @@ function renderPropertyGrid(resetPage = true) {
         ? 'Por ahora no tenemos propiedades en ' + PROPERTY_OPERATION_LABELS[operationFilter].toLowerCase() + '. Mira las demás opciones o escríbenos por WhatsApp.'
         : 'Pronto publicaremos nuevas propiedades disponibles.';
 
+  syncViewBar();
+  const mapWrapEl = document.getElementById('prop-map-wrap');
+  const mapOn = !!(HAS_FILTERS && viewMode === 'map' && mapWrapEl && window.PropMap);
+  if (mapWrapEl) mapWrapEl.classList.toggle('hidden', !mapOn);
+  propGridEl.classList.toggle('hidden', mapOn);
+  if (propMoreWrapEl) propMoreWrapEl.classList.toggle('hidden', mapOn);
+  if (mapOn) { window.PropMap.render(list, openProperty); return; }
+
   propGridEl.innerHTML = '';
   if (!list.length) {
-    propGridEl.innerHTML = '<p class="prop-grid-empty">' + escapeHtml(emptyMessage) + '</p>';
+    propGridEl.innerHTML = '<p class="prop-grid-empty">' + escapeHtml(favOnly ? 'Todavía no guardaste propiedades. Toca el corazón de una propiedad para verla aquí.' : emptyMessage) + '</p>';
     if (propMoreWrapEl) propMoreWrapEl.innerHTML = '';
     return;
   }
@@ -935,6 +965,13 @@ propGridEl.addEventListener('click', (e) => {
   const tile = e.target.closest('.prop-tile');
   if (!tile) return;
   const property = tile.__property;
+  const favBtn = e.target.closest('[data-fav]');
+  if (favBtn) {
+    const on = window.PropFavs.toggle(property.id);
+    favBtn.classList.toggle('is-on', on); favBtn.setAttribute('aria-pressed', String(on));
+    if (favOnly) renderPropertyGrid(false);
+    return;
+  }
   if (e.target.closest('[data-tile-wa]')) {
     trackEvent(property.id, 'whatsapp_click');        // el enlace del ícono abre WhatsApp por sí solo
     return;
@@ -1079,6 +1116,7 @@ function renderModal() {
 
   modal.innerHTML =
     '<button class="property-modal-close" aria-label="Cerrar" id="property-modal-close">×</button>' +
+    (window.PropFavs ? '<button type="button" class="property-modal-fav' + (window.PropFavs.has(p.id) ? ' is-on' : '') + '" id="modal-fav" aria-pressed="' + window.PropFavs.has(p.id) + '" aria-label="Guardar en favoritos">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>' + '<span>Guardar</span></button>' : '') +
     '<div class="property-modal-gallery">' +
       (currentPhoto
         ? '<img class="property-modal-img" src="' + escapeHtml(currentPhoto) + '" alt="' + escapeHtml(p.title) + '">'
@@ -1125,6 +1163,13 @@ function renderModal() {
   if (leadSlot && leadFormNode) leadSlot.appendChild(leadFormNode);
 
   document.getElementById('property-modal-close').addEventListener('click', closeProperty);
+  const modalFav = document.getElementById('modal-fav');
+  if (modalFav) modalFav.addEventListener('click', () => {
+    const on = window.PropFavs.toggle(p.id);
+    modalFav.classList.toggle('is-on', on); modalFav.setAttribute('aria-pressed', String(on));
+    const tileFav = propGridEl.querySelectorAll('.prop-tile'); tileFav.forEach((t) => { if (t.__property && t.__property.id === p.id) { const b = t.querySelector('[data-fav]'); if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); } } });
+    if (favOnly && !on) { closeProperty(); renderPropertyGrid(false); }
+  });
   document.getElementById('modal-whatsapp-cta').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));
   const prevBtn = document.getElementById('modal-prev');
   const nextBtn = document.getElementById('modal-next');
