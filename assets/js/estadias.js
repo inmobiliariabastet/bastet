@@ -324,6 +324,7 @@
   /* ───────── Ficha a pantalla completa ───────── */
   const detail = $('stay-detail');
   let current = null;
+  let calApi = null;
 
   // Solo lo que el alojamiento SÍ ofrece, con iconos de línea
   const ic = (d) => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
@@ -376,6 +377,7 @@
               '<div><h2>Anfitrión: ' + esc(host) + '</h2>' + (facts.length ? '<p>' + facts.map(esc).join(' · ') + '</p>' : '') + '</div></div>' +
             (p.description ? '<section class="sd-section"><h2>Sobre este alojamiento</h2><p class="sd-desc">' + esc(p.description).replace(/\n/g, '<br>') + '</p></section>' : '') +
             (features.length ? '<section class="sd-section"><h2>Lo que ofrece</h2><ul class="sd-offers">' + features.map((f) => '<li>' + f.icon + '<span>' + esc(f.text) + '</span></li>').join('') + '</ul></section>' : '') +
+            '<section class="sd-section" id="sd-avail"><h2>Disponibilidad</h2><div id="sd-cal"></div></section>' +
             '<section class="sd-section sd-note"><h2>Cómo reservar</h2><p>Elige tus fechas y toca «Consultar disponibilidad»: abrimos un WhatsApp con tu consulta lista para enviar al anfitrión. Él confirma la disponibilidad, el precio final y la forma de pago. No se cobra nada en este sitio.</p></section>' +
           '</div>' +
           '<aside class="sd-book" aria-label="Reserva"><div id="sd-booking"></div></aside>' +
@@ -387,6 +389,14 @@
     if (push) history.pushState({ stay: p.id }, '', location.href); toUrl();
     refreshBooking();
     if (window.StayExtras) window.StayExtras.mount(p, detail);
+    calApi = null;
+    if (window.StayCalendar && detail.querySelector('#sd-cal')) {
+      calApi = window.StayCalendar.mount(detail.querySelector('#sd-cal'), {
+        blocks: blocks[p.id] || [],
+        getRange: () => ({ from: state.from, to: state.to }),
+        onChange: (f, t) => { state.from = f; state.to = t; syncControls(); render(); toUrl(); refreshBooking(); calApi.refresh(); },
+      });
+    }
     detail.querySelector('.sd-back').focus({ preventScroll: true });
     track(p.id, 'view');
   }
@@ -394,6 +404,7 @@
   function refreshBooking() {
     const p = current; const box = $('sd-booking'); if (!p || !box) return;
     const n = nights(), base = num(p.price), today = todayIso();
+    const conflict = !!(n && calApi && calApi.isBusyRange(state.from, state.to));
     box.innerHTML =
       '<div class="sd-price">' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + '</div>' +
       '<div class="sd-dates">' +
@@ -401,11 +412,11 @@
         '<label><span>Salida</span><input type="date" id="sd-to" min="' + esc(state.from || today) + '" value="' + esc(state.to) + '"></label>' +
         '<div class="sd-guests"><span>Huéspedes</span><div class="stays-stepper"><button type="button" data-g="-1" aria-label="Menos huéspedes">−</button><output>' + state.guests + '</output><button type="button" data-g="1" aria-label="Más huéspedes">+</button></div></div>' +
       '</div>' +
-      (n && base !== null ? '<ul class="sd-sum"><li><span>' + money(base, p.currency) + ' × ' + n + ' ' + plural(n, 'noche', 'noches') + '</span><b>' + money(base * n, p.currency) + '</b></li><li class="sd-sum-total"><span>Total estimado</span><b>' + money(base * n, p.currency) + '</b></li></ul><p class="sd-fine">Estimado: el anfitrión confirma el precio final y la disponibilidad.</p>'
+      (conflict ? '<p class="sd-conflict">Estas fechas no están disponibles: el alojamiento está ocupado alguna de esas noches. Elige otras en el calendario.</p>' : n && base !== null ? '<ul class="sd-sum sd-sum--detail"><li><span>Fechas</span><b>' + fdate(state.from) + ' – ' + fdate(state.to) + '</b></li><li><span>Huéspedes</span><b>' + state.guests + '</b></li><li><span>' + money(base, p.currency) + ' × ' + n + ' ' + plural(n, 'noche', 'noches') + '</span><b>' + money(base * n, p.currency) + '</b></li><li class="sd-sum-total"><span>Total estimado</span><b>' + money(base * n, p.currency) + '</b></li></ul><p class="sd-fine">Estimado: el anfitrión confirma el precio final y la disponibilidad.</p>'
         : '<p class="sd-fine">Elige llegada y salida para calcular tu estadía.</p>') +
-      '<a class="sd-cta" id="sd-wa" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '">Consultar disponibilidad por WhatsApp</a>';
+      (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">Fechas no disponibles</span>' : '<a class="sd-cta" id="sd-wa" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '">Consultar disponibilidad por WhatsApp</a>');
     const mb = $('sd-mobilebar');
-    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div><a class="sd-cta" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '" data-wa>Consultar</a>';
+    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div>' + (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">No disponible</span>' : '<a class="sd-cta" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '" data-wa>Consultar</a>');
   }
 
   detail.addEventListener('click', (e) => {
@@ -418,8 +429,8 @@
     if (e.target.closest('#sd-wa, [data-wa]') && current) track(current.id, 'whatsapp_click');
   });
   detail.addEventListener('change', (e) => {
-    if (e.target.id === 'sd-from') { state.from = e.target.value; if (state.to && state.to <= state.from) state.to = ''; syncControls(); render(); toUrl(); refreshBooking(); if (state.from && !state.to) { const t = $('sd-to'); if (t) t.focus(); } }
-    if (e.target.id === 'sd-to') { state.to = e.target.value; syncControls(); render(); toUrl(); refreshBooking(); }
+    if (e.target.id === 'sd-from') { state.from = e.target.value; if (state.to && state.to <= state.from) state.to = ''; syncControls(); render(); toUrl(); refreshBooking(); if (calApi) calApi.refresh(); if (state.from && !state.to) { const t = $('sd-to'); if (t) t.focus(); } }
+    if (e.target.id === 'sd-to') { state.to = e.target.value; syncControls(); render(); toUrl(); refreshBooking(); if (calApi) calApi.refresh(); }
   });
 
   async function shareStay() {
