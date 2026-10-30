@@ -18,3 +18,4 @@ Estas carpetas se publican con el sitio (es un sitio estático) pero no son enla
 
 **Resumen para correr todo** (requiere `pip install pgserver psycopg2-binary`; cada suite levanta un Postgres local desechable y no toca producción): `for t in tests/*_sql_test.py; do python $t; done` y `node tests/contracts-engine.test.js` (29 pruebas). Todas deben terminar con 0 fallas.
 - `python tests/make_admin_stub.py admin|agent|owner|none` — genera `_stub_admin.html` + `_stub_supabase.js` (panel con Supabase simulado). **Borrarlos antes de commitear.** `tests/responsive-audit.js` — auditoría de desbordes a 320/390/768 px.
+- `python tests/property_requests_sql_test.py` — solicitudes de propiedad (comprador/inquilino): envío público validado, límite por teléfono, estado de mis solicitudes (por id y por cuenta), finalizar y administración.

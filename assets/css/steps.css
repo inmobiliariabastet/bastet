@@ -36,3 +36,32 @@
 .sell-form .sw-step.sell-section { border: 0; background: transparent; padding: 0; }
 .sell-form .sw-step.sell-section legend { padding: 0; margin: 0 0 8px; font-size: 22px; }
 @media (min-width: 640px) { .sw-ops { grid-template-columns: 1fr 1fr; } }
+
+/* ── Solicitar una propiedad ── */
+.rq-modal { max-width: 560px; }
+.rq-step h3, .rq-h { margin: 0; font-family: var(--font-serif, 'Conso', serif); font-weight: 500; font-size: 22px; color: var(--br-green, #3D4C3A); }
+.rq-label { display: block; margin: 4px 0 -4px; font-size: 13px; font-weight: 600; color: var(--br-green, #3D4C3A); }
+.rq-chips, .rq-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.rq-chip { border: 1.5px solid var(--br-line, rgba(30,38,41,.2)); background: #fff; color: var(--br-green, #3D4C3A); border-radius: 999px; padding: 10px 16px; font: inherit; font-size: 14.5px; cursor: pointer; min-height: 44px; -webkit-tap-highlight-color: transparent; }
+.rq-chip.is-on { background: var(--br-green, #3D4C3A); border-color: var(--br-green, #3D4C3A); color: #fff; }
+.rq-step .agent-field-row { display: flex; gap: 12px; }
+.rq-link { border: 0; background: none; color: var(--br-green, #3D4C3A); text-decoration: underline; font: inherit; font-size: 14.5px; cursor: pointer; padding: 10px; min-height: 44px; }
+.rq-consent { margin-top: 6px; }
+.rq-done { gap: 12px; }
+.rq-check { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--br-green, #3D4C3A); margin: 0 auto 4px; position: relative; }
+.rq-check::after { content: ''; position: absolute; left: 22px; top: 12px; width: 16px; height: 30px; border: solid var(--br-green, #3D4C3A); border-width: 0 3px 3px 0; transform: rotate(45deg); }
+.rq-list { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 10px; }
+.rq-list li { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--br-line, rgba(30,38,41,.14)); border-radius: 18px; padding: 14px 16px; background: #fff; }
+.rq-list b { display: block; color: var(--br-ink, #1E2629); }
+.rq-list small { display: block; margin-top: 2px; color: var(--br-muted, rgba(30,38,41,.66)); font-size: 13px; }
+.rq-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.rq-badge { font-size: 12.5px; padding: 4px 12px; border-radius: 999px; background: var(--br-pale, #EFF8E7); color: var(--br-green, #3D4C3A); }
+.rq-badge.is-in_progress { background: var(--br-cream, #FBE6AB); color: var(--br-ink, #1E2629); }
+.rq-badge.is-finished { background: rgba(30,38,41,.08); color: var(--br-muted, rgba(30,38,41,.66)); }
+.rq-cta { margin: 36px auto 0; max-width: 1080px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; padding: 24px clamp(18px, 4vw, 32px); border-radius: 28px; background: var(--br-green, #3D4C3A); color: #fff; }
+.rq-cta h2 { margin: 0 0 4px; font-family: var(--font-serif, 'Conso', serif); font-weight: 500; font-size: clamp(22px, 3vw, 28px); color: #fff; }
+.rq-cta p { margin: 0; font-size: 15px; opacity: .85; max-width: 520px; }
+.rq-cta-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.rq-cta .cta-button { background: var(--br-yellow, #F1BF46); color: var(--br-ink, #1E2629); }
+.rq-cta .rq-link { color: #fff; }
+@media (max-width: 520px) { .rq-step .agent-field-row { flex-direction: column; } .rq-list li { flex-direction: column; } .rq-side { flex-direction: row; align-items: center; } }

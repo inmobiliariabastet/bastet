@@ -331,3 +331,17 @@ a { color: var(--br-green); }
 .sav-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .sav-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--br-line, rgba(30,38,41,.15)); border-radius: 14px; padding: 10px 14px; }
 .sav-list small { display: block; color: var(--br-muted, rgba(30,38,41,.66)); }
+
+/* ── Solicitudes de búsqueda (compradores e inquilinos) ── */
+.req-admin { margin-top: 36px; }
+.req-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.req-tab { border: 1px solid var(--br-line, rgba(30,38,41,.2)); background: #fff; border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 14px; cursor: pointer; }
+.req-tab.is-on { background: var(--br-green, #3D4C3A); border-color: var(--br-green, #3D4C3A); color: #fff; }
+.req-card { border: 1px solid var(--br-line, rgba(30,38,41,.15)); border-radius: 16px; padding: 14px 16px; background: #fff; margin-bottom: 10px; }
+.req-card header { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.req-card header span { font-size: 13px; color: var(--br-muted, rgba(30,38,41,.66)); }
+.req-meta, .req-contact, .req-desc { margin: 4px 0 0; font-size: 14px; }
+.req-meta { color: var(--br-muted, rgba(30,38,41,.66)); }
+.req-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.req-actions input { flex: 1 1 160px; min-width: 0; }
+.req-empty { color: var(--br-muted, rgba(30,38,41,.66)); font-size: 14.5px; }
