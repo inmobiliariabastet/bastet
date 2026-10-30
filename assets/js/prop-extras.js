@@ -108,5 +108,21 @@
     }, 60);
   }
 
-  window.PropMap = { render };
+  // Mapa pequeño de la ficha: pin si la ubicación es exacta; si no, un círculo con la zona aproximada de la ciudad
+  async function mini(el, p) {
+    const c = coordsOf(p);
+    if (!c) { el.innerHTML = ''; return null; }
+    let L;
+    try { L = await loadLeaflet(); } catch (e) { el.innerHTML = '<p class="pm-error">No pudimos cargar el mapa.</p>'; return c; }
+    if (!document.body.contains(el)) return c;
+    el.innerHTML = '';
+    const m = L.map(el, { scrollWheelZoom: false }).setView([c.lat, c.lng], c.exact ? 16 : 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(m);
+    if (c.exact) L.marker([c.lat, c.lng]).addTo(m);
+    else L.circle([c.lat, c.lng], { radius: 1500, color: '#3D4C3A', weight: 1.5, fillColor: '#3D4C3A', fillOpacity: .12 }).addTo(m);
+    setTimeout(() => m.invalidateSize(), 250);
+    return c;
+  }
+
+  window.PropMap = { render, mini };
 })();

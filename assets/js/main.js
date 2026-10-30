@@ -702,6 +702,8 @@ async function loadProperties() {
     rebuildFilters();
   }
   renderPropertyGrid();
+  const wantedProp = new URLSearchParams(window.location.search).get('p');
+  if (wantedProp) { const found = allProperties.find((x) => x.id === wantedProp || formatPropertyCode(x) === wantedProp); if (found) openProperty(found, { deep: true }); }
 }
 
 // Las estadías temporales que el anfitrión marcó como no disponibles hoy se ocultan (vuelven solas al terminar el periodo)
@@ -1057,20 +1059,36 @@ function buildLeadForm(property) {
 /* ── Modal ── */
 let leadFormNode = null;
 
-function openProperty(property) {
+function propUrl(code) { const u = new URL(location.href); if (code) u.searchParams.set('p', code); else u.searchParams.delete('p'); return u.pathname + (u.search || '') + u.hash; }
+
+function openProperty(property, opts) {
   selectedProperty = property;
   selectedPhotoIndex = 0;
   leadFormNode = buildLeadForm(property);
+  modalBackdrop.classList.add('prop-screen'); modal.classList.add('prop-screen');
   renderModal();
   modalBackdrop.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  modalBackdrop.scrollTop = 0;
+  // La ficha tiene su propia dirección (?p=BST-1001): se puede compartir y el botón «atrás» del celular la cierra
+  const code = formatPropertyCode(property) || property.id;
+  if (opts && opts.deep) history.replaceState({ propDeep: property.id }, '', propUrl(code));
+  else history.pushState({ prop: property.id }, '', propUrl(code));
   trackEvent(property.id, 'view');
 }
 
-function closeProperty() {
+function closeProperty(mode) {
+  const wasOpen = !modalBackdrop.classList.contains('hidden');
   selectedProperty = null;
   leadFormNode = null;
   modalBackdrop.classList.add('hidden');
+  modalBackdrop.classList.remove('prop-screen'); modal.classList.remove('prop-screen');
+  document.body.style.overflow = '';
+  if (!wasOpen || mode === 'pop') return;
+  if (history.state && history.state.prop) history.back();
+  else history.replaceState(null, '', propUrl(''));
 }
+window.addEventListener('popstate', () => { if (!modalBackdrop.classList.contains('hidden')) closeProperty('pop'); });
 
 // Agente que publicó la propiedad, con el ícono de WhatsApp junto a sus redes (reemplaza al botón grande).
 // El WhatsApp es el del agente, o el de la propiedad si el agente no puso uno, o el general de Bastet.
@@ -1105,80 +1123,105 @@ function renderModal() {
   if (!selectedProperty) return;
   const p = selectedProperty;
   const photos = (p.photos && p.photos.length) ? p.photos : [];
-  const hasPhotos = photos.length > 0;
-  const currentPhoto = hasPhotos ? photos[selectedPhotoIndex] : null;
-
   const code = formatPropertyCode(p);
   const operationLabel = PROPERTY_OPERATION_LABELS[p.operation];
   // El código va primero para que el agente identifique la propiedad de un vistazo.
   const message = propertyWhatsappMessage(p);
-  const features = propertyFeatureList(p);
+  const features = propertyFeatureList(p).filter((f) => f.label !== 'Tipo' && f.label !== 'Operación');
+  const agent = p.agent;
+  const waHref = whatsappUrl(message, (agent && agent.contact_whatsapp) || p.whatsapp);
+  const faved = !!(window.PropFavs && window.PropFavs.has(p.id));
+  const HEART_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>';
+  const spec = (label, v) => (v ? '<div><p class="property-modal-spec-label">' + label + '</p><p class="property-modal-spec-value">' + escapeHtml(v) + '</p></div>' : '');
 
   modal.innerHTML =
-    '<button class="property-modal-close" aria-label="Cerrar" id="property-modal-close">×</button>' +
-    (window.PropFavs ? '<button type="button" class="property-modal-fav' + (window.PropFavs.has(p.id) ? ' is-on' : '') + '" id="modal-fav" aria-pressed="' + window.PropFavs.has(p.id) + '" aria-label="Guardar en favoritos">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>' + '<span>Guardar</span></button>' : '') +
-    '<div class="property-modal-gallery">' +
-      (currentPhoto
-        ? '<img class="property-modal-img" src="' + escapeHtml(currentPhoto) + '" alt="' + escapeHtml(p.title) + '">'
-        : '<div class="ring-card-img-placeholder" style="height:100%;">' + escapeHtml(p.title) + '</div>') +
-      (photos.length > 1
-        ? '<button class="property-modal-nav property-modal-nav--prev" id="modal-prev" aria-label="Foto anterior">‹</button>' +
-          '<button class="property-modal-nav property-modal-nav--next" id="modal-next" aria-label="Foto siguiente">›</button>' +
-          '<div class="property-modal-dots">' +
-            photos.map((_, i) => '<span class="property-modal-dot' + (i === selectedPhotoIndex ? ' is-active' : '') + '"></span>').join('') +
-          '</div>'
-        : '') +
+    '<div class="ps-top">' +
+      '<button type="button" class="ps-icon" id="property-modal-close" aria-label="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.500 5.500L8 12l6.500 6.500"/></svg></button>' +
+      '<span class="ps-top-code">' + (code ? escapeHtml(code) : 'Propiedad') + '</span>' +
+      '<div class="ps-top-actions">' +
+        '<button type="button" class="ps-icon" id="modal-share" aria-label="Compartir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 13v6h14v-6"/></svg></button>' +
+        (window.PropFavs ? '<button type="button" class="ps-icon property-modal-fav' + (faved ? ' is-on' : '') + '" id="modal-fav" aria-pressed="' + faved + '" aria-label="Guardar en favoritos">' + HEART_SVG + '</button>' : '') +
+      '</div>' +
     '</div>' +
-    '<div class="property-modal-body">' +
+    '<div class="ps-gallery">' +
+      (photos.length
+        ? '<div class="ps-track" id="ps-track">' + photos.map((u, i) => '<div class="ps-slide"><img src="' + escapeHtml(u) + '" alt="' + escapeHtml(p.title) + (photos.length > 1 ? ' — foto ' + (i + 1) : '') + '"' + (i ? ' loading="lazy"' : '') + ' draggable="false"></div>').join('') + '</div>' +
+          (photos.length > 1 ? '<span class="ps-count" id="ps-count">1 / ' + photos.length + '</span><button type="button" class="ps-nav ps-nav--prev" id="ps-prev" aria-label="Foto anterior">‹</button><button type="button" class="ps-nav ps-nav--next" id="ps-next" aria-label="Foto siguiente">›</button>' : '')
+        : '<div class="ps-noimg">' + escapeHtml(p.title) + '</div>') +
+    '</div>' +
+    '<div class="property-modal-body ps-body">' +
       '<div>' +
         '<div class="property-modal-tags">' +
           (code ? '<span class="property-modal-code">Código ' + code + '</span>' : '') +
           (operationLabel ? '<span class="property-modal-tag">' + operationLabel + '</span>' : '') +
           (PROPERTY_TYPE_LABELS[p.property_type] ? '<span class="property-modal-tag">' + PROPERTY_TYPE_LABELS[p.property_type] + '</span>' : '') +
         '</div>' +
-        '<p class="property-modal-location">' + escapeHtml(p.location) + '</p>' +
-        '<h3 class="property-modal-title">' + escapeHtml(p.title) + '</h3>' +
         '<p class="property-modal-price">' + formatPrice(p.price, p.currency, p.operation) + '</p>' +
         (p.exchange_rate && p.currency !== 'BOB' ? '<p class="property-modal-rate">Tipo de cambio aceptado: ' + escapeHtml(p.exchange_rate) + '</p>' : '') +
+        '<h3 class="property-modal-title">' + escapeHtml(p.title) + '</h3>' +
+        '<p class="property-modal-location">' + escapeHtml(p.location) + (p.address ? ' · ' + escapeHtml(p.address) : '') + '</p>' +
       '</div>' +
-      '<div class="property-modal-specs">' +
-        '<div><p class="property-modal-spec-label">Área</p><p class="property-modal-spec-value">' + escapeHtml(p.area) + '</p></div>' +
-        '<div><p class="property-modal-spec-label">Ambientes</p><p class="property-modal-spec-value">' + escapeHtml(p.rooms) + '</p></div>' +
-        '<div><p class="property-modal-spec-label">Baños</p><p class="property-modal-spec-value">' + escapeHtml(p.baths) + '</p></div>' +
-      '</div>' +
-      (features.filter((f) => f.label !== 'Tipo' && f.label !== 'Operación').length
-        ? '<div class="property-modal-features">' +
-            features.filter((f) => f.label !== 'Tipo' && f.label !== 'Operación').map((f) =>
-              '<div class="property-modal-feature"><span class="property-modal-feature-label">' + f.label + '</span><span class="property-modal-feature-value">' + escapeHtml(f.value) + '</span></div>'
-            ).join('') +
-          '</div>'
+      '<div class="property-modal-specs">' + spec('Área', withUnit(p.area, 'm²')) + spec('Ambientes', p.rooms) + spec('Baños', p.baths) + '</div>' +
+      (p.description ? '<section class="ps-section"><h4>Descripción</h4><p class="property-modal-desc">' + escapeHtml(p.description).replace(/\n/g, '<br>') + '</p></section>' : '') +
+      (features.length
+        ? '<section class="ps-section"><h4>Características</h4><div class="property-modal-features">' +
+            features.map((f) => '<div class="property-modal-feature"><span class="property-modal-feature-label">' + f.label + '</span><span class="property-modal-feature-value">' + escapeHtml(f.value) + '</span></div>').join('') +
+          '</div></section>'
         : '') +
-      '<p class="property-modal-desc">' + escapeHtml(p.description) + '</p>' +
+      '<section class="ps-section"><h4>Ubicación</h4><div class="ps-map" id="ps-map"><p class="pm-error">Cargando mapa…</p></div><p class="ps-map-note" id="ps-map-note"></p></section>' +
       buildAgentSectionHtml(p.agent, p, message) +
       '<div id="lead-form-slot"></div>' +
+    '</div>' +
+    '<div class="ps-bar">' +
+      (window.PropFavs ? '<button type="button" class="ps-save' + (faved ? ' is-on' : '') + '" id="ps-save" aria-pressed="' + faved + '">' + HEART_SVG + '<span>' + (faved ? 'Guardada' : 'Guardar') + '</span></button>' : '') +
+      '<a class="ps-wa" id="ps-wa" href="' + escapeHtml(waHref) + '" target="_blank" rel="noopener">Consultar por WhatsApp</a>' +
     '</div>';
 
   // El formulario vive fuera del innerHTML para no perder lo escrito al cambiar de foto.
   const leadSlot = document.getElementById('lead-form-slot');
   if (leadSlot && leadFormNode) leadSlot.appendChild(leadFormNode);
 
-  document.getElementById('property-modal-close').addEventListener('click', closeProperty);
-  const modalFav = document.getElementById('modal-fav');
-  if (modalFav) modalFav.addEventListener('click', () => {
-    const on = window.PropFavs.toggle(p.id);
-    modalFav.classList.toggle('is-on', on); modalFav.setAttribute('aria-pressed', String(on));
-    const tileFav = propGridEl.querySelectorAll('.prop-tile'); tileFav.forEach((t) => { if (t.__property && t.__property.id === p.id) { const b = t.querySelector('[data-fav]'); if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); } } });
-    if (favOnly && !on) { closeProperty(); renderPropertyGrid(false); }
-  });
+  document.getElementById('property-modal-close').addEventListener('click', () => closeProperty());
+  const syncFav = (on) => {
+    ['modal-fav', 'ps-save'].forEach((id) => { const b = document.getElementById(id); if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); } });
+    const lbl = document.querySelector('#ps-save span'); if (lbl) lbl.textContent = on ? 'Guardada' : 'Guardar';
+    propGridEl.querySelectorAll('.prop-tile').forEach((t) => { if (t.__property && t.__property.id === p.id) { const b = t.querySelector('[data-fav]'); if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); } } });
+  };
+  const toggleFav = () => { const on = window.PropFavs.toggle(p.id); syncFav(on); if (favOnly && !on) { closeProperty(); renderPropertyGrid(false); } };
+  ['modal-fav', 'ps-save'].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener('click', toggleFav); });
   document.getElementById('modal-whatsapp-cta').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));
-  const prevBtn = document.getElementById('modal-prev');
-  const nextBtn = document.getElementById('modal-next');
-  if (prevBtn) prevBtn.addEventListener('click', () => { selectedPhotoIndex = (selectedPhotoIndex - 1 + photos.length) % photos.length; renderModal(); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { selectedPhotoIndex = (selectedPhotoIndex + 1) % photos.length; renderModal(); });
+  document.getElementById('ps-wa').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));
+  document.getElementById('modal-share').addEventListener('click', async () => {
+    const url = location.origin + location.pathname + '?p=' + encodeURIComponent(code || p.id);
+    try {
+      if (navigator.share) await navigator.share({ title: p.title, text: p.title + ' — Bastet', url });
+      else { await navigator.clipboard.writeText(url); const b = document.getElementById('modal-share'); b.classList.add('is-done'); setTimeout(() => b.classList.remove('is-done'), 1800); }
+    } catch (e) { /* el usuario canceló */ }
+  });
+
+  // Galería: deslizable con el dedo; el contador sigue a la foto visible y las flechas sirven en escritorio
+  const track = document.getElementById('ps-track');
+  if (track && photos.length > 1) {
+    const count = document.getElementById('ps-count');
+    track.addEventListener('scroll', () => { const i = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1)); count.textContent = (Math.min(i, photos.length - 1) + 1) + ' / ' + photos.length; }, { passive: true });
+    document.getElementById('ps-prev').addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
+    document.getElementById('ps-next').addEventListener('click', () => track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }));
+  }
+
+  // Mapa de ubicación (exacta si el anfitrión fijó el pin; si no, zona aproximada de la ciudad)
+  const mapEl = document.getElementById('ps-map');
+  if (window.PropMap && window.PropMap.mini) {
+    window.PropMap.mini(mapEl, p).then((c) => {
+      const note = document.getElementById('ps-map-note'); if (!note) return;
+      if (!c) { mapEl.remove(); return; }
+      const q = c.exact ? c.lat + ',' + c.lng : [p.address, p.location, 'Bolivia'].filter(Boolean).join(', ');
+      note.innerHTML = (c.exact ? '' : 'Ubicación aproximada: la dirección exacta te la confirma el agente. ') + '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) + '" target="_blank" rel="noopener">Abrir en Google Maps</a>';
+    });
+  }
 }
 
 modalBackdrop.addEventListener('click', (e) => {
-  if (e.target === modalBackdrop) closeProperty();
+  if (e.target === modalBackdrop && !modalBackdrop.classList.contains('prop-screen')) closeProperty();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modalBackdrop.classList.contains('hidden')) closeProperty();
