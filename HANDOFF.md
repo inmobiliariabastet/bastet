@@ -6,6 +6,33 @@
 >
 > ⚠️ **El proyecto se renombró de "MAAT Firma Legal" a "Bastet Propiedades · Inmobiliarias"** (mismo negocio/dueña, nueva marca). La carpeta local (`MATT FIRMA LEGAL`), el repo viejo (`leilasuhana15/maat`) y el nombre del proyecto en Supabase ("MAAT") siguen diciendo "maat" por razones históricas. La marca visible es solo **Bastet** y el sitio vive en **bastet.uno**.
 
+## 🔜 PRÓXIMA SESIÓN: continuar con las decisiones de negocio (acordado 2026-10-30)
+
+**Punto de partida:** el rediseño móvil (prompt `Downloads/PROMPT_CLAUDE_CODE_bastet_uno.md`) está terminado en todo lo que NO depende de decisiones del negocio, publicado y sin SQL pendiente. La sesión siguiente empieza por **conversar y decidir con la dueña los 8 puntos de abajo** (hay una versión más larga con «qué hay hoy / qué decidir / recomendación» en `PENDIENTES_NEGOCIO.md` en la raíz del proyecto local; NO está en git a propósito para que no quede público en bastet.uno — si no aparece, este resumen basta).
+
+| # | Decisión | Estado hoy | Desbloquea |
+|---|---|---|---|
+| 1 | Tarifas por conexión (Bs 10–200, defecto Bs 50) y comisión 0,75 %: ¿válidas?, ¿quién paga y cuándo? | Nada construido ni visible | Flujo E (oportunidades/comisiones, tras `FEATURE_AGENTES`) y paneles |
+| 2 | Moneda de referencia en listados vs comisiones en Bs; tipo de cambio | Cada propiedad en su moneda | Cálculo de comisiones |
+| 3 | Pasarela de pago de Estadías (QR/transferencia/Tigo Money/tarjeta), ¿cobro total, anticipo o nada? | La reserva termina en WhatsApp | Pago, comprobante, «Mis reservas» (`FEATURE_PAGOS`) |
+| 4 | Política de cancelación y confirmación del anfitrión | Calendario bloquea fechas, sin confirmar en el sitio | Estados de reserva + textos legales |
+| 5 | Perfiles de agentes: qué más se publica, reseñas verificables, qué significa «verificado» | Perfil solo con datos reales públicos | Ampliar perfil (requiere SQL: bio/verificado/reseñas) |
+| 6 | Fotos reales de propiedades y retratos de agentes | Las del diseño eran de muestra | Material del dueño |
+| 7 | Pestaña «Verificar»: ¿solo contratos o también propiedades/agentes (sello «Verificado por Bastet»)? | Solo contratos | Verificación de propiedades |
+| 8 | Estados temporales (historias) | No implementados; recomendación: no hacerlos ahora | — |
+
+**Recomendaciones ya dadas a la dueña:** definir primero quién paga y cuándo (los montos se ajustan en config); empezar con QR/transferencia + comprobante revisado por Bastet antes de una pasarela con tarjeta; dejar «Verificar» solo en contratos; no hacer historias.
+
+**Lo hecho del rediseño (todo ✅, ver Historial):** favoritos (local + cuenta, tope 30 con aviso) y vista Mapa · ficha de propiedad a pantalla completa con `?p=` · perfil del agente · calendario público de Estadías · Vender en 7 pasos con Fotos · Solicitar una propiedad (+ panel admin) · accesibilidad móvil (`a11y.css`) · canonical, `sitemap.xml`, `robots.txt` · logos WebP · limpieza del flujo viejo.
+
+**Acciones pendientes SOLO de la dueña (no del código):**
+- Volver a subir desde el panel las 3 fotos pesadas (BST-1005 ×2 PNG ~2,7 MB y BST-1007 ×1 PNG 2,4 MB): son 7,7 de los 9,8 MB de fotos del sitio.
+- Medir puntajes reales en PageSpeed Insights (`https://bastet.uno/marketplace.html`); aquí no hay Lighthouse.
+- Opcional: correr `supabase/drop-legacy.sql` (borra `agent_requests`, trigger `on_auth_user_invited`; DESTRUCTIVO, exportar CSV antes si quiere el historial) y borrar la Edge Function `invite-admin` del Dashboard si aparece.
+- Search Console: sitemap ya enviado ✅; esperar a que Google lo procese (6 páginas).
+
+**Cuando se decida cada punto:** construir tras su interruptor (`FEATURE_*`, apagado por defecto), con tarifas en `config/tarifas.json` marcadas `TODO(negocio)` hasta validar; sin tarifas/comisiones visibles al público mientras el interruptor esté apagado (criterio de aceptación del prompt). Pendientes menores sin decisión: salto de encabezado en Inicio, medir LCP real.
+
 ## 🟢 ESTADO ACTUAL Y GUÍA DE ARRANQUE (actualizado 2026-10-17 — manda sobre todo lo que diga el «Resumen rápido» de abajo)
 
 **Todo lo pedido está publicado en https://bastet.uno y verificado. No hay SQL pendiente ni código a medias. `main` es la única rama (se trabaja y se sube directo a `main`, sin ramas).**
