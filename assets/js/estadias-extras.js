@@ -215,7 +215,7 @@
         mapEl.innerHTML = '';
         const map = L.map(mapEl, { scrollWheelZoom: false }).setView([c.lat, c.lng], c.exact ? 16 : 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(map);
-        L.marker([c.lat, c.lng]).addTo(map).bindPopup(esc(p.title));
+        L.marker([c.lat, c.lng], { alt: 'Ubicación de ' + (p.title || 'el alojamiento'), title: 'Ubicación de ' + (p.title || 'el alojamiento') }).addTo(map).bindPopup(esc(p.title));
         setTimeout(() => map.invalidateSize(), 250);
       } catch (e) { mapEl.innerHTML = '<p class="sd-muted">No pudimos cargar el mapa. Usa «Abrir en Google Maps».</p>'; }
       const list = await fetchNearby(c, p.id);

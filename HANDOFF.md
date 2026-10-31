@@ -115,6 +115,14 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Revisión de accesibilidad y rendimiento en móvil (2026-10-30)
+- Auditoría a 360 px con un script propio (no hay Lighthouse en esta máquina): idioma, títulos, alt, nombres de botones, etiquetas de campos, encabezados, contraste, zonas táctiles, scroll horizontal. Páginas: Propiedades (lista y ficha), Estadías (lista y ficha), Inicio (+ Vender y Solicitar), Verificar.
+- Corregido: títulos invisibles verde-sobre-verde en «¿No encuentras lo que buscas?» y «¿Tienes un alojamiento…?» (existía en producción); zonas táctiles a 44 px (instalar app, corazones, Lista/Mapa, chips, atrás/compartir/guardar, cerrar modales, enlaces de pie, redes con área ampliada, zoom de mapas); alt/título del pin del mapa de Estadías. Todo en `assets/css/a11y.css` (v=20261030c, enlazado en las 7 páginas) + `estadias-extras.js` v=20261030c.
+- SEO: añadido `<link rel="canonical">` en index, marketplace, estadias, verificar, privacidad y dmca. NO existe `sitemap.xml` (pendiente).
+- Rendimiento medido: página de Propiedades ≈ 162 KB de JS, 139 KB de CSS, 94 KB de fuentes, sin scripts que bloqueen, CLS 0. El peso real está en fotos subidas ANTES de la optimización automática: BST-1005 (2 PNG de ~2,7 MB) y BST-1007 (1 PNG de 2,4 MB) = 7,7 MB de los 9,8 MB de fotos del sitio. Las nuevas ya se reducen a 2000 px al subirlas (admin) o 1600 px (Vender). Acción del dueño: volver a subir esas 3 fotos desde el panel.
+- Pendiente menor: logos PNG de 80 y 52 KB (pasarlos a WebP/SVG), un salto de encabezado en Inicio, y no se pudo medir Lighthouse/LCP real (hacerlo en PageSpeed Insights con la URL publicada).
+
+
 ### ✅ Limpieza de código heredado (2026-10-30)
 - Repo: se quitó de `schema.sql` la tabla `agent_requests`, se borró `supabase/invite-activate.sql` (su función de protección ya está superada en schema.sql), se quitó el paso 5 (Edge Function `invite-admin`) de SETUP.md y se limpiaron comentarios y el stub de pruebas. La carpeta `supabase/functions/` ya no existía. Los 11 tests SQL y los 29 del motor de contratos pasan.
 - Base de datos (NO tocada): nuevo `supabase/drop-legacy.sql` — OPCIONAL y DESTRUCTIVO, idempotente; borra la tabla `agent_requests` (avisa cuántas filas), el trigger `on_auth_user_invited` y la función `activate_invited_profile()`. No toca `handle_new_user`. Pendiente de que el dueño decida correrlo (exportar antes el CSV de agent_requests si quiere el historial). Después, borrar a mano la Edge Function `invite-admin` en el Dashboard si aparece.

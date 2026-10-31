@@ -1,0 +1,29 @@
+/* Accesibilidad móvil: zonas táctiles de al menos 44 px y un título que no se perdía contra su fondo.
+ * Se agranda el área que se toca; el aspecto casi no cambia. Va después de style.css / brand.css. */
+.rq-cta h2, .stays-cta-inner h2 { color: #fff !important; }   /* el título verde sobre el recuadro verde no se leía */
+
+@media (max-width: 1079px) {
+  .navbar-install { min-width: 44px; min-height: 44px; }
+  .view-switch button { min-height: 44px; }
+  .prop-tile-fav { width: 44px; height: 44px; }
+  /* iconos de redes: 34 px visibles + 5 px de aire táctil a cada lado = 44 px, sin que se pisen entre sí */
+  .prop-tile-socials { gap: 10px; }
+  .prop-tile-socials .property-modal-social-link { width: 34px; height: 34px; position: relative; }
+  .property-modal-agent-social { gap: 10px; }
+  .property-modal-agent .property-modal-social-link { width: 36px; height: 36px; position: relative; }
+  .property-modal-social-link::after { content: ''; position: absolute; inset: -5px; }
+  .footer-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .footer-copy a { display: inline-block; padding: 12px 4px; }
+  .legal-back { min-height: 44px; display: inline-flex; align-items: center; }
+  footer p a, .legal-footer p a { display: inline-block; padding: 14px 4px; }
+  .ps-map-note a { display: inline-block; padding: 12px 2px; }
+  #sell-modal-close, #rq-close { min-width: 44px; min-height: 44px; }
+  .rq-link { min-height: 44px; }
+  .stays-chip { min-height: 44px; }
+  .stay-fav { width: 44px; height: 44px; }
+  #sd-map-links a { display: inline-block; padding: 13px 4px; }
+  .sd-back, .sd-share, .sd-save { min-height: 44px; min-width: 44px; }
+  /* botones de zoom de los mapas (Leaflet) */
+  .leaflet-bar a, .leaflet-touch .leaflet-bar a { width: 44px !important; height: 44px !important; line-height: 44px !important; }   /* Leaflet se carga después y trae sus propios tamaños */
+  #st-guests-minus, #st-guests-plus { min-width: 44px; min-height: 44px; }
+}
