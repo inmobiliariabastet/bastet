@@ -115,6 +115,10 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Logos en WebP (2026-10-30)
+- Páginas públicas (index, marketplace, estadias, verificar, privacidad, dmca, app) y `main.js`/`estadias.js` usan `assets/img/bastet-logo-horizontal-color|blanco.webp`, `bastet-logo-vertical-footer.webp` e `bastet-isotipo-cabeza-dorado.webp` (800 px de ancho, calidad 92, transparencia conservada): 80→34, 51→18, 76→26 y 24→15 KB. Los PNG originales SE CONSERVAN (panel admin, correos, íconos de la app/PWA y respaldo). El cambio de logo claro/oscuro de la barra reemplaza `color.webp`→`blanco.webp` (ver `main.js`/`estadias.js`). main.js v=20261030e, estadias.js v=20261030b.
+
+
 ### ✅ sitemap.xml y robots.txt (2026-10-30)
 - `sitemap.xml` con las páginas públicas indexables (inicio, propiedades, estadías, app, privacidad, derechos de autor); `verificar.html` y `admin/` quedan fuera (noindex). `robots.txt` permite todo salvo `/admin/` y apunta al sitemap. Las fichas (`?p=`) no se listan: su canonical es la página de listado. Al cambiar contenido importante, actualizar `lastmod`. Pendiente del dueño: enviar `https://bastet.uno/sitemap.xml` en Google Search Console.
 
