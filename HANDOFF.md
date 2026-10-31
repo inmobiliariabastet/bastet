@@ -120,7 +120,7 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 
 ### ✅ sitemap.xml y robots.txt (2026-10-30)
-- `sitemap.xml` con las páginas públicas indexables (inicio, propiedades, estadías, app, privacidad, derechos de autor); `verificar.html` y `admin/` quedan fuera (noindex). `robots.txt` permite todo salvo `/admin/` y apunta al sitemap. Las fichas (`?p=`) no se listan: su canonical es la página de listado. Al cambiar contenido importante, actualizar `lastmod`. Pendiente del dueño: enviar `https://bastet.uno/sitemap.xml` en Google Search Console.
+- `sitemap.xml` con las páginas públicas indexables (inicio, propiedades, estadías, app, privacidad, derechos de autor); `verificar.html` y `admin/` quedan fuera (noindex). `robots.txt` permite todo salvo `/admin/` y apunta al sitemap. Las fichas (`?p=`) no se listan: su canonical es la página de listado. Al cambiar contenido importante, actualizar `lastmod`. ✅ El dueño ya envió `https://bastet.uno/sitemap.xml` en Google Search Console (2026-10-30); falta solo esperar a que Google lo procese (debería descubrir 6 páginas).
 
 
 ### ✅ Revisión de accesibilidad y rendimiento en móvil (2026-10-30)
