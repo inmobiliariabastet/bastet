@@ -115,6 +115,10 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Barra inferior móvil: «Estadías temporales» (2026-10-30)
+- En `estadias.html` la entrada de la barra inferior dice «Estadías / temporales» en dos líneas (antes solo «Estadías»); `estadias.css` (v=20261030b) deja 78 px de aire abajo en móvil para que la barra, un poco más alta, no tape contenido. Las barras de index y marketplace no tienen esa entrada (llevan «Vender»). Sin SQL.
+
+
 ### ✅ Favoritos: aviso al llegar al tope de 30 (2026-10-30)
 - `PropFavs.toggle` (prop-extras.js) rechaza el favorito 31 con un aviso breve «Llegaste al máximo de 30 favoritos…» (toast `.pf-toast`, 4 s) y devuelve false, así el corazón no se queda marcado. Mismo tope que la cuenta (`MAX_FAVS` = 30; si se cambia el SQL, cambiar también esa constante). Aplica también sin sesión. Sin SQL. v=prop-extras.js 20261030d, prop-extras.css 20261030f.
 
