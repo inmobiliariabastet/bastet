@@ -1,7 +1,7 @@
 -- Registro automático con Google: quien entra con Google nace HABILITADO como agente.
 -- (2026-10-12) Ya no hace falta solicitud + aprobación. El admin conserva Desactivar/Eliminar.
 -- Cualquier otra vía de alta (signup directo con correo+contraseña a la API) sigue naciendo
--- DESACTIVADA; las invitaciones siguen activas por on_auth_user_invited.
+-- DESACTIVADA; las cuentas creadas con invited_at (por ejemplo desde el panel de Supabase) también nacen activas.
 -- Correr completo en el SQL Editor (idempotente).
 -- Además, en Supabase: Authentication → Sign In / Providers → activar "Allow new users to sign up".
 

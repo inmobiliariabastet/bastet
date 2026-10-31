@@ -36,7 +36,7 @@ const rows = {
   legal_requests:[{id:1,user_id:'u9',service_code:'tramites',property_title:'Casa en Achumani',description:'Necesito ayuda con el folio real de mi casa',status:'pending',admin_note:null,created_at:iso(-1)}],
   property_leads:[{id:1,property_id:'p0',agent_id:'u1',full_name:'Carlos Pérez',phone:'70011122',message:'Quisiera visitar',status:'new',created_at:iso(-1)},{id:2,property_id:'p1',agent_id:'u1',full_name:'Lucía Rojas',phone:'70033344',message:null,status:'contacted',created_at:iso(-3)}],
   exclusivity_contracts:[{id:'c1',agent_id:'u1',contract_number:'BST-CE-2026-0001',verification_code:'K7M2QX9A',template_version:'exclusividad-v2',data:{operacion:'venta',propietario_nombre:'María Mondaca',inmueble_tipo:'Casa',inmueble_direccion:'Calle 31',inmueble_zona:'Achumani',fecha_inicio:'2026-10-02',plazo_dias:120},created_at:iso(-5),voided_at:null}],
-  collections:[], partners:[{id:1,name:'Remax',logo_url:null,sort_order:0}], testimonials:[], agent_requests:[], sell_requests:[], property_events:[], agent_legal_profiles:[],
+  collections:[], partners:[{id:1,name:'Remax',logo_url:null,sort_order:0}], testimonials:[], sell_requests:[], property_events:[], agent_legal_profiles:[],
 };
 function q(t){ let single=false; const o={then(r,j){ let d=rows[t]||[]; if(single) d=d[0]||null; return Promise.resolve({data:d,error:null,count:(rows[t]||[]).length}).then(r,j); }};
   ['select','eq','neq','order','limit','or','in','gt','lt','gte','lte','is','not','range','filter','match','ilike','like','insert','update','delete','upsert'].forEach(k=>o[k]=()=>o);

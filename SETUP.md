@@ -43,15 +43,7 @@ En el dashboard de Supabase:
 1. **Authentication → Users → Add user** con tu correo y contraseña (o invítate).
 2. En `supabase/schema.sql`, la línea `update public.profiles set role = 'admin' where email in (...)` define quién es admin: agrega tu correo y corre esa línea en el SQL Editor. (También puedes cambiar `role` a `admin` en la tabla `profiles`.)
 3. Si creaste el usuario a mano (no por invitación), su perfil nace **desactivado** por seguridad: actívalo con `update public.profiles set is_active = true where email = 'tu@correo.com';`.
-4. Entra a `https://bastet.uno/admin/`. Desde ahí, los demás usuarios se invitan en la pestaña **Usuarios** (las personas que entran con Google se crean solas como agentes; ya no hay solicitudes ni invitaciones por correo).
-
-## 5. Desplegar la función que invita usuarios
-
-Crear cuentas requiere la clave `service_role`, que nunca debe estar en el navegador, así que esto corre en una Edge Function:
-
-1. **Edge Functions → Deploy a new function**, nombre exacto `invite-admin`.
-2. Pega el contenido completo de [`supabase/functions/invite-admin/index.ts`](supabase/functions/invite-admin/index.ts) y despliega. `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` ya están disponibles automáticamente.
-3. La función solo acepta invitaciones de un **administrador activo** (un agente recibe 403). Las personas invitadas entran como `agent` y reciben el correo de invitación para crear su contraseña.
+4. Entra a `https://bastet.uno/admin/`. Desde ahí, los demás usuarios se gestionan en la pestaña **Usuarios** (las personas que entran con Google se crean solas como agentes; ya no hay solicitudes ni invitaciones por correo).
 
 ## Panel /admin: estructura y fuentes
 
@@ -114,9 +106,8 @@ assets/js/bolivia-cities.js         → lista de ciudades de Bolivia (landing + 
 assets/js/property-fields.js        → código BST-xxxx, tipos, operaciones y características (landing + panel)
 assets/js/password-toggle.js        → botón para ver/ocultar contraseñas
 assets/js/main.js                   → lógica del landing (carrusel 3D, filtros, ficha, WhatsApp, acceso agentes, efecto arena)
-assets/js/admin.js                  → lógica del panel (auth, propiedades, analítica, marcas, testimonios, usuarios, solicitudes, mi cuenta)
+assets/js/admin.js                  → lógica del panel (auth, propiedades, analítica, marcas, testimonios, usuarios, mi cuenta)
 supabase/schema.sql                 → esquema de base de datos + políticas + buckets (idempotente)
-supabase/functions/invite-admin/    → Edge Function para invitar usuarios (paso 5)
 supabase/email-templates/           → plantillas de correo en español (paso 3)
 ```
 
@@ -134,6 +125,6 @@ supabase/email-templates/           → plantillas de correo en español (paso 3
 
 ## Estado vigente (2026-10-17): léelo antes de seguir esta guía
 
-Esta guía se escribió al inicio del proyecto y describe la puesta en marcha desde cero; **algunas partes ya no aplican** (invitaciones por correo y Edge Function `invite-admin`, solicitudes de agentes, créditos). El estado real, los SQL que ya están corridos, las reglas de caché, los tests y las trampas conocidas están en **`HANDOFF.md` → «ESTADO ACTUAL Y GUÍA DE ARRANQUE»**.
+Esta guía se escribió al inicio del proyecto y describe la puesta en marcha desde cero; **algunas partes ya no aplican** (solicitudes de agentes, invitaciones por correo y créditos: retirados; ver `supabase/drop-legacy.sql`). El estado real, los SQL que ya están corridos, las reglas de caché, los tests y las trampas conocidas están en **`HANDOFF.md` → «ESTADO ACTUAL Y GUÍA DE ARRANQUE»**.
 
 **Para una instalación nueva, orden de SQL** (SQL Editor, cada archivo es idempotente): `schema.sql` (ya incluye todos los bloques acumulados hasta `stay-availability.sql`) y después, solo si hace falta correr uno suelto, el `.sql` correspondiente de `supabase/`. Los créditos fueron eliminados (`drop-credits.sql`): los archivos `credits-bs.sql` y `credit-pack-ledger.sql` son históricos.

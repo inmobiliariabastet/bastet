@@ -46,7 +46,7 @@
 - Panel: `admin.js`, `sell-admin.js`, `stay-reviews-admin.js`, `stay-availability-admin.js`, `admin-nav.js`, `collections.js`, `leads.js`.
 
 ### Ideas opcionales que quedaron ofrecidas (nada comprometido)
-- Limpiar en la base `agent_requests` / `on_auth_user_invited` y borrar la Edge Function `invite-admin` (residuos del flujo viejo).
+- ✅ Limpieza del flujo viejo hecha en el repo (2026-10-30); falta SOLO que el dueño corra `supabase/drop-legacy.sql` (opcional, destructivo) y borre la Edge Function `invite-admin` del Dashboard si aparece.
 - Poner «Destacar» también en el modal de detalle / formulario de edición del panel; mostrar «Estadías Temporales» (texto largo) en la barra inferior del celular; aclarar en el formulario de propiedad el campo «Estado» (las temporales ahora se pausan con el calendario).
 - Estrategia de tokenización (solo análisis, nada construido): ver memoria del proyecto y el documento enlazado más abajo; el siguiente paso de código sería el sello «Verificado por Bastet».
 
@@ -114,6 +114,12 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+### ✅ Limpieza de código heredado (2026-10-30)
+- Repo: se quitó de `schema.sql` la tabla `agent_requests`, se borró `supabase/invite-activate.sql` (su función de protección ya está superada en schema.sql), se quitó el paso 5 (Edge Function `invite-admin`) de SETUP.md y se limpiaron comentarios y el stub de pruebas. La carpeta `supabase/functions/` ya no existía. Los 11 tests SQL y los 29 del motor de contratos pasan.
+- Base de datos (NO tocada): nuevo `supabase/drop-legacy.sql` — OPCIONAL y DESTRUCTIVO, idempotente; borra la tabla `agent_requests` (avisa cuántas filas), el trigger `on_auth_user_invited` y la función `activate_invited_profile()`. No toca `handle_new_user`. Pendiente de que el dueño decida correrlo (exportar antes el CSV de agent_requests si quiere el historial). Después, borrar a mano la Edge Function `invite-admin` en el Dashboard si aparece.
+- Se dejó la clase CSS `.invite-admin-card`: es solo un nombre y la usan formularios vivos del panel.
+
 
 ### ✅ Barra inferior móvil: «Estadías temporales» (2026-10-30)
 - En `estadias.html` la entrada de la barra inferior dice «Estadías / temporales» en dos líneas (antes solo «Estadías»); `estadias.css` (v=20261030b) deja 78 px de aire abajo en móvil para que la barra, un poco más alta, no tape contenido. Las barras de index y marketplace no tienen esa entrada (llevan «Vender»). Sin SQL.
