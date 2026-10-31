@@ -1061,6 +1061,17 @@ let leadFormNode = null;
 
 function propUrl(code) { const u = new URL(location.href); if (code) u.searchParams.set('p', code); else u.searchParams.delete('p'); return u.pathname + (u.search || '') + u.hash; }
 
+function openAgentProfile(agent) {
+  if (!window.AgentProfile || !agent) return;
+  const cur = selectedProperty;
+  window.AgentProfile.open({
+    agent, properties: allProperties, current: cur,
+    helpers: { waUrl: whatsappUrl, price: formatPrice },
+    onContact: () => { if (cur) trackEvent(cur.id, 'whatsapp_click'); },
+    onOpenProperty: (p) => openProperty(p, { swap: true }),
+  });
+}
+
 function openProperty(property, opts) {
   selectedProperty = property;
   selectedPhotoIndex = 0;
@@ -1072,12 +1083,14 @@ function openProperty(property, opts) {
   modalBackdrop.scrollTop = 0;
   // La ficha tiene su propia dirección (?p=BST-1001): se puede compartir y el botón «atrás» del celular la cierra
   const code = formatPropertyCode(property) || property.id;
-  if (opts && opts.deep) history.replaceState({ propDeep: property.id }, '', propUrl(code));
+  if (opts && opts.swap) history.replaceState(history.state && history.state.prop ? { prop: property.id } : { propDeep: property.id }, '', propUrl(code));
+  else if (opts && opts.deep) history.replaceState({ propDeep: property.id }, '', propUrl(code));
   else history.pushState({ prop: property.id }, '', propUrl(code));
   trackEvent(property.id, 'view');
 }
 
 function closeProperty(mode) {
+  if (window.AgentProfile) window.AgentProfile.close();
   const wasOpen = !modalBackdrop.classList.contains('hidden');
   selectedProperty = null;
   leadFormNode = null;
@@ -1108,11 +1121,12 @@ function buildAgentSectionHtml(agent, property, message) {
     socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
     socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok');
   return (
-    '<div class="property-modal-agent">' +
+    '<div class="property-modal-agent' + (hasAgent ? ' is-link' : '') + '"' + (hasAgent ? ' data-agent-open role="button" tabindex="0" aria-label="Ver perfil de ' + escapeHtml(agent.display_name || '') + '"' : '') + '>' +
       avatar +
       '<div class="property-modal-agent-info">' +
         '<p class="property-modal-agent-label">Publicado por</p>' +
         '<p class="property-modal-agent-name">' + escapeHtml(agent.display_name || '') + '</p>' +
+        (hasAgent ? '<p class="property-modal-agent-more">Ver perfil y sus propiedades ›</p>' : '') +
       '</div>' +
       (socials ? '<span class="property-modal-agent-social">' + socials + '</span>' : '') +
     '</div>'
@@ -1182,6 +1196,11 @@ function renderModal() {
   if (leadSlot && leadFormNode) leadSlot.appendChild(leadFormNode);
 
   document.getElementById('property-modal-close').addEventListener('click', () => closeProperty());
+  const agentCard = modal.querySelector('[data-agent-open]');
+  if (agentCard) {
+    const go = (e) => { if (e.target.closest('a')) return; if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); openAgentProfile(p.agent); };
+    agentCard.addEventListener('click', go); agentCard.addEventListener('keydown', go);
+  }
   const syncFav = (on) => {
     ['modal-fav', 'ps-save'].forEach((id) => { const b = document.getElementById(id); if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); } });
     const lbl = document.querySelector('#ps-save span'); if (lbl) lbl.textContent = on ? 'Guardada' : 'Guardar';
