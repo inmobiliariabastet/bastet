@@ -115,6 +115,12 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Rediseño móvil, fase 5: favoritos guardados en la cuenta (2026-10-30) — SQL property-favorites.sql ya corrido por el dueño
+- Tabla `property_favorites` (RLS: cada persona solo ve/crea/borra los suyos; tope 30 (el dueño lo bajó de 300 a 30 al correr el SQL); se borra en cascada si se elimina la propiedad o el usuario). Test `tests/property_favorites_sql_test.py`.
+- `prop-extras.js` (`window.PropFavs`): con sesión iniciada cada corazón se guarda también en la cuenta; al iniciar sesión se UNEN los locales con los de la cuenta (y los locales suben). Al cerrar sesión se vacía la copia local si venía de una cuenta (equipos compartidos). «Mejor esfuerzo»: sin el SQL o sin red siguen funcionando solo en el navegador (verás un 404 inofensivo en consola hasta correr el SQL).
+- Sin cambios de interfaz: mismo corazón, mismo filtro «Guardadas». v=prop-extras.js 20261030c.
+
+
 ### ✅ Rediseño móvil, fase 4: paso «Fotos» en Vender (2026-10-30) — SQL sell-photos.sql ya corrido por el dueño
 - Nuevo paso 5 «Fotos» (de 7) en el asistente de Vender: hasta 8 fotos opcionales, la primera es la portada (★ para cambiar, ✕ para quitar). Se reducen en el navegador (1600 px, JPG) antes de subirlas. Sin foto se puede seguir (se envían luego por WhatsApp).
 - Las fotos se guardan en `sell_requests.documents` con `type: "foto"` en el mismo bucket privado `sell-documents`; el panel admin (Propietarios) las lista como «Foto» con el botón Abrir.

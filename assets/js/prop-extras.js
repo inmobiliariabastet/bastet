@@ -1,5 +1,6 @@
 /* Propiedades: favoritos (corazón en cada tarjeta) y vista de mapa con precios (marketplace.html).
- *  · Favoritos: se guardan en este navegador (localStorage). Sincronizarlos con la cuenta queda para una fase posterior (pide SQL).
+ *  · Favoritos: se guardan en este navegador (localStorage). Si la persona inicia sesión, además se guardan en su cuenta (tabla
+ *    property_favorites, supabase/property-favorites.sql) y se unen con los de otros dispositivos; sin ese SQL siguen solo locales.
  *  · Mapa: Leaflet + OpenStreetMap (se carga solo al abrir la vista Mapa). Usa latitude/longitude de la propiedad cuando existen;
  *    si faltan, coloca el pin en el centro de su ciudad con un pequeño desplazamiento fijo y lo avisa («ubicación aproximada»).
  * Autónomo: lo usa main.js como window.PropFavs / window.PropMap. */
@@ -12,14 +13,68 @@
   try { favs = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { favs = new Set(); }
   const listeners = [];
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...favs])); } catch (e) { /* sin almacenamiento: no se recuerdan */ } };
+  /* Cuenta: con sesión iniciada cada cambio también se guarda en property_favorites. Todo es «mejor esfuerzo»: si la tabla no existe
+   * (SQL sin correr) o no hay red, los favoritos siguen funcionando en este navegador. */
+  const USER_KEY = 'bastet-prop-favs-user';
+  let uid = null;
+  const sb = () => (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+  const quiet = (q) => { try { Promise.resolve(q).then(() => {}, () => {}); } catch (e) { /* sin red */ } };
+  const notify = () => listeners.forEach((f) => f());
+  function remote(add, id) {
+    const c = sb(); if (!uid || !c) return;
+    quiet(add ? c.from('property_favorites').upsert({ property_id: id }, { onConflict: 'user_id,property_id', ignoreDuplicates: true })
+      : c.from('property_favorites').delete().eq('property_id', id));
+  }
+  async function pull(user) {
+    const c = sb(); if (!c) return;
+    try {
+      const { data, error } = await c.from('property_favorites').select('property_id');
+      if (error || !data) return;
+      const remoteIds = new Set(data.map((r) => r.property_id));
+      const onlyLocal = [...favs].filter((id) => !remoteIds.has(id));
+      if (onlyLocal.length) {
+        const rows = onlyLocal.map((id) => ({ property_id: id }));
+        const up = await c.from('property_favorites').upsert(rows, { onConflict: 'user_id,property_id', ignoreDuplicates: true });
+        // una propiedad que ya no existe hace fallar el lote: se reintenta una por una
+        if (up.error) for (const r of rows) await c.from('property_favorites').upsert(r, { onConflict: 'user_id,property_id', ignoreDuplicates: true });
+      }
+      const before = favs.size;
+      remoteIds.forEach((id) => favs.add(id));
+      try { localStorage.setItem(USER_KEY, user.id); } catch (e) { /* sin almacenamiento */ }
+      save();
+      if (favs.size !== before) notify();
+    } catch (e) { /* sin la tabla o sin red: quedan los locales */ }
+  }
+  function onSession(session) {
+    const user = session && session.user;
+    if (user) { if (uid !== user.id) { uid = user.id; setTimeout(() => pull(user), 0); } return; }
+    uid = null;
+  }
+  function init() {
+    const c = sb(); if (!c || !c.auth) return;
+    c.auth.getSession().then(({ data }) => onSession(data && data.session)).catch(() => {});
+    c.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        // en un equipo compartido no se deja a la vista lo que guardó la cuenta que salió
+        let mine = null; try { mine = localStorage.getItem(USER_KEY); } catch (e) { /* nada */ }
+        uid = null;
+        if (mine) { favs = new Set(); try { localStorage.removeItem(USER_KEY); } catch (e) { /* nada */ } save(); notify(); }
+        return;
+      }
+      onSession(session);
+    });
+  }
+
   window.PropFavs = {
     has: (id) => favs.has(id),
-    toggle(id) { if (favs.has(id)) favs.delete(id); else favs.add(id); save(); listeners.forEach((f) => f()); return favs.has(id); },
+    toggle(id) { const on = !favs.has(id); if (on) favs.add(id); else favs.delete(id); save(); remote(on, id); notify(); return on; },
     ids: () => [...favs],
-    // Quita los guardados que ya no existen (propiedad vendida o vencida)
+    // Quita de la vista los guardados que ya no existen (propiedad vendida o vencida); en la cuenta se borran solos si la propiedad se elimina
     prune(validIds) { const ok = new Set(validIds); let ch = false; favs.forEach((id) => { if (!ok.has(id)) { favs.delete(id); ch = true; } }); if (ch) save(); },
     onChange: (f) => listeners.push(f),
+    signedIn: () => !!uid,
   };
+  init();
 
   /* ───────── Mapa ───────── */
   const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
