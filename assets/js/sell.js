@@ -8,6 +8,8 @@
   const WHATSAPP_PHONE = '59177666205';
   const MAX_FILES = 12;
   const MAX_BYTES = 10 * 1024 * 1024;
+  const MAX_PHOTOS = 8;
+  const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const OK_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
   const CITY_CENTER = {
     'La Paz': [-16.4955, -68.1336], 'El Alto': [-16.5047, -68.163], 'Santa Cruz de la Sierra': [-17.7833, -63.1821],
@@ -31,7 +33,7 @@
   const form = $('sell-form');
   if (!backdrop || !form) return;
 
-  const state = { id: null, files: [], uploaded: new Map(), map: null, marker: null, point: null, sent: null, busy: false };
+  const state = { id: null, files: [], photos: [], uploaded: new Map(), map: null, marker: null, point: null, sent: null, busy: false };
   let leafletPromise = null;
 
   /* ───────── Abrir / cerrar ───────── */
@@ -216,6 +218,54 @@
   form.querySelectorAll('input[name="sell-docs"]').forEach((r) => r.addEventListener('change', syncDocs));
   $('sell-legal').addEventListener('change', syncDocs);
 
+  /* ───────── Fotos del inmueble (se guardan como documentos de tipo «foto») ───────── */
+  const photoGrid = $('sell-photo-grid');
+  // Reduce las fotos del celular (lado mayor 1600 px, JPG) para que suban rápido con datos móviles; si algo falla se sube la original
+  function shrink(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+        if (k === 1 && file.size < 1.5 * 1048576 && file.type === 'image/jpeg') return resolve(file);
+        const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        cv.toBlob((b) => resolve(b && b.size < file.size ? b : file), 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  function renderPhotos() {
+    if (!photoGrid) return;
+    photoGrid.innerHTML = state.photos.map((f, i) =>
+      '<li><img src="' + f.thumb + '" alt="Foto ' + (i + 1) + '">' + (i === 0 ? '<span class="sell-photo-cover">Portada</span>' : '<button type="button" class="sell-photo-star" data-star="' + f.uid + '" aria-label="Usar como portada">★</button>') +
+      '<button type="button" class="sell-photo-rm" data-prm="' + f.uid + '" aria-label="Quitar foto ' + (i + 1) + '">✕</button></li>').join('');
+    $('sell-photo-count').textContent = state.photos.length ? state.photos.length + ' de ' + MAX_PHOTOS + ' fotos' : '';
+  }
+  if (photoGrid) {
+    $('sell-photo-input').addEventListener('change', async (e) => {
+      const input = e.target, err = $('sell-photo-error'); err.classList.add('hidden');
+      const problems = [], picked = [...input.files]; input.value = '';
+      for (const file of picked) {
+        if (state.photos.length >= MAX_PHOTOS) { problems.push('Máximo ' + MAX_PHOTOS + ' fotos.'); break; }
+        if (!PHOTO_TYPES.includes(file.type)) { problems.push(file.name + ': solo JPG, PNG o WEBP.'); continue; }
+        const blob = await shrink(file);
+        if (blob.size > MAX_BYTES) { problems.push(file.name + ': pesa más de 10 MB.'); continue; }
+        state.photos.push({ uid: ++uidSeq, blob, name: file.name, thumb: URL.createObjectURL(blob) });
+      }
+      if (problems.length) { err.textContent = [...new Set(problems)].join(' '); err.classList.remove('hidden'); }
+      renderPhotos();
+    });
+    photoGrid.addEventListener('click', (e) => {
+      const rm = e.target.closest('[data-prm]'), st = e.target.closest('[data-star]');
+      if (rm) { const f = state.photos.find((x) => String(x.uid) === rm.dataset.prm); if (f) URL.revokeObjectURL(f.thumb); state.photos = state.photos.filter((x) => x !== f); }
+      if (st) { const f = state.photos.find((x) => String(x.uid) === st.dataset.star); if (f) state.photos = [f, ...state.photos.filter((x) => x !== f)]; }
+      renderPhotos();
+    });
+  }
+
   /* ───────── Envío ───────── */
   const v = (id) => $(id).value.trim();
   const num = (id) => { const x = v(id).replace(',', '.'); return x === '' ? null : Number(x); };
@@ -257,6 +307,18 @@
         }
         docs.push({ type: f.type, name: f.file.name.slice(0, 120), path, size: f.file.size });
       }
+      let m = 0;
+      for (const f of state.photos) {
+        m++; label.textContent = 'Subiendo fotos (' + m + '/' + state.photos.length + ')…';
+        let path = state.uploaded.get(f.uid);
+        if (!path) {
+          path = state.id + '/foto-' + rand() + '.' + ext(f.name, f.blob.type);
+          const up = await supabaseClient.storage.from('sell-documents').upload(path, f.blob, { contentType: f.blob.type, upsert: false });
+          if (up.error) throw new Error('No pudimos subir la foto "' + f.name + '": ' + up.error.message);
+          state.uploaded.set(f.uid, path);
+        }
+        docs.push({ type: 'foto', name: f.name.slice(0, 120), path, size: f.blob.size });
+      }
       label.textContent = 'Enviando…';
       const land = $('sell-type').value === 'terreno';
       const payload = {
@@ -285,7 +347,8 @@
       'Inmueble: ' + ({ casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', otro: 'Otro' }[p.property_type]) + ' en ' + p.city + (p.zone ? ' (' + p.zone + ')' : ''),
       'Operación: ' + ({ venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' }[p.operation] || p.operation),
       'Ubicación: https://www.google.com/maps?q=' + p.latitude + ',' + p.longitude,
-      p.needs_legal_support ? 'Necesito apoyo legal para sanear mis documentos.' : 'Documentos: ' + (p.documents.length ? p.documents.length + ' adjuntos' : 'los enviaré por aquí'),
+      p.documents.some((d) => d.type === 'foto') ? 'Fotos: ' + p.documents.filter((d) => d.type === 'foto').length + ' enviadas' : 'Fotos: las enviaré por aquí',
+      p.needs_legal_support ? 'Necesito apoyo legal para sanear mis documentos.' : 'Documentos: ' + (p.documents.filter((d) => d.type !== 'foto').length ? p.documents.filter((d) => d.type !== 'foto').length + ' adjuntos' : 'los enviaré por aquí'),
     ];
     $('sell-wa').href = 'https://api.whatsapp.com/send?phone=' + WHATSAPP_PHONE + '&text=' + encodeURIComponent(lines.join('\n'));
     $('sell-success-legal').classList.toggle('hidden', !p.needs_legal_support);
@@ -294,5 +357,5 @@
   }
   $('sell-done').addEventListener('click', close);
 
-  syncOperation(); syncType(); syncDocs(); renderFiles();
+  syncOperation(); syncType(); syncDocs(); renderFiles(); renderPhotos();
 })();

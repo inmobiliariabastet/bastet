@@ -29,6 +29,10 @@ print("sell-requests.sql corrido x2")
 sql_t = open(R_ + "sell-temporal.sql", encoding="utf-8").read()
 for n in range(2): cur.execute(sql_t)
 print("sell-temporal.sql corrido x2")
+sql_f = open(R_ + "sell-photos.sql", encoding="utf-8").read()
+for n in range(2): cur.execute(sql_f)
+print("sell-photos.sql corrido x2")
+assert sql_f.replace("\r\n", "\n").strip() in sch.replace("\r\n", "\n"), "sell-photos.sql no está igual al final de schema.sql"
 assert chr(10).join(sql_t.split(chr(13))).strip() in chr(10).join(sch.split(chr(13))), "sell-temporal.sql no está igual al final de schema.sql"
 assert sql.replace('\r\n', '\n').strip() in sch.replace('\r\n', '\n'), "el bloque de sell-requests.sql no está igual al final de schema.sql"
 cur.execute("insert into auth.users(email,invited_at) values ('admin@x','2026-01-01'),('a1@x','2026-01-01') returning id")
@@ -118,6 +122,24 @@ eq("admin ve todas", as_(adm, "select count(*) from sell_requests")[1][0][0], 7)
 r = as_(adm, "update sell_requests set status='contacted', admin_notes='Llamé', owner_name='HACK', price=1, documents='[]' where id=%s returning status, owner_name, price, jsonb_array_length(documents)", (p["id"],))
 eq("admin cambia estado y notas; datos del propietario congelados", r[1][0], ('contacted', 'María López', 120000, 1))
 chk("admin puede borrar", as_(adm, "delete from sell_requests where id=%s", (s2["id"],)), False)
+
+# ── fotos (sell-photos.sql): hasta 8 fotos aparte de los 12 documentos; sin documentos conserva las fotos
+def fotos(rid, n, ext="jpg"): return [{"type": "foto", "name": "f%d" % i, "path": rid + "/foto-%d.%s" % (i, ext)} for i in range(n)]
+def docs_(rid, n): return [{"type": "otros", "name": "d%d" % i, "path": rid + "/otros-%d.pdf" % i} for i in range(n)]
+f1 = base(owner_phone="70055501"); f1["documents"] = fotos(f1["id"], 8) + docs_(f1["id"], 12)
+chk("8 fotos + 12 documentos (20 archivos)", sub(f1), False)
+eq("quedaron 20 archivos", one("select jsonb_array_length(documents) from sell_requests where id=%s", (f1["id"],)), 20)
+f2 = base(owner_phone="70055502"); f2["documents"] = fotos(f2["id"], 9)
+chk("más de 8 fotos", sub(f2), True)
+f3 = base(owner_phone="70055503"); f3["documents"] = docs_(f3["id"], 13)
+chk("más de 12 documentos (aunque haya lugar total)", sub(f3), True)
+f4 = base(owner_phone="70055504"); f4["documents"] = fotos(f4["id"], 1, "pdf")
+chk("una foto no puede ser PDF", sub(f4), True)
+f5 = base(owner_phone="70055505", doc_status="sin_documentos"); f5["documents"] = fotos(f5["id"], 3) + docs_(f5["id"], 2)
+chk("sin documentos pero con fotos", sub(f5), False)
+eq("sin documentos conserva solo las 3 fotos", one("select jsonb_array_length(documents)::text || (select string_agg(distinct x->>'type', ',') from jsonb_array_elements(documents) x) from sell_requests where id=%s", (f5["id"],)), "3foto")
+eq("sin documentos marca apoyo legal con fotos", one("select needs_legal_support from sell_requests where id=%s", (f5["id"],)), True)
+cur.execute("reset role")
 
 # ── storage
 O = "insert into storage.objects(bucket_id,name) values (%s,%s)"

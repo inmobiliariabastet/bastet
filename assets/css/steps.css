@@ -65,3 +65,16 @@
 .rq-cta .cta-button { background: var(--br-yellow, #F1BF46); color: var(--br-ink, #1E2629); }
 .rq-cta .rq-link { color: #fff; }
 @media (max-width: 520px) { .rq-step .agent-field-row { flex-direction: column; } .rq-list li { flex-direction: column; } .rq-side { flex-direction: row; align-items: center; } }
+
+/* ── Paso «Fotos» de Vender ── */
+.sell-photo-add { display: block; }
+.sell-photo-add span { display: flex; align-items: center; justify-content: center; min-height: 56px; border: 1.5px dashed var(--br-green, #3D4C3A); border-radius: 18px; color: var(--br-green, #3D4C3A); background: var(--br-pale, #EFF8E7); font-size: 16px; cursor: pointer; }
+.sell-photo-add:focus-within span { outline: 2px solid var(--br-green, #3D4C3A); outline-offset: 2px; }
+.sell-photo-grid { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sell-photo-grid:empty { display: none; }
+.sell-photo-grid li { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--br-pale, #EFF8E7); }
+.sell-photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sell-photo-cover { position: absolute; left: 6px; bottom: 6px; background: var(--br-green, #3D4C3A); color: #fff; font-size: 12px; padding: 3px 9px; border-radius: 999px; }
+.sell-photo-rm, .sell-photo-star { position: absolute; width: 32px; height: 32px; border: 0; border-radius: 50%; background: rgba(255,255,255,.94); color: var(--br-green, #3D4C3A); font-size: 14px; line-height: 1; cursor: pointer; box-shadow: 0 4px 10px -4px rgba(30,38,41,.5); }
+.sell-photo-rm { top: 6px; right: 6px; }
+.sell-photo-star { left: 6px; bottom: 6px; }

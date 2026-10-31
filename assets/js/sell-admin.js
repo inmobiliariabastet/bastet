@@ -15,7 +15,7 @@
   const OPS = { venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' };
   const ROLES = { propietario: 'Propietario', copropietario: 'Copropietario', apoderado: 'Apoderado', heredero: 'Heredero' };
   const DOCS = { en_regla: 'Documentos en regla', por_regularizar: 'Falta regularizar', sin_documentos: 'Sin documentos' };
-  const DOC_TYPES = { folio_real: 'Folio Real', testimonio: 'Testimonio / escritura', impuestos: 'Impuestos', plano: 'Plano / catastral', ci: 'Cédula de identidad', otros: 'Otros' };
+  const DOC_TYPES = { folio_real: 'Folio Real', testimonio: 'Testimonio / escritura', impuestos: 'Impuestos', plano: 'Plano / catastral', ci: 'Cédula de identidad', otros: 'Otros', foto: 'Foto' };
 
   const board = () => document.getElementById('sell-board');
   const modal = document.getElementById('sell-req-modal');

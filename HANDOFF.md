@@ -115,6 +115,13 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Rediseño móvil, fase 4: paso «Fotos» en Vender (2026-10-30) — SQL sell-photos.sql ya corrido por el dueño
+- Nuevo paso 5 «Fotos» (de 7) en el asistente de Vender: hasta 8 fotos opcionales, la primera es la portada (★ para cambiar, ✕ para quitar). Se reducen en el navegador (1600 px, JPG) antes de subirlas. Sin foto se puede seguir (se envían luego por WhatsApp).
+- Las fotos se guardan en `sell_requests.documents` con `type: "foto"` en el mismo bucket privado `sell-documents`; el panel admin (Propietarios) las lista como «Foto» con el botón Abrir.
+- SQL: `supabase/sell-photos.sql` (también al final de `schema.sql`; test `tests/sell_requests_sql_test.py` ampliado): tope total 20 archivos (12 documentos + 8 fotos) y «No tengo documentos» ya no borra las fotos. Sin ese SQL (ya corrido): con la función vieja las fotos con «sin documentos» se pierden y más de 12 archivos se rechazan.
+- Archivos: index.html (fieldset `#sell-photos-sec`), sell.js, sell-steps.js (acepta la sección extra), sell-admin.js, steps.css (v=20261030b).
+
+
 ### ✅ Rediseño móvil, fase 3c: perfil del agente (2026-10-30)
 - Al tocar la tarjeta «Publicado por» de la ficha se abre `assets/js/agent-profile.js` (`window.AgentProfile`): foto, nombre, cuántas propiedades activas y en qué ciudades/operaciones, botón WhatsApp (mismo conteo de clics), redes y la lista de sus propiedades (tocar una abre su ficha, sustituyendo la actual en el historial).
 - Solo datos reales públicos (columnas ya concedidas a anon: nombre, foto, WhatsApp, redes). SIN calificaciones, años de experiencia ni sello «verificado»: no existen datos; agregarlos requiere SQL (bio/verificado) y una decisión de negocio. Para el fallback «Bastet» (propiedad sin agente) la tarjeta no es clicable.

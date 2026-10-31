@@ -21,7 +21,7 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
 <link rel="stylesheet" href="assets/css/style.css?v=20261023a">
 <link rel="stylesheet" href="assets/css/brand.css?v=20261027a">
 <link rel="stylesheet" href="assets/css/sell.css?v=20261014d">
-<link rel="stylesheet" href="assets/css/steps.css?v=20261030a">
+<link rel="stylesheet" href="assets/css/steps.css?v=20261030b">
 <link rel="stylesheet" href="assets/css/prop-extras.css?v=20261030e">
 <link rel="stylesheet" href="assets/css/responsive-guard.css?v=20261027c">
 </head>
@@ -248,8 +248,17 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
           <p id="sell-map-status" class="sell-map-status">Toca el mapa en el punto exacto del inmueble o arrastra el pin para ajustarlo.</p>
         </fieldset>
 
+        <fieldset class="sell-section" id="sell-photos-sec">
+          <legend><span>4</span> Fotos del inmueble</legend>
+          <p class="agent-form-hint">Opcional, pero los anuncios con buenas fotos reciben más consultas. Hasta 8 fotos (JPG, PNG o WEBP). La primera será la portada. Si no las tienes ahora, podrás enviarlas por WhatsApp.</p>
+          <label class="sell-photo-add"><input type="file" id="sell-photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden><span>+ Agregar fotos</span></label>
+          <ul class="sell-photo-grid" id="sell-photo-grid"></ul>
+          <p class="sell-doc-count" id="sell-photo-count"></p>
+          <p class="agent-form-error hidden" id="sell-photo-error"></p>
+        </fieldset>
+
         <fieldset class="sell-section" id="sell-docs-group">
-          <legend><span>4</span> Documentos que respaldan la propiedad *</legend>
+          <legend><span>5</span> Documentos que respaldan la propiedad *</legend>
           <div class="sell-choices">
             <label class="sell-choice"><input type="radio" name="sell-docs" value="en_regla"><span><b>Tengo mis documentos en regla</b><small>Los adjuntaré aquí.</small></span></label>
             <label class="sell-choice"><input type="radio" name="sell-docs" value="por_regularizar"><span><b>Tengo algunos, pero me falta regularizar</b><small>Adjunto lo que tengo y pido ayuda con lo demás.</small></span></label>
@@ -312,8 +321,8 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
 <script src="assets/js/prop-extras.js?v=20261030b"></script>
 <script src="assets/js/agent-profile.js?v=20261030a"></script>
 <script src="assets/js/main.js?v=20261030d"></script>
-<script src="assets/js/sell.js?v=20261028a"></script>
-<script src="assets/js/sell-steps.js?v=20261030a"></script>
+<script src="assets/js/sell.js?v=20261030b"></script>
+<script src="assets/js/sell-steps.js?v=20261030b"></script>
 <script src="assets/js/request-property.js?v=20261030a"></script>
 </body>
 </html>

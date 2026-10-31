@@ -1,7 +1,7 @@
 /* «Vender mi inmueble» en pasos (Flujo D del rediseño móvil). Es una capa SOBRE el formulario de sell.js: no cambia ningún campo,
  * validación ni el envío (submit_sell_request); solo muestra una sección a la vez con indicador de avance, tarjetas para elegir la
  * operación y una pantalla final «Revisar y enviar». Si este archivo no carga, el formulario sigue funcionando completo como antes.
- * Pasos: 1 Operación · 2 Propietario · 3 Inmueble · 4 Ubicación · 5 Documentos · 6 Revisar y enviar. */
+ * Pasos: 1 Operación · 2 Propietario · 3 Inmueble · 4 Ubicación · 5 Fotos · 6 Documentos · 7 Revisar y enviar. */
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
@@ -10,7 +10,8 @@
   if (!form || !backdrop) return;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  const sections = [...form.querySelectorAll(':scope > .sell-section')];
+  const photosSec = $('sell-photos-sec');
+  const sections = [...form.querySelectorAll(':scope > .sell-section')].filter((x) => x !== photosSec);
   if (sections.length !== 4) return;
   const consent = form.querySelector('.sell-consent');
   const errBox = $('sell-error');
@@ -45,8 +46,10 @@
 
   const steps = [
     { el: opStep, name: 'Operación' }, { el: sections[0], name: 'Propietario' }, { el: sections[1], name: 'Inmueble' },
-    { el: sections[2], name: 'Ubicación' }, { el: sections[3], name: 'Documentos' }, { el: review, name: 'Revisar' },
+    { el: sections[2], name: 'Ubicación' },
+    ...(photosSec ? [{ el: photosSec, name: 'Fotos' }] : []), { el: sections[3], name: 'Documentos' }, { el: review, name: 'Revisar' },
   ];
+  const DOCS = steps.findIndex((x) => x.el === sections[3]);
   steps.forEach((s) => { s.el.classList.add('sw-step'); });
   const hint = form.querySelector('.agent-form-hint');
   form.insertBefore(opStep, sections[0]);
@@ -80,7 +83,7 @@
     if (i === 3 && !$('sell-map-status').classList.contains('is-set')) {
       $('sell-map-wrap').classList.add('has-error'); stepErr('Marca la ubicación del inmueble: busca la dirección, usa tu ubicación o toca el punto exacto en el mapa.', $('sell-map-wrap')); return false;
     }
-    if (i === 4 && !form.querySelector('input[name="sell-docs"]:checked')) { stepErr('Cuéntanos si tienes documentos que respalden tu propiedad.', $('sell-docs-group')); return false; }
+    if (i === DOCS && !form.querySelector('input[name="sell-docs"]:checked')) { stepErr('Cuéntanos si tienes documentos que respalden tu propiedad.', $('sell-docs-group')); return false; }
     return true;
   }
   const val = (id) => { const e = $(id); return e ? e.value.trim() : ''; };
@@ -99,7 +102,8 @@
         row($('sell-price-label').textContent, val('sell-price') ? val('sell-price') + ' ' + opt('sell-currency') : '') + row('Terreno', val('sell-land') ? val('sell-land') + ' m²' : '') +
         (land ? '' : row('Construida', val('sell-built') ? val('sell-built') + ' m²' : '') + row('Habitaciones / baños', [val('sell-rooms'), val('sell-baths')].filter(Boolean).join(' / ')))) +
       block('Ubicación', 3, row('Mapa', pt)) +
-      block('Documentos', 4, row('Estado', docTxt) + row('Adjuntos', ($('sell-doc-count').textContent || 'Ninguno')));
+      (photosSec ? block('Fotos', DOCS - 1, row('Fotos', $('sell-photo-count').textContent || 'Sin fotos por ahora')) : '') +
+      block('Documentos', DOCS, row('Estado', docTxt) + row('Adjuntos', ($('sell-doc-count').textContent || 'Ninguno')));
   }
   function show(i) {
     cur = Math.max(0, Math.min(steps.length - 1, i));
