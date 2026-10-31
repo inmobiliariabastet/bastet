@@ -115,6 +115,10 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ sitemap.xml y robots.txt (2026-10-30)
+- `sitemap.xml` con las páginas públicas indexables (inicio, propiedades, estadías, app, privacidad, derechos de autor); `verificar.html` y `admin/` quedan fuera (noindex). `robots.txt` permite todo salvo `/admin/` y apunta al sitemap. Las fichas (`?p=`) no se listan: su canonical es la página de listado. Al cambiar contenido importante, actualizar `lastmod`. Pendiente del dueño: enviar `https://bastet.uno/sitemap.xml` en Google Search Console.
+
+
 ### ✅ Revisión de accesibilidad y rendimiento en móvil (2026-10-30)
 - Auditoría a 360 px con un script propio (no hay Lighthouse en esta máquina): idioma, títulos, alt, nombres de botones, etiquetas de campos, encabezados, contraste, zonas táctiles, scroll horizontal. Páginas: Propiedades (lista y ficha), Estadías (lista y ficha), Inicio (+ Vender y Solicitar), Verificar.
 - Corregido: títulos invisibles verde-sobre-verde en «¿No encuentras lo que buscas?» y «¿Tienes un alojamiento…?» (existía en producción); zonas táctiles a 44 px (instalar app, corazones, Lista/Mapa, chips, atrás/compartir/guardar, cerrar modales, enlaces de pie, redes con área ampliada, zoom de mapas); alt/título del pin del mapa de Estadías. Todo en `assets/css/a11y.css` (v=20261030c, enlazado en las 7 páginas) + `estadias-extras.js` v=20261030c.
