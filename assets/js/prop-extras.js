@@ -20,6 +20,14 @@
   const sb = () => (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
   const quiet = (q) => { try { Promise.resolve(q).then(() => {}, () => {}); } catch (e) { /* sin red */ } };
   const notify = () => listeners.forEach((f) => f());
+  const MAX_FAVS = 30; // mismo tope que la cuenta (supabase/property-favorites.sql)
+  let toastTimer = null;
+  function toast(msg) {
+    let t = document.getElementById('pf-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'pf-toast'; t.className = 'pf-toast'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('is-on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('is-on'), 4000);
+  }
   function remote(add, id) {
     const c = sb(); if (!uid || !c) return;
     quiet(add ? c.from('property_favorites').upsert({ property_id: id }, { onConflict: 'user_id,property_id', ignoreDuplicates: true })
@@ -67,7 +75,10 @@
 
   window.PropFavs = {
     has: (id) => favs.has(id),
-    toggle(id) { const on = !favs.has(id); if (on) favs.add(id); else favs.delete(id); save(); remote(on, id); notify(); return on; },
+    toggle(id) {
+      const on = !favs.has(id);
+      if (on && favs.size >= MAX_FAVS) { toast('Llegaste al máximo de ' + MAX_FAVS + ' favoritos. Quita alguno para guardar otro.'); return false; }
+      if (on) favs.add(id); else favs.delete(id); save(); remote(on, id); notify(); return on; },
     ids: () => [...favs],
     // Quita de la vista los guardados que ya no existen (propiedad vendida o vencida); en la cuenta se borran solos si la propiedad se elimina
     prune(validIds) { const ok = new Set(validIds); let ch = false; favs.forEach((id) => { if (!ok.has(id)) { favs.delete(id); ch = true; } }); if (ch) save(); },

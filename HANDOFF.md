@@ -115,6 +115,10 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### ✅ Favoritos: aviso al llegar al tope de 30 (2026-10-30)
+- `PropFavs.toggle` (prop-extras.js) rechaza el favorito 31 con un aviso breve «Llegaste al máximo de 30 favoritos…» (toast `.pf-toast`, 4 s) y devuelve false, así el corazón no se queda marcado. Mismo tope que la cuenta (`MAX_FAVS` = 30; si se cambia el SQL, cambiar también esa constante). Aplica también sin sesión. Sin SQL. v=prop-extras.js 20261030d, prop-extras.css 20261030f.
+
+
 ### ✅ Rediseño móvil, fase 5: favoritos guardados en la cuenta (2026-10-30) — SQL property-favorites.sql ya corrido por el dueño
 - Tabla `property_favorites` (RLS: cada persona solo ve/crea/borra los suyos; tope 30 (el dueño lo bajó de 300 a 30 al correr el SQL); se borra en cascada si se elimina la propiedad o el usuario). Test `tests/property_favorites_sql_test.py`.
 - `prop-extras.js` (`window.PropFavs`): con sesión iniciada cada corazón se guarda también en la cuenta; al iniciar sesión se UNEN los locales con los de la cuenta (y los locales suben). Al cerrar sesión se vacía la copia local si venía de una cuenta (equipos compartidos). «Mejor esfuerzo»: sin el SQL o sin red siguen funcionando solo en el navegador (verás un 404 inofensivo en consola hasta correr el SQL).

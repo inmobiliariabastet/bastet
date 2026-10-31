@@ -112,3 +112,7 @@
 .ap-item-text b { font-weight: 600; }
 .ap-item-text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; }
 .ap-item-text small { color: var(--br-muted, rgba(30,38,41,.66)); font-size: 12.5px; }
+
+/* Aviso breve (tope de favoritos) */
+.pf-toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); z-index: 900; max-width: min(92vw, 420px); padding: 12px 18px; border-radius: 16px; background: var(--br-ink, #1E2629); color: #fff; font-size: 14.5px; line-height: 1.45; text-align: center; box-shadow: 0 14px 30px -14px rgba(30,38,41,.7); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+.pf-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
