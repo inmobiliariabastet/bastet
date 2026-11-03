@@ -73,6 +73,7 @@
   const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp';
 
   async function load() {
+    if (window.StayBooking) await window.StayBooking.init();
     const fetchStays = (columns) => supabaseClient.from('properties').select(columns).eq('status', 'available').eq('operation', 'temporal')
       .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString()).order('sort_order', { ascending: true });
     let res = await fetchStays(PUBLIC_PROPERTY_COLUMNS);
@@ -103,6 +104,7 @@
     const open = new URLSearchParams(location.search).get('p');
     if (open) { const p = stays.find((x) => x.id === open || formatPropertyCode(x) === open); if (p) openDetail(p, false); }
     if (window.StayExtras) window.StayExtras.openReviewFromUrl(async () => { await window.StayExtras.loadRatings(stays.map((p) => p.id)); render(); });
+    if (window.StayBooking) window.StayBooking.openFromUrl();
   }
 
   /* ───────── Utilidades ───────── */
@@ -121,6 +123,7 @@
   const isFeatured = (p) => !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
   const waPhone = (p) => { const d = String((p.agent && p.agent.contact_whatsapp) || p.whatsapp || '').replace(/[^0-9]/g, ''); return /^[67][0-9]{7}$/.test(d) ? '591' + d : (d || WHATSAPP_GENERAL); };
   const firstName = (p) => (p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '');
+  const bookingOn = () => !!(window.StayBooking && window.StayBooking.isOn());
   const track = (id, type) => { if (id) supabaseClient.from('property_events').insert({ property_id: id, event_type: type }).then(() => {}, () => {}); };
 
   function waLink(p) {
@@ -378,7 +381,7 @@
             (p.description ? '<section class="sd-section"><h2>Sobre este alojamiento</h2><p class="sd-desc">' + esc(p.description).replace(/\n/g, '<br>') + '</p></section>' : '') +
             (features.length ? '<section class="sd-section"><h2>Lo que ofrece</h2><ul class="sd-offers">' + features.map((f) => '<li>' + f.icon + '<span>' + esc(f.text) + '</span></li>').join('') + '</ul></section>' : '') +
             '<section class="sd-section" id="sd-avail"><h2>Disponibilidad</h2><div id="sd-cal"></div></section>' +
-            '<section class="sd-section sd-note"><h2>Cómo reservar</h2><p>Elige tus fechas y toca «Consultar disponibilidad»: abrimos un WhatsApp con tu consulta lista para enviar al anfitrión. Él confirma la disponibilidad, el precio final y la forma de pago. No se cobra nada en este sitio.</p></section>' +
+            '<section class="sd-section sd-note"><h2>Cómo reservar</h2>' + (bookingOn() ? '<p>Elige tus fechas y toca «Solicitar reserva». El anfitrión tiene 2 horas para aceptar. Si acepta, pagas a Bastet el 10 % del total (QR o transferencia) y, cuando verificamos tu pago, te damos su WhatsApp. El 90 % restante lo coordinas directo con el anfitrión: Bastet no lo cobra ni lo garantiza.</p><p class="sd-fine">Cancelación gratuita hasta 72 horas antes de la llegada; después se retiene el 20 % del total (10 % Bastet y 10 % anfitrión).</p>' : '<p>Elige tus fechas y toca «Consultar disponibilidad»: abrimos un WhatsApp con tu consulta lista para enviar al anfitrión. Él confirma la disponibilidad, el precio final y la forma de pago. No se cobra nada en este sitio.</p>') + '</section>' +
           '</div>' +
           '<aside class="sd-book" aria-label="Reserva"><div id="sd-booking"></div></aside>' +
         '</div>' +
@@ -414,9 +417,9 @@
       '</div>' +
       (conflict ? '<p class="sd-conflict">Estas fechas no están disponibles: el alojamiento está ocupado alguna de esas noches. Elige otras en el calendario.</p>' : n && base !== null ? '<ul class="sd-sum sd-sum--detail"><li><span>Fechas</span><b>' + fdate(state.from) + ' – ' + fdate(state.to) + '</b></li><li><span>Huéspedes</span><b>' + state.guests + '</b></li><li><span>' + money(base, p.currency) + ' × ' + n + ' ' + plural(n, 'noche', 'noches') + '</span><b>' + money(base * n, p.currency) + '</b></li><li class="sd-sum-total"><span>Total estimado</span><b>' + money(base * n, p.currency) + '</b></li></ul><p class="sd-fine">Estimado: el anfitrión confirma el precio final y la disponibilidad.</p>'
         : '<p class="sd-fine">Elige llegada y salida para calcular tu estadía.</p>') +
-      (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">Fechas no disponibles</span>' : '<a class="sd-cta" id="sd-wa" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '">Consultar disponibilidad por WhatsApp</a>');
+      (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">Fechas no disponibles</span>' : bookingOn() ? '<button type="button" class="sd-cta" id="sd-request" data-request>Solicitar reserva</button><p class="sd-fine">Todavía no pagas nada: el anfitrión responde en 2 horas.</p>' : '<a class="sd-cta" id="sd-wa" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '">Consultar disponibilidad por WhatsApp</a>');
     const mb = $('sd-mobilebar');
-    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div>' + (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">No disponible</span>' : '<a class="sd-cta" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '" data-wa>Consultar</a>');
+    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div>' + (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">No disponible</span>' : bookingOn() ? '<button type="button" class="sd-cta" data-request>Solicitar</button>' : '<a class="sd-cta" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '" data-wa>Consultar</a>');
   }
 
   detail.addEventListener('click', (e) => {
@@ -426,6 +429,10 @@
     if (e.target.closest('[data-share]') && current) { shareStay(); return; }
     const ph = e.target.closest('[data-photo]'); if (ph) { openLightbox(Number(ph.dataset.photo)); return; }
     const g = e.target.closest('[data-g]'); if (g) { state.guests = Math.min(16, Math.max(1, state.guests + Number(g.dataset.g))); $('st-guests').textContent = state.guests; toUrl(); refreshBooking(); return; }
+    if (e.target.closest('[data-request]') && current) {
+      if (!nights()) { const t = $('sd-avail'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); const f = $('sd-from'); if (f) f.focus({ preventScroll: true }); return; }
+      window.StayBooking.request(current, { from: state.from, to: state.to, guests: state.guests }); return;
+    }
     if (e.target.closest('#sd-wa, [data-wa]') && current) track(current.id, 'whatsapp_click');
   });
   detail.addEventListener('change', (e) => {

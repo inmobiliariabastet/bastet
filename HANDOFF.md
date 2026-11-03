@@ -6,32 +6,32 @@
 >
 > ⚠️ **El proyecto se renombró de "MAAT Firma Legal" a "Bastet Propiedades · Inmobiliarias"** (mismo negocio/dueña, nueva marca). La carpeta local (`MATT FIRMA LEGAL`), el repo viejo (`leilasuhana15/maat`) y el nombre del proyecto en Supabase ("MAAT") siguen diciendo "maat" por razones históricas. La marca visible es solo **Bastet** y el sitio vive en **bastet.uno**.
 
-## 🔜 PRÓXIMA SESIÓN: continuar con las decisiones de negocio (acordado 2026-10-30)
+## 🔜 PRÓXIMA SESIÓN: construir por fases según `docs/ESPECIFICACION_MAESTRA.md` (decisiones aprobadas 2026-11-02)
 
-**Punto de partida:** el rediseño móvil (prompt `Downloads/PROMPT_CLAUDE_CODE_bastet_uno.md`) está terminado en todo lo que NO depende de decisiones del negocio, publicado y sin SQL pendiente. La sesión siguiente empieza por **conversar y decidir con la dueña los 8 puntos de abajo** (hay una versión más larga con «qué hay hoy / qué decidir / recomendación» en `PENDIENTES_NEGOCIO.md` en la raíz del proyecto local; NO está en git a propósito para que no quede público en bastet.uno — si no aparece, este resumen basta).
+Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PENDIENTES_NEGOCIO.md`). Todo se construye tras un interruptor apagado por defecto y sin tarifas/pagos visibles al público hasta que la dueña lo active. Lo «no definido» (sección 12 del documento) NO se asume.
 
-| # | Decisión | Estado hoy | Desbloquea |
-|---|---|---|---|
-| 1 | Tarifas por conexión (Bs 10–200, defecto Bs 50) y comisión 0,75 %: ¿válidas?, ¿quién paga y cuándo? | Nada construido ni visible | Flujo E (oportunidades/comisiones, tras `FEATURE_AGENTES`) y paneles |
-| 2 | Moneda de referencia en listados vs comisiones en Bs; tipo de cambio | Cada propiedad en su moneda | Cálculo de comisiones |
-| 3 | Pasarela de pago de Estadías (QR/transferencia/Tigo Money/tarjeta), ¿cobro total, anticipo o nada? | La reserva termina en WhatsApp | Pago, comprobante, «Mis reservas» (`FEATURE_PAGOS`) |
-| 4 | Política de cancelación y confirmación del anfitrión | Calendario bloquea fechas, sin confirmar en el sitio | Estados de reserva + textos legales |
-| 5 | Perfiles de agentes: qué más se publica, reseñas verificables, qué significa «verificado» | Perfil solo con datos reales públicos | Ampliar perfil (requiere SQL: bio/verificado/reseñas) |
-| 6 | Fotos reales de propiedades y retratos de agentes | Las del diseño eran de muestra | Material del dueño |
-| 7 | Pestaña «Verificar»: ¿solo contratos o también propiedades/agentes (sello «Verificado por Bastet»)? | Solo contratos | Verificación de propiedades |
-| 8 | Estados temporales (historias) | No implementados; recomendación: no hacerlos ahora | — |
+| Fase | Contenido | Estado |
+|---|---|---|
+| 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped 72 h / 20 %, anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
+| 2 | Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
+| 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | pendiente |
+| 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | pendiente |
+| 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | pendiente |
+| — | Historias/estados temporales: **NO se hacen** | decidido |
 
-**Recomendaciones ya dadas a la dueña:** definir primero quién paga y cuándo (los montos se ajustan en config); empezar con QR/transferencia + comprobante revisado por Bastet antes de una pasarela con tarjeta; dejar «Verificar» solo en contratos; no hacer historias.
-
-**Lo hecho del rediseño (todo ✅, ver Historial):** favoritos (local + cuenta, tope 30 con aviso) y vista Mapa · ficha de propiedad a pantalla completa con `?p=` · perfil del agente · calendario público de Estadías · Vender en 7 pasos con Fotos · Solicitar una propiedad (+ panel admin) · accesibilidad móvil (`a11y.css`) · canonical, `sitemap.xml`, `robots.txt` · logos WebP · limpieza del flujo viejo.
+### Fase 1 — qué hay y cómo se activa
+- **SQL:** `supabase/stay-bookings.sql` (también al final de `schema.sql`). Tablas `stay_settings` (una fila; `enabled` apagado), `stay_bookings`, `stay_booking_events` (auditoría); bucket privado `stay-proofs`; RPCs `create_stay_booking`, `get_stay_booking`, `attach_stay_proof`, `cancel_stay_booking` (huésped, por código, sin cuenta), `host_respond_stay_booking`, `host_cancel_stay_booking`, `host_declare_direct_payment`, `my_stay_bookings` (anfitrión), `admin_review_stay_proof`, `admin_review_direct_payment`, `admin_set_stay_dispute`, `stay_booking_events`, `get/admin_update_stay_settings`. Prueba: `python tests/stay_bookings_sql_test.py` (0 fallas).
+- **Huésped:** `assets/js/estadias-reservas.js` (modal «Solicitar reserva» y seguimiento `estadias.html?reserva=CÓDIGO`). Apagado = el CTA sigue siendo «Consultar por WhatsApp» (verificado: sin el SQL la página funciona igual).
+- **Anfitrión/admin:** pestaña **Reservas** en `/admin` (`assets/js/stay-bookings-admin.js`): responder, verificar comprobantes, declarar el 90 %, cancelar, disputas, historial, y **formulario de reglas** (interruptor, tipo de cambio interno Bs/USD, instrucciones de pago, QR).
+- **Para activar (dueña):** 1) correr `supabase/stay-bookings.sql` en el SQL Editor; 2) en `/admin` → Reservas → escribir instrucciones de pago (cuenta/QR) y el tipo de cambio interno → marcar «Reservas con pago del 10 % activas» → Guardar.
+- **Límites conocidos (decidir antes de activar):** (a) NO hay aviso automático al anfitrión: solo ve la solicitud en su panel (tiene 2 h) → falta definir canal (WhatsApp/correo/push); (b) plazo para que el huésped pague tras aceptar NO está definido (`pay_window_hours` = null, las fechas quedan bloqueadas hasta que se pague o alguien cancele); (c) `properties.whatsapp` sigue legible por la API pública, así que el contacto del anfitrión aún no está blindado de verdad — se blinda en la fase 2 junto con las conexiones; (d) devoluciones y retenciones se REGISTRAN, no se ejecutan: las hace Bastet a mano; (e) textos de cancelación/retención requieren revisión jurídica antes de activar.
 
 **Acciones pendientes SOLO de la dueña (no del código):**
-- Volver a subir desde el panel las 3 fotos pesadas (BST-1005 ×2 PNG ~2,7 MB y BST-1007 ×1 PNG 2,4 MB): son 7,7 de los 9,8 MB de fotos del sitio.
-- Medir puntajes reales en PageSpeed Insights (`https://bastet.uno/marketplace.html`); aquí no hay Lighthouse.
-- Opcional: correr `supabase/drop-legacy.sql` (borra `agent_requests`, trigger `on_auth_user_invited`; DESTRUCTIVO, exportar CSV antes si quiere el historial) y borrar la Edge Function `invite-admin` del Dashboard si aparece.
-- Search Console: sitemap ya enviado ✅; esperar a que Google lo procese (6 páginas).
-
-**Cuando se decida cada punto:** construir tras su interruptor (`FEATURE_*`, apagado por defecto), con tarifas en `config/tarifas.json` marcadas `TODO(negocio)` hasta validar; sin tarifas/comisiones visibles al público mientras el interruptor esté apagado (criterio de aceptación del prompt). Pendientes menores sin decisión: salto de encabezado en Inicio, medir LCP real.
+- Correr `supabase/stay-bookings.sql` y activar Reservas (arriba) cuando decida el canal de avisos y el plazo de pago.
+- Revisión jurídica en Bolivia de los puntos de la sección 11 del documento antes de activar contratos, penalizaciones y actas.
+- Volver a subir desde el panel las 3 fotos pesadas (BST-1005 ×2 PNG ~2,7 MB y BST-1007 ×1 PNG 2,4 MB).
+- Medir puntajes reales en PageSpeed Insights; esperar a que Google procese el sitemap.
+- Opcional: `supabase/drop-legacy.sql` (DESTRUCTIVO; exportar CSV antes).
 
 ## 🟢 ESTADO ACTUAL Y GUÍA DE ARRANQUE (actualizado 2026-10-17 — manda sobre todo lo que diga el «Resumen rápido» de abajo)
 
@@ -141,6 +141,9 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+### 2026-11-02 · Fase 1 de la especificación maestra: reservas de Estadías con pago del 10 %
+Spec guardada en `docs/ESPECIFICACION_MAESTRA.md`. Nuevo: `supabase/stay-bookings.sql` (+ al final de `schema.sql`), `assets/js/estadias-reservas.js`, `assets/js/stay-bookings-admin.js`, pestaña «Reservas» en `/admin`, `tests/stay_bookings_sql_test.py`. Interruptor `stay_settings.enabled` apagado: el sitio público no cambia hasta que se active. Verificado en navegador con respuestas simuladas (flujo huésped y panel) y 0 fallas en las suites SQL de estadías. Ver «PRÓXIMA SESIÓN» para límites y activación.
 
 ### ✅ Logos en WebP (2026-10-30)
 - Páginas públicas (index, marketplace, estadias, verificar, privacidad, dmca, app) y `main.js`/`estadias.js` usan `assets/img/bastet-logo-horizontal-color|blanco.webp`, `bastet-logo-vertical-footer.webp` e `bastet-isotipo-cabeza-dorado.webp` (800 px de ancho, calidad 92, transparencia conservada): 80→34, 51→18, 76→26 y 24→15 KB. Los PNG originales SE CONSERVAN (panel admin, correos, íconos de la app/PWA y respaldo). El cambio de logo claro/oscuro de la barra reemplaza `color.webp`→`blanco.webp` (ver `main.js`/`estadias.js`). main.js v=20261030e, estadias.js v=20261030b.

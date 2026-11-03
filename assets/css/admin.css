@@ -595,3 +595,21 @@ a.btn { text-decoration: none; }
 .google-btn:disabled { opacity:.5; cursor:wait; }
 .google-divider { display:flex; align-items:center; gap:12px; margin:14px 0; font-size:12px; opacity:.7; text-align:center; }
 .google-divider::before, .google-divider::after { content:""; flex:1; height:1px; background:currentColor; opacity:.3; }
+
+/* Reservas de estadías (stay-bookings-admin.js) */
+.bk-card, .bk-settings { background: #fff; border: 1px solid rgba(30,38,41,.14); border-radius: 18px; padding: 16px 18px; margin: 0 0 14px; }
+.bk-card header { display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.bk-code { margin-left: 8px; font-size: 12px; letter-spacing: .1em; color: rgba(30,38,41,.6); }
+.bk-chip { font-size: 12px; padding: 3px 10px; border-radius: 99px; background: #FFF6DB; }
+.bk-chip.bk-ok { background: #E7EFE4; } .bk-chip.bk-bad { background: #F8E4E1; }
+.bk-meta, .bk-money, .bk-contact { margin: 6px 0 0; font-size: 14px; }
+.bk-fine { margin: 6px 0 0; font-size: 13px; color: rgba(30,38,41,.7); }
+.bk-actions, .bk-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.bk-filter { margin: 0 0 14px; }
+.bk-empty { color: rgba(30,38,41,.65); }
+.bk-settings h2 { margin: 0 0 10px; font-size: 18px; }
+.bk-settings label { display: block; margin: 10px 0; font-size: 14px; }
+.bk-settings input[type=number], .bk-settings input[type=url], .bk-settings textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; }
+.bk-check small { color: rgba(30,38,41,.6); }
+.bk-events { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; display: grid; gap: 10px; font-size: 14px; }
+.modal-panel label { display: block; margin: 10px 0; font-size: 14px; }

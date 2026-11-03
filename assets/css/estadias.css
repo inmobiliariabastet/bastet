@@ -324,3 +324,22 @@
   .qb-item span { line-height: 1.1; text-align: center; }
   body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 }
+
+/* Reservas con aprobación y pago del 10 % (estadias-reservas.js) */
+.sbk-card { max-width: 520px; }
+.sbk-code { margin: 0 0 12px; font-size: 14px; color: var(--br-muted, rgba(30,38,41,.66)); }
+.sbk-code b { letter-spacing: .12em; color: var(--br-green, #3D4C3A); }
+.sbk-how { background: var(--br-sand, #EEE6E0); border-radius: 16px; padding: 14px 16px; margin: 14px 0 4px; font-size: 14px; }
+.sbk-how ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+.sbk-state { border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; font-size: 14.5px; }
+.sbk-state p { margin: 4px 0 0; }
+.sbk-wait { background: #FFF6DB; } .sbk-ok { background: #E7EFE4; } .sbk-bad { background: #F8E4E1; }
+.sbk-wa { display: block; margin-top: 12px; text-align: center; text-decoration: none; }
+.sbk-pay { border: 1px solid var(--br-line, rgba(30,38,41,.2)); border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; }
+.sbk-pay h3 { margin: 0 0 8px; font-size: 16px; }
+.sbk-pay .srm-btn { margin-top: 12px; }
+.sbk-qr { display: block; width: 200px; max-width: 100%; margin: 0 auto 10px; border-radius: 12px; }
+.sbk-instr { margin: 0; font-size: 14.5px; }
+.sbk-policy { margin: 0 0 10px; }
+.sbk-cancel { display: block; margin: 4px 0 0; }
+.sbk-saved { background: #E7EFE4; border-radius: 12px; padding: 10px 12px; font-size: 13px; word-break: break-all; margin: 0 0 12px; }
