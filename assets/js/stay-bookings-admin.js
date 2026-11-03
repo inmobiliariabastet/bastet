@@ -67,6 +67,7 @@
     if (['conexion_generada', 'en_disputa'].includes(b.status) || (b.status === 'cancelada' && b.verified_at)) acts.push('<button class="btn btn-ghost btn-sm" data-act="declare">' + (b.needs_direct_declaration ? '⚠ Declarar si recibiste el saldo' : 'Declarar saldo recibido') + '</button>');
     if (['aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'conexion_generada'].includes(b.status)) acts.push('<button class="btn btn-ghost btn-sm" data-act="hostcancel">Cancelar reserva</button>');
     if (adm) {
+      if (['aceptada_pendiente_pago', 'conexion_generada'].includes(b.status) && b.guest_phone) acts.push('<button class="btn btn-primary btn-sm" data-act="notifyguest">' + (b.status === 'conexion_generada' ? 'Avisar al huésped: reserva confirmada' : 'Avisar al huésped por WhatsApp') + '</button>');
       if (b.status === 'pendiente_respuesta_anfitrion' && b.host_whatsapp) acts.push('<button class="btn btn-primary btn-sm" data-act="notify">Avisar al anfitrión por WhatsApp</button>');
       if (b.direct_proof_path) acts.push('<button class="btn btn-ghost btn-sm" data-act="directproof">Ver constancia del saldo</button>');
       if (b.direct_status) acts.push('<button class="btn btn-ghost btn-sm" data-act="directreview">Revisar saldo declarado</button>');
@@ -175,6 +176,13 @@
       case 'notify': {
         const msg = 'Hola' + (b.host_name ? ' ' + b.host_name.split(' ')[0] : '') + ', tienes una solicitud de reserva de ' + b.guest_name + ' para «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + ' (' + b.nights + ' noches). Responde antes del ' + ftime(b.respond_by) + ' en https://bastet.uno/admin/ (pestaña Reservas).';
         window.open('https://api.whatsapp.com/send?phone=' + waPhone(b.host_whatsapp) + '&text=' + encodeURIComponent(msg), '_blank', 'noopener'); return;
+      }
+      case 'notifyguest': {
+        const link = 'https://bastet.uno/estadias.html?reserva=' + b.code;
+        const msg = b.status === 'conexion_generada'
+          ? 'Hola ' + b.guest_name.split(' ')[0] + ', tu pago fue verificado y tu reserva de «' + b.title + '» está confirmada. Mira aquí el WhatsApp del anfitrión: ' + link
+          : 'Hola ' + b.guest_name.split(' ')[0] + ', el anfitrión aceptó tu reserva de «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + '. Para confirmarla paga el 10 % (' + bs(b.fee_bs) + ') y sube tu comprobante' + (b.pay_by ? ' antes del ' + ftime(b.pay_by) : '') + ' aquí: ' + link;
+        window.open('https://api.whatsapp.com/send?phone=' + waPhone(b.guest_phone) + '&text=' + encodeURIComponent(msg), '_blank', 'noopener'); return;
       }
       case 'proof': return signed(b.proof_path);
       case 'directproof': return signed(b.direct_proof_path);
