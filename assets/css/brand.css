@@ -64,6 +64,12 @@ body.brand .navbar-link::after { background: var(--br-yellow); height: 2px; }
   font-family: var(--font-serif); font-size: 15.5px; font-weight: 500; color: var(--br-yellow); background: var(--br-green);
   transition: background-color .25s ease, transform .25s ease;
 }
+.nav-pill { white-space: nowrap; }
+@media (min-width: 1080px) and (max-width: 1279px) {
+  body.brand .navbar-links { gap: 14px; }
+  body.brand .navbar-link, body.brand .navbar-link--btn { font-size: 14px; }
+  .nav-pill { padding: 0 16px; font-size: 14.5px; }
+}
 .nav-pill:hover { background: var(--br-green-dark); transform: translateY(-1px); }
 .nav-pill:focus-visible { outline: 3px solid var(--br-yellow); outline-offset: 3px; }
 .nav-pill--block { width: 100%; margin-top: 8px; min-height: 52px; }
