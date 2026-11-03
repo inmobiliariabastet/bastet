@@ -475,7 +475,6 @@ function openPropertyForm(property) {
   roomsSelect.value = formState.rooms;
   bathsSelect.value = formState.baths;
   document.getElementById('field-description').value = formState.description || '';
-  document.getElementById('field-whatsapp').value = formState.whatsapp || '';
   document.getElementById('field-owner-whatsapp').value = formState.owner_whatsapp || '';
   document.getElementById('field-status').value = formState.status;
   document.getElementById('field-featured').checked = !!formState.featured;
@@ -632,7 +631,7 @@ propertyForm.addEventListener('submit', async (e) => {
     rooms: document.getElementById('field-rooms').value.trim(),
     baths: document.getElementById('field-baths').value.trim(),
     description: document.getElementById('field-description').value.trim(),
-    whatsapp: document.getElementById('field-whatsapp').value.trim() || null,
+    whatsapp: formState.whatsapp || null,
     owner_whatsapp: document.getElementById('field-owner-whatsapp').value.trim() || null,
     status: document.getElementById('field-status').value,
     featured: document.getElementById('field-featured').checked,

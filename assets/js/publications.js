@@ -41,7 +41,7 @@
       const o = document.createElement('div');
       o.className = 'modal-overlay'; o.id = 'fw-overlay';
       o.innerHTML = '<div class="modal-panel fw-panel" role="dialog" aria-modal="true" aria-labelledby="fw-title"><h2 id="fw-title">Contrato marco de Bastet</h2>' +
-        '<p class="fw-hint">Para publicar propiedades debes leer y aceptar este contrato (versión ' + esc(f.version) + '). Lo aceptas una sola vez.</p>' +
+        '<p class="fw-hint">Para publicar propiedades debes leer y aceptar este contrato. Lo aceptas una sola vez.</p>' +
         '<div class="fw-text" tabindex="0">' + esc(f.text) + '</div>' +
         '<label class="fw-check"><input type="checkbox" id="fw-ok"> He leído y acepto el contrato marco de Bastet.</label>' +
         '<p id="fw-err" class="form-error hidden"></p>' +
@@ -69,7 +69,7 @@
       const o = document.createElement('div');
       o.className = 'modal-overlay'; o.id = 'fw-overlay';
       o.innerHTML = '<div class="modal-panel fw-panel" role="dialog" aria-modal="true" aria-labelledby="fw-title"><h2 id="fw-title">Acuerdo de anfitrión de Bastet</h2>' +
-        '<p class="fw-hint">Para publicar estadías temporales debes leer y aceptar este acuerdo (versión ' + esc(f.version) + '). Lo aceptas una sola vez.</p>' +
+        '<p class="fw-hint">Para publicar estadías temporales debes leer y aceptar este acuerdo. Lo aceptas una sola vez.</p>' +
         '<div class="fw-text" tabindex="0">' + esc(f.text) + '</div>' +
         '<label class="fw-check"><input type="checkbox" id="fw-ok"> He leído y acepto el acuerdo de anfitrión de Bastet.</label>' +
         '<p id="fw-err" class="form-error hidden"></p>' +
