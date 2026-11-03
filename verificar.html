@@ -31,13 +31,13 @@
 
 <main class="legal-main">
   <p class="legal-eyebrow">Verificación</p>
-  <h1>Verificar contratos, reservas, propiedades y agentes</h1>
-  <p class="legal-lead">Cada contrato generado en bastet.uno lleva un código de verificación de 8 caracteres (también en el código QR al pie de cada página). Cada reserva de Estadías tiene un código de 10 caracteres. Una propiedad se consulta con su código (BST-1004), un agente con su código público (AG-XXXXXX) y la operación de un certificado con su código (OP-XXXXXXXX).</p>
+  <h1>Verificar contratos, reservas, solicitudes, propiedades y agentes</h1>
+  <p class="legal-lead">Cada contrato generado en bastet.uno lleva un código de verificación de 8 caracteres (también en el código QR al pie de cada página). Cada reserva de Estadías y cada solicitud de contacto tienen un código de 10 caracteres. Una propiedad se consulta con su código (BST-1004), un agente con su código público (AG-XXXXXX) y la operación de un certificado con su código (OP-XXXXXXXX).</p>
 
   <form class="verify-form" id="verify-form" autocomplete="off">
     <label for="verify-code">Código de verificación</label>
     <div class="verify-row">
-      <input id="verify-code" name="code" type="text" inputmode="text" maxlength="12" minlength="7" required placeholder="K7M2QX9A · BST-1004 · AG-XXXXXX" autocapitalize="characters" spellcheck="false">
+      <input id="verify-code" name="code" type="text" inputmode="text" maxlength="20" minlength="7" required placeholder="K7M2QX9A · BST-1004 · AG-XXXXXX" autocapitalize="characters" spellcheck="false">
       <button type="submit" class="verify-btn" id="verify-submit">Verificar</button>
     </div>
     <button type="button" class="scan-btn" id="scan-btn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Escanear el código QR con la cámara</button>
@@ -71,7 +71,7 @@
     var res = await supabaseClient.rpc(fn, { p_code: code });
     btn.disabled = false; btn.textContent = 'Verificar';
     if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>' + esc(/Demasiados intentos/i.test(res.error.message || '') ? 'Demasiadas consultas seguidas. Espera un minuto.' : 'Inténtalo de nuevo en unos minutos.') + '</p>'); return; }
-    if (!res.data || !res.data.found) { show('is-bad', '<h2>No encontramos este código</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ninguna propiedad, agente ni certificado de Bastet. Revisa que esté bien escrito.</p>'); return; }
+    if (!res.data || !res.data.found) { show('is-bad', '<h2>No encontramos este código</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ninguna propiedad, agente, certificado ni solicitud de Bastet. Revisa que esté bien escrito.</p>'); return; }
     var r = window.VerifyPublic.html(kind, res.data);
     show(r.cls + ' vs-card', r.html);
   }
@@ -82,7 +82,12 @@
     var res = await supabaseClient.rpc('verify_stay_booking', { p_code: code });
     btn.disabled = false; btn.textContent = 'Verificar';
     if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>Inténtalo de nuevo en unos minutos.</p>'); return; }
-    if (!res.data || !res.data.found) { show('is-bad', '<h2>No encontramos esta reserva</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ninguna reserva hecha en bastet.uno. Revisa que esté bien escrito.</p>'); return; }
+    if (!res.data || !res.data.found) {
+      // Un código de 10 caracteres también puede ser el de una solicitud de contacto (conexión)
+      var cx = await supabaseClient.rpc('verify_connection_code', { p_code: code });
+      if (!cx.error && cx.data && cx.data.found) { var rc = window.VerifyPublic.html('connection', cx.data); show(rc.cls + ' vs-card', rc.html); return; }
+      show('is-bad', '<h2>No encontramos este código</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ninguna reserva ni solicitud de contacto hecha en bastet.uno. Revisa que esté bien escrito.</p>'); return;
+    }
     var r = window.VerifyStay.html(res.data);
     show(r.cls + ' vs-card', r.html);
   }
@@ -92,8 +97,9 @@
     if (/^BST-?[0-9]{3,6}$/.test(code)) return verifyPublic('property', 'verify_property_code', code);
     if (/^AG-[A-Z0-9]{6}$/.test(code)) return verifyPublic('agent', 'verify_agent_code', code);
     if (/^OP-[A-Z0-9]{8}$/.test(code)) return verifyPublic('cert', 'verify_operation_certificate', code);
+    if (/^BST-CX-[0-9]{4}-[0-9]{3,6}$/.test(code)) return verifyPublic('connection', 'verify_connection_code', code);
     if (/^[A-Z0-9]{10}$/.test(code)) return verifyStay(code);
-    if (!/^[A-Z0-9]{8}$/.test(code)) { show('is-bad', '<h2>Código inválido</h2><p>El código de un contrato tiene 8 letras y números; el de una reserva, 10. Revisa que esté bien escrito.</p>'); return; }
+    if (!/^[A-Z0-9]{8}$/.test(code)) { show('is-bad', '<h2>Código inválido</h2><p>El código de un contrato tiene 8 letras y números; el de una reserva o solicitud de contacto, 10. Revisa que esté bien escrito.</p>'); return; }
     btn.disabled = true; btn.textContent = 'Verificando…';
     var res = await supabaseClient.rpc('verify_exclusivity_contract', { p_code: code });
     btn.disabled = false; btn.textContent = 'Verificar';
@@ -126,7 +132,7 @@
 })();
 </script>
 <script src="assets/js/verify-stay.js?v=20261103a"></script>
-<script src="assets/js/verify-public.js?v=20261103f"></script>
+<script src="assets/js/verify-public.js?v=20261103i"></script>
 <script src="assets/js/qr-scan.js?v=20261027b"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* Verificar (verificar.html): consulta pública de una PROPIEDAD (BST-####), un AGENTE (AG-XXXXXX) o el CERTIFICADO de una operación (OP-XXXXXXXX).
  * Muestra el estado de verificación y datos mínimos; nunca nombres de particulares, montos, direcciones exactas ni datos del contrato.
- * Datos: RPC verify_property_code / verify_agent_code / verify_operation_certificate (supabase/verification.sql).
+ * Datos: RPC verify_property_code / verify_agent_code / verify_operation_certificate (supabase/verification.sql) y verify_connection_code (supabase/verify-connection.sql).
  * Expone window.VerifyPublic.html(tipo, datos) → { cls, html }. */
 (function () {
   'use strict';
@@ -24,6 +24,21 @@
         '<dl>' + row('Código', esc(d.code)) + row('Nombre público', esc(d.name)) + row('Distintivos', badges(d)) +
         row('Reseñas verificadas', d.review_count ? '★ ' + String(d.avg_rating).replace('.', ',') + ' · ' + d.review_count + (d.review_count === 1 ? ' reseña' : ' reseñas') : 'Todavía sin reseñas') +
         row('Operaciones verificadas', d.verified_operations ? String(d.verified_operations) : '0') + '</dl><p class="vp-note">Las reseñas solo las escriben personas que concretaron una operación mediante una conexión de Bastet.</p>' };
+    }
+    if (kind === 'connection') {
+      const S = {
+        solicitada: ['is-wait', 'Solicitud enviada', 'Tu solicitud llegó a Bastet y está esperando la respuesta de quien publica el inmueble.'],
+        rechazada: ['is-bad', 'Solicitud no atendida', 'Quien publica el inmueble no pudo atender esta solicitud. Puedes buscar otras propiedades en Bastet.'],
+        aceptada_pendiente_pago: ['is-wait', 'Solicitud aceptada', 'Quien publica el inmueble aceptó la conexión. Falta que Bastet verifique su pago para entregarles los contactos.'],
+        comprobante_enviado: ['is-wait', 'Pago en revisión', 'Quien publica el inmueble envió su comprobante de pago y Bastet lo está revisando. Después se entregan los contactos.'],
+        conexion_generada: ['is-ok', '✓ Conexión generada', 'Bastet verificó el pago y entregó los contactos. Esta conexión quedó registrada en Bastet.'],
+        cancelada: ['is-bad', 'Solicitud cancelada', 'Esta solicitud fue cancelada.']
+      }[d.status] || ['is-wait', 'Solicitud registrada', ''];
+      const dt = (s) => { const [yy, mm, dd] = String(s || '').split('-').map(Number); return yy ? esc(dd + ' de ' + MONTHS[mm - 1] + ' de ' + yy) : ''; };
+      return { cls: S[0], html: '<h2>' + S[1] + '</h2><p>' + S[2] + '</p><dl>' + row('Código de la solicitud', esc(d.code)) + row('Constancia de conexión', esc(d.number)) +
+        row('Operación', esc(OP[d.operation] || '')) + row('Propiedad', esc(d.property_code)) + row('Tipo', esc(TYPE[d.property_type] || '')) + row('Ciudad', esc(d.city)) +
+        row('Solicitada el', dt(d.requested_on)) + row('Aceptada el', dt(d.accepted_on)) + row('Contactos entregados el', dt(d.connected_on)) + '</dl>' +
+        '<p class="vp-note">Por privacidad, esta consulta no muestra nombres, teléfonos ni mensajes de las personas.</p>' };
     }
     const [y, m] = String(d.month || '').split('-').map(Number);
     return { cls: 'is-ok', html: '<h2>✓ Certificado de operación válido</h2><p>Bastet registró esta operación inmobiliaria.</p><dl>' + row('Código del certificado', esc(d.code)) + row('Operación', esc(OP[d.kind] || d.kind)) +
