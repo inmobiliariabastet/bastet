@@ -103,8 +103,6 @@
     html += row('Inmuebles en venta', of('venta'), 'marketplace.html?op=venta', X);
     html += row('En alquiler', of('alquiler'), 'marketplace.html?op=alquiler', X);
     html += row('En anticrético', of('anticretico'), 'marketplace.html?op=anticretico', X);
-    const hostImg = document.querySelector('.hm-host-photo img'), stayPhoto = stays.slice().reverse().map((p) => p.photos && p.photos[0]).find((u) => u && !/familia|hero/i.test(u));
-    if (hostImg && stayPhoto) hostImg.src = stayPhoto;
     host.innerHTML = html || '<p class="hm-loading">Pronto verás aquí inmuebles y estadías. <a href="marketplace.html">Explorar propiedades</a></p>';
   }
   window.HomeFeed = { render };
