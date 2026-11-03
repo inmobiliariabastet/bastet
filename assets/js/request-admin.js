@@ -7,7 +7,7 @@
   if (!panel) return;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const OPS = { venta: 'Compra', alquiler: 'Alquiler', anticretico: 'Anticrético', temporal: 'Estadía temporal' };
-  const TYPES = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', oficina: 'Oficina', local: 'Local comercial', otro: 'Otro' };
+  const TYPES = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno', oficina: 'Oficina', local: 'Local comercial', otro: 'Otro' };
   const ST = { active: 'Activa', in_progress: 'En proceso', finished: 'Finalizada' };
   const fdate = (d) => new Date(d).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
   const n = (v) => Number(v).toLocaleString('es-BO');

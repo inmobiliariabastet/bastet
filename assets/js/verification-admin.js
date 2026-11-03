@@ -67,13 +67,13 @@
 
   function mePanel() {
     const m = data.me || {};
-    const props = (typeof properties !== 'undefined' ? properties : []).filter((p) => p.status === 'available' && !p.verified && p.owner_id === (currentSession && currentSession.user && currentSession.user.id));
+    const props = (typeof properties !== 'undefined' ? properties : []).filter((p) => p.status === 'available' && !p.verified && p.operation !== 'temporal' && p.owner_id === (currentSession && currentSession.user && currentSession.user.id));
     const chip = (ok, txt) => '<span class="bk-chip ' + (ok ? 'bk-ok' : 'bk-wait') + '">' + (ok ? '✓ ' : '') + esc(txt) + '</span>';
     return '<section class="bk-settings"><h2>Tus distintivos</h2><p class="bk-fine">Son independientes entre sí y no son lo mismo que la reputación. Solo Bastet los concede, tras revisar tus documentos.</p>' +
       '<p>' + chip(m.agent_verified, 'Agente verificado por Bastet') + ' ' + chip(m.owner_verified, 'Propietario verificado') + (m.public_code ? ' <span class="bk-code">Tu código público: <b>' + esc(m.public_code) + '</b> (se consulta en «Verificar»)</span>' : '') + '</p>' +
       '<div class="bk-actions"><button class="btn btn-ghost btn-sm" data-act="new" data-kind="agente"' + (m.agent_verified ? ' disabled' : '') + '>Solicitar verificación de agente</button>' +
       '<button class="btn btn-ghost btn-sm" data-act="new" data-kind="propietario"' + (m.owner_verified ? ' disabled' : '') + '>Solicitar verificación de propietario</button></div>' +
-      '<div class="bk-actions"><select id="vf-prop"><option value="">Elige una propiedad…</option>' + props.map((p) => '<option value="' + esc(p.id) + '">' + esc(p.title) + '</option>').join('') + '</select><button class="btn btn-ghost btn-sm" data-act="new" data-kind="propiedad">Verificar esta propiedad</button></div></section>';
+      '<div class="bk-actions"><select id="vf-prop"><option value="">Elige una propiedad…</option>' + props.map((p) => '<option value="' + esc(p.id) + '">' + esc(p.title) + '</option>').join('') + '</select><button class="btn btn-ghost btn-sm" data-act="new" data-kind="propiedad">Verificar esta propiedad</button></div><p class="bk-fine">Las estadías temporales no necesitan verificación de propiedad ni documentos de propiedad: no aparecen en esta lista.</p></section>';
   }
 
   function adminSettings() {

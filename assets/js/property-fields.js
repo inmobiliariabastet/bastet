@@ -2,7 +2,7 @@
 // código de referencia, tipo, operación y características (plantas, garaje, baulera,
 // mascotas, niños). Columnas en supabase/schema.sql (tabla properties).
 
-const PROPERTY_TYPE_LABELS = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno' };
+const PROPERTY_TYPE_LABELS = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };
 const PROPERTY_OPERATION_LABELS = { venta: 'Venta', alquiler: 'Alquiler', anticretico: 'Anticrético', temporal: 'Temporal' };
 
 // Código visible de la propiedad: "BST-1001". code_number lo asigna la base de datos.

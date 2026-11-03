@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const TYPE = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno' };
+  const TYPE = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };
   const OP = { venta: 'Venta', alquiler: 'Alquiler', anticretico: 'Anticrético', temporal: 'Estadía temporal', desistimiento: 'Retiro' };
   const STATE = { available: 'Disponible', sold: 'Ya no está disponible (vendida, alquilada o anticretada)', withdrawn: 'Retirada por su titular' };
   const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];

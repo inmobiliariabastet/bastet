@@ -344,7 +344,7 @@
     const lines = [
       'Hola Bastet, acabo de enviar mi solicitud para vender mi inmueble desde la web.',
       'Propietario: ' + p.owner_name,
-      'Inmueble: ' + ({ casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', otro: 'Otro' }[p.property_type]) + ' en ' + p.city + (p.zone ? ' (' + p.zone + ')' : ''),
+      'Inmueble: ' + ({ casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno', otro: 'Otro' }[p.property_type]) + ' en ' + p.city + (p.zone ? ' (' + p.zone + ')' : ''),
       'Operación: ' + ({ venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' }[p.operation] || p.operation),
       'Ubicación: https://www.google.com/maps?q=' + p.latitude + ',' + p.longitude,
       p.documents.some((d) => d.type === 'foto') ? 'Fotos: ' + p.documents.filter((d) => d.type === 'foto').length + ' enviadas' : 'Fotos: las enviaré por aquí',

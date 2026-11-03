@@ -11,7 +11,7 @@
     { key: 'closed', label: 'Cerradas' },
     { key: 'discarded', label: 'Descartadas' },
   ];
-  const TYPES = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno', otro: 'Otro' };
+  const TYPES = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno', otro: 'Otro' };
   const OPS = { venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' };
   const ROLES = { propietario: 'Propietario', copropietario: 'Copropietario', apoderado: 'Apoderado', heredero: 'Heredero' };
   const DOCS = { en_regla: 'Documentos en regla', por_regularizar: 'Falta regularizar', sin_documentos: 'Sin documentos' };

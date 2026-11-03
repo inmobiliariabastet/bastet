@@ -660,8 +660,8 @@ propertyForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Propiedad nueva: hace falta un plan vigente y cupo (la base de datos lo exige igual; aquí se avisa antes de guardar)
-  if (isNewProperty && window.UnoPublications && !(await window.UnoPublications.confirmPublish(payload.title))) return;
+  // Propiedad nueva: debe aceptar el contrato marco (la base de datos lo exige igual). Las estadías temporales no lo necesitan: no son venta ni tienen comisión de operación.
+  if (isNewProperty && payload.operation !== 'temporal' && window.UnoPublications && !(await window.UnoPublications.confirmPublish(payload.title))) return;
 
   const submitBtn = document.getElementById('property-form-submit');
   submitBtn.disabled = true;

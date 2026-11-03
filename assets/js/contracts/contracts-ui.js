@@ -33,7 +33,7 @@
 
   const OPS = [['venta', 'Venta'], ['alquiler', 'Alquiler'], ['anticretico', 'Anticrético']];
   const CIVIL = ['soltero(a)', 'casado(a)', 'divorciado(a)', 'viudo(a)', 'en unión libre'];
-  const PROP_TYPES = ['Casa', 'Departamento', 'Terreno', 'Oficina', 'Local comercial', 'Galpón', 'Otro'];
+  const PROP_TYPES = ['Casa', 'Departamento', 'Habitación', 'Terreno', 'Oficina', 'Local comercial', 'Galpón', 'Otro'];
   const DEPARTMENTS = ['La Paz', 'Santa Cruz', 'Cochabamba', 'Oruro', 'Potosí', 'Chuquisaca', 'Tarija', 'Beni', 'Pando'];
   const PLAZOS = [60, 90, 120, 180];
   const STEPS = ['Operación', 'Propietario', 'Inmueble', 'Condiciones'];

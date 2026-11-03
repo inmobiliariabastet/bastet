@@ -264,7 +264,7 @@ let cityFilter = 'Todas';
 let favOnly = false;      // solo guardadas (corazón)
 let viewMode = 'list';    // 'list' | 'map' (solo en marketplace)
 let operationFilter = ''; // '' (inicio: destacadas) | 'venta' | 'alquiler' | 'anticretico' | 'temporal'
-let typeFilter = ''; // '' | 'casa' | 'departamento' | 'terreno'
+let typeFilter = ''; // '' | 'casa' | 'departamento' | 'habitacion' | 'terreno'
 let roomsFilter = ''; // '' = cualquiera; '3' = 3 o más habitaciones
 const roomsSelectEl = document.getElementById('rooms-filter-select');
 const ROOMS_MIN_OPTIONS = [1, 2, 3, 4, 5];

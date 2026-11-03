@@ -15,7 +15,7 @@
     { v: 'anticretico', t: 'Anticrético', d: 'Quiero una propiedad en anticrético', label: 'Anticrético' },
     { v: 'temporal', t: 'Estadías temporales', d: 'Quiero una estadía por noches o días', label: 'Estadía temporal' },
   ];
-  const TYPES = [['casa', 'Casa'], ['departamento', 'Departamento'], ['terreno', 'Terreno'], ['oficina', 'Oficina'], ['local', 'Local comercial'], ['otro', 'Otro']];
+  const TYPES = [['casa', 'Casa'], ['departamento', 'Departamento'], ['habitacion', 'Habitación'], ['terreno', 'Terreno'], ['oficina', 'Oficina'], ['local', 'Local comercial'], ['otro', 'Otro']];
   const TYPE_LABEL = Object.fromEntries(TYPES);
   const COMFORTS = ['Jardín', 'Piscina', 'Balcón', 'Terraza', 'Ascensor', 'Aire acondicionado', 'Amoblado', 'Seguridad', 'Parrilla', 'Garaje'];
   const NEARBY = ['Colegios', 'Supermercados', 'Centros comerciales', 'Transporte', 'Parques', 'Hospitales'];
@@ -177,7 +177,7 @@
   function afinesUrl(s) {
     const q = new URLSearchParams();
     if (s.operation === 'temporal') return 'estadias.html' + (s.city ? '?ciudad=' + encodeURIComponent(s.city) : '');
-    q.set('op', s.operation); if (['casa', 'departamento', 'terreno'].includes(s.property_type)) q.set('tipo', s.property_type); if (s.city) q.set('ciudad', s.city);
+    q.set('op', s.operation); if (['casa', 'departamento', 'habitacion', 'terreno'].includes(s.property_type)) q.set('tipo', s.property_type); if (s.city) q.set('ciudad', s.city);
     return 'marketplace.html?' + q.toString();
   }
   let lastSent = null;

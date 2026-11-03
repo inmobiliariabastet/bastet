@@ -125,7 +125,7 @@
      `offer` = fila de owner_offers (property_data, owner_data, agent_data, terms, doc_number, created_at, responded_at, status).
      El documento sale siempre de esta copia: no cambia si después se edita la propiedad. */
   const OFFER_OPERATION_TEXT = { venta: 'la venta', alquiler: 'el alquiler', anticretico: 'el anticrético', temporal: 'el alquiler temporal (por día)' };
-  const PROPERTY_TYPE_TEXT = { casa: 'Casa', departamento: 'Departamento', terreno: 'Terreno' };
+  const PROPERTY_TYPE_TEXT = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };
   const withUnit = (v, unit) => { const t = str(v); return /^\d+([.,]\d+)?$/.test(t) ? t + ' ' + unit : t; };
 
   function buildCollaborationContext(offer) {

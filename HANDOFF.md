@@ -19,6 +19,11 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | ✅ código + SQL + pruebas (falta correr `investigations.sql` y la revisión jurídica) |
 | — | Historias/estados temporales: **NO se hacen** | decidido |
 
+### 🆕 2026-11-03 · Tipo «Habitación» y estadías sin trámites de venta (falta correr `supabase/room-type.sql`)
+- `supabase/room-type.sql` (idempotente, ya en `schema.sql`, prueba `tests/room_type_sql_test.py`): admite `habitacion` en propiedades, solicitudes de venta y búsquedas; las estadías temporales **no exigen contrato marco** para publicar y **no admiten verificación de propiedad** (sin documentos de propiedad).
+- Front: «Habitación» en los formularios (panel, vender, buscar inmueble, contratos) y filtros (inicio, marketplace, estadías); la lista «Verificar esta propiedad» ya no incluye estadías temporales. Mientras no se corra el SQL, el sitio funciona pero publicar una habitación falla por la restricción antigua.
+- El contrato marco no cubre estadías (habla de conexiones y comisiones de venta/alquiler/anticrético): si se quiere un acuerdo para anfitriones, redactarlo aparte con el abogado.
+
 ### ⚠️ LO ÚNICO QUE FALTA PARA ACTIVAR LAS FASES 2 B, 3, 4 Y 5
 1. **Correr `supabase/run-pending.sql`** (un solo archivo con `connections.sql`, `security-hardening.sql`, `operations.sql`, `verification.sql` e `investigations.sql`, en orden; idempotente; probado dos veces sobre el estado real de producción con `python tests/pending_sql_test.py`). Mientras no se corra, el sitio funciona igual (las pantallas nuevas se ocultan o caen a su comportamiento anterior) pero **los teléfonos siguen siendo legibles desde la API pública**: el blindaje (B2) rige solo después de correrlo.
 2. Después, todo está APAGADO: se enciende en el panel (`/admin`): Conexiones (instrucciones de pago + texto del contrato marco + matriz de tarifas + interruptor), Operaciones (texto de la declaración jurada de desistimiento), Verificación (interruptor «exigir verificación»), Investigaciones (sin interruptor: solo admin).
