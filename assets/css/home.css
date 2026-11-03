@@ -179,3 +179,8 @@ body.home2 .hm-sell h2 { margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 40px); 
 
 body.home2 .hm-partners .partner-host { border: 0; background: none; padding: 0; cursor: pointer; display: flex; align-items: center; flex-shrink: 0; }
 body.home2 .hm-partners .partner-host img { filter: none; opacity: 1; }
+
+/* Tarjeta «¿No encuentras lo que buscas?»: aire arriba y, sobre todo, abajo antes del pie de página */
+body.home2 .rq-cta { margin-top: clamp(24px, 4vw, 48px); margin-bottom: clamp(56px, 8vw, 104px); }
+body.home2 .rq-cta .cta-button { background: var(--br-yellow); border-color: var(--br-yellow); color: var(--br-ink); }
+body.home2 .rq-cta .cta-button:hover { background: #f6cd6a; border-color: #f6cd6a; }
