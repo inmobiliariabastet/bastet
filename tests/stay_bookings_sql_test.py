@@ -79,7 +79,7 @@ chk("no se puede reservar con el interruptor apagado", book(pU, D(10), D(13)), T
 chk("anónimo no lee las reservas", as_(None, "select * from stay_bookings"), True)
 chk("un anfitrión no cambia las reglas", as_(host, "select admin_update_stay_settings(true, 6.96, 'Cuenta 123456789', null)"), True)
 chk("el admin no activa sin instrucciones de pago", as_(adm, "select admin_update_stay_settings(true, 6.96, '', null)"), True)
-chk("el admin activa con instrucciones", as_(adm, "select admin_update_stay_settings(true, 7.00, 'Banco X cuenta 123456789 a nombre de Bastet', 'http://x/qr.png')"), False)
+chk("el admin activa con instrucciones", as_(adm, "select admin_update_stay_settings(true, 7.00, 'Banco X cuenta 123456789 a nombre de Bastet', 'http://x/qr.png', 12)"), False)
 eq("interruptor encendido", as_(None, "select stay_booking_enabled()")[1][0][0], True)
 
 # --- solicitud y validaciones
@@ -147,6 +147,21 @@ eq("el anfitrión ya ve el contacto del huésped", b1['guest_phone'], '+59176543
 chk("el admin lee el historial", as_(adm, "select stay_booking_events(%s)", (bid(c1),)), False)
 chk("el anfitrión no lee el historial", as_(host, "select stay_booking_events(%s)", (bid(c1),)), True)
 eq("la auditoría registró el recorrido", one("select count(*) from stay_booking_events where booking_id=%s", (bid(c1),)) == 6, True)
+
+# --- plazo de pago (12 h)
+cp = code_of(book(pU, D(400), D(402), phone='+591 70000020'))
+as_(host, "select host_respond_stay_booking(%s, true)", (bid(cp),))
+pb = as_(None, "select get_stay_booking(%s)->>'pay_by'", (cp,))[1][0][0]
+eq("el huésped ve hasta cuándo puede pagar (12 h)", one("select (%s::timestamptz - accepted_at) = interval '12 hours' from stay_bookings where code=%s", (pb, cp)), True)
+adm_row = [x for x in as_(adm, "select my_stay_bookings()")[1][0][0] if x['code'] == cp][0]
+eq("el admin recibe el WhatsApp del anfitrión para avisarle", adm_row['host_whatsapp'], '71234567')
+eq("el anfitrión no recibe ese dato extra", [x for x in as_(host, "select my_stay_bookings()")[1][0][0] if x['code'] == cp][0]['host_whatsapp'], None)
+su("update stay_bookings set accepted_at = now() - interval '13 hours' where code=%s", (cp,))
+eq("sin pagar en 12 h la reserva expira y libera las fechas", as_(None, "select get_stay_booking(%s)->>'status'", (cp,))[1][0][0], 'expirada')
+chk("las fechas vuelven a quedar libres", book(pU, D(400), D(402), phone='+591 70000021'), False)
+chk("el plazo de pago debe ser válido", as_(adm, "select admin_update_stay_settings(true, 7, 'Banco X cuenta 123456789', null, 0)"), True)
+chk("el plazo puede quedar vacío (sin plazo)", as_(adm, "select admin_update_stay_settings(true, 7, 'Banco X cuenta 123456789', null, null)"), False)
+chk("se vuelve a dejar en 12 h", as_(adm, "select admin_update_stay_settings(true, 7, 'Banco X cuenta 123456789', 'http://x/qr.png', 12)"), False)
 
 # --- cancelación del huésped
 c4 = verified(pU, D(100), D(103), '+591 70000010')

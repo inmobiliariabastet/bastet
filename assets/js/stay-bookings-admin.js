@@ -37,7 +37,7 @@
   }
   function badge() {
     const el = document.getElementById('bookings-count'); if (!el) return;
-    const n = list.filter((b) => b.status === 'pendiente_respuesta_anfitrion' && !isAdmin()).length + (isAdmin() ? list.filter((b) => ['comprobante_enviado', 'pago_en_revision'].includes(b.status)).length : 0);
+    const n = list.filter((b) => b.status === 'pendiente_respuesta_anfitrion' || (isAdmin() && ['comprobante_enviado', 'pago_en_revision'].includes(b.status))).length;
     el.textContent = n; el.classList.toggle('hidden', !n);
   }
 
@@ -52,6 +52,7 @@
     if (b.guest_phone) h += '<p class="bk-contact">Huésped: <a target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=' + esc(waPhone(b.guest_phone)) + '">' + esc(b.guest_phone) + '</a>' + (b.guest_email ? ' · ' + esc(b.guest_email) : '') + '</p>';
     else if (b.status !== 'rechazada' && b.status !== 'expirada') h += '<p class="bk-fine">El contacto del huésped se muestra cuando Bastet verifica su pago.</p>';
     if (b.status === 'pendiente_respuesta_anfitrion') h += '<p class="bk-fine">Responde antes del <b>' + ftime(b.respond_by) + '</b> o la solicitud vence.</p><div class="bk-actions"><button class="btn btn-primary btn-sm" data-act="accept">Aceptar</button><button class="btn btn-ghost btn-sm" data-act="reject">Rechazar</button></div>';
+    if (b.status === 'aceptada_pendiente_pago' && b.pay_by) h += '<p class="bk-fine">El huésped tiene hasta el <b>' + ftime(b.pay_by) + '</b> para pagar; si no, la reserva vence y las fechas se liberan.</p>';
     if (adm && ['comprobante_enviado', 'pago_en_revision'].includes(b.status)) h += '<div class="bk-actions"><button class="btn btn-ghost btn-sm" data-act="proof">Ver comprobante</button><button class="btn btn-primary btn-sm" data-act="verify">Verificar pago y revelar contacto</button><button class="btn btn-ghost btn-sm" data-act="deny">Rechazar comprobante</button></div>';
     if (b.review_note && b.status === 'aceptada_pendiente_pago') h += '<p class="bk-fine">Último rechazo: ' + esc(b.review_note) + '</p>';
     if (b.status === 'cancelada') {
@@ -66,6 +67,7 @@
     if (['conexion_generada', 'en_disputa'].includes(b.status) || (b.status === 'cancelada' && b.verified_at)) acts.push('<button class="btn btn-ghost btn-sm" data-act="declare">' + (b.needs_direct_declaration ? '⚠ Declarar si recibiste el saldo' : 'Declarar saldo recibido') + '</button>');
     if (['aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'conexion_generada'].includes(b.status)) acts.push('<button class="btn btn-ghost btn-sm" data-act="hostcancel">Cancelar reserva</button>');
     if (adm) {
+      if (b.status === 'pendiente_respuesta_anfitrion' && b.host_whatsapp) acts.push('<button class="btn btn-primary btn-sm" data-act="notify">Avisar al anfitrión por WhatsApp</button>');
       if (b.direct_proof_path) acts.push('<button class="btn btn-ghost btn-sm" data-act="directproof">Ver constancia del saldo</button>');
       if (b.direct_status) acts.push('<button class="btn btn-ghost btn-sm" data-act="directreview">Revisar saldo declarado</button>');
       if (['conexion_generada', 'cancelada'].includes(b.status)) acts.push('<button class="btn btn-ghost btn-sm" data-act="dispute">Abrir disputa</button>');
@@ -82,9 +84,10 @@
       '<label class="bk-check"><input type="checkbox" id="bk-enabled"' + (settings.enabled ? ' checked' : '') + '> Reservas con pago del 10 % activas en Estadías <small>(apagado: el sitio sigue consultando por WhatsApp)</small></label>' +
       '<label>Tipo de cambio interno de Bastet (Bs por USD)<input id="bk-rate" type="number" step="0.0001" min="0.01" value="' + esc(settings.bob_per_usd) + '"></label>' +
       '<label>Instrucciones de pago (cuenta bancaria, titular, referencia)<textarea id="bk-instr" rows="4" maxlength="1500">' + esc(settings.pay_instructions) + '</textarea></label>' +
+      '<label>Horas que tiene el huésped para pagar tras la aceptación <small>(vacío = sin plazo)</small><input id="bk-pw" type="number" min="1" max="720" step="1" value="' + esc(settings.pay_window_hours ?? '') + '"></label>' +
       '<label>Enlace de la imagen del QR de pago <small>(opcional)</small><input id="bk-qr" type="url" maxlength="400" value="' + esc(settings.pay_qr_url || '') + '"></label>' +
       '<p class="bk-fine">Fijos por la especificación: comisión ' + esc(String(settings.fee_percent).replace('.', ',')) + ' %, respuesta del anfitrión ' + esc(settings.response_hours) + ' h, cancelación gratuita hasta ' + esc(settings.free_cancel_hours) + ' h antes. ' +
-      'Plazo para pagar tras aceptar: ' + (settings.pay_window_hours ? esc(settings.pay_window_hours) + ' h' : '<b>sin plazo (pendiente de definir)</b>') + '.</p>' +
+      '</p>' +
       '<button class="btn btn-primary btn-sm" type="submit">Guardar reglas</button></form></section>';
   }
 
@@ -169,6 +172,10 @@
     switch (btn.dataset.act) {
       case 'accept': return run(() => supabaseClient.rpc('host_respond_stay_booking', { p_booking: id, p_accept: true }), 'Aceptaste la solicitud: el huésped ya puede pagar a Bastet.');
       case 'reject': if (window.confirm('¿Rechazar esta solicitud?')) run(() => supabaseClient.rpc('host_respond_stay_booking', { p_booking: id, p_accept: false }), 'Solicitud rechazada'); return;
+      case 'notify': {
+        const msg = 'Hola' + (b.host_name ? ' ' + b.host_name.split(' ')[0] : '') + ', tienes una solicitud de reserva de ' + b.guest_name + ' para «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + ' (' + b.nights + ' noches). Responde antes del ' + ftime(b.respond_by) + ' en https://bastet.uno/admin/ (pestaña Reservas).';
+        window.open('https://api.whatsapp.com/send?phone=' + waPhone(b.host_whatsapp) + '&text=' + encodeURIComponent(msg), '_blank', 'noopener'); return;
+      }
       case 'proof': return signed(b.proof_path);
       case 'directproof': return signed(b.direct_proof_path);
       case 'verify': if (window.confirm('¿Confirmas que recibiste el pago de ' + bs(b.fee_bs) + '? Se revelará el contacto entre huésped y anfitrión.')) run(() => supabaseClient.rpc('admin_review_stay_proof', { p_booking: id, p_approve: true, p_note: null }), 'Pago verificado: contacto revelado'); return;
@@ -186,10 +193,19 @@
     if (e.target.id !== 'bk-settings-form') return;
     e.preventDefault();
     const { error } = await supabaseClient.rpc('admin_update_stay_settings', { p_enabled: document.getElementById('bk-enabled').checked, p_bob_per_usd: Number(document.getElementById('bk-rate').value),
-      p_pay_instructions: document.getElementById('bk-instr').value, p_pay_qr_url: document.getElementById('bk-qr').value });
+      p_pay_instructions: document.getElementById('bk-instr').value, p_pay_qr_url: document.getElementById('bk-qr').value,
+      p_pay_window_hours: document.getElementById('bk-pw').value === '' ? null : Number(document.getElementById('bk-pw').value) });
     if (error) { toast(error.message, true); return; }
     toast('Reglas guardadas'); load();
   });
+
+  // Mientras el panel está abierto, se actualiza solo (para ver solicitudes nuevas dentro de las 2 horas)
+  setInterval(async () => {
+    if (typeof supabaseClient === 'undefined' || document.hidden || busy || document.querySelector('.modal-overlay')) return;
+    const { error } = await fetchList();
+    const panel = document.getElementById('tab-panel-bookings');
+    if (!error && panel && !panel.classList.contains('hidden') && !document.querySelector('#bookings-root form :focus')) draw();
+  }, 60000);
 
   const tab = document.querySelector('.admin-tab[data-tab="bookings"]');
   if (tab) {

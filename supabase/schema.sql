@@ -3524,7 +3524,8 @@ notify pgrst, 'reload schema';
 -- INTERRUPTOR: stay_settings.enabled (apagado por defecto). Mientras esté apagado, Estadías sigue consultando por WhatsApp.
 --   Para encender:  update public.stay_settings set enabled = true where id = 1;
 -- Tarifa y reglas son editables en stay_settings (o desde el panel, pestaña Reservas). El tipo de cambio es el INTERNO de Bastet.
--- NO DEFINIDO en la especificación (no se inventó): plazo para que el huésped pague tras la aceptación → pay_window_hours (null = sin plazo).
+-- Plazo del huésped para pagar tras la aceptación: 12 horas (decisión de la dueña, 2026-11-03), editable en pay_window_hours.
+-- Aviso al anfitrión: contador y actualización automática en su panel + botón «Avisar por WhatsApp» para administración (my_stay_bookings devuelve host_whatsapp solo al admin).
 -- =====================================================================
 
 do $$
@@ -3539,12 +3540,13 @@ create table if not exists public.stay_settings (
   fee_percent         numeric(5,2) not null default 10 check (fee_percent between 0 and 50),   -- comisión de Bastet; en cancelación tardía el anfitrión retiene otro tanto
   response_hours      integer  not null default 2  check (response_hours between 1 and 72),
   free_cancel_hours   integer  not null default 72 check (free_cancel_hours between 0 and 720),
-  pay_window_hours    integer  check (pay_window_hours is null or pay_window_hours between 1 and 720),   -- TODO(negocio): sin definir
+  pay_window_hours    integer  default 12 check (pay_window_hours is null or pay_window_hours between 1 and 720),   -- horas que tiene el huésped para pagar tras la aceptación (null = sin plazo)
   bob_per_usd         numeric(8,4) not null default 6.96 check (bob_per_usd > 0),               -- tipo de cambio INTERNO de Bastet
   pay_instructions    text not null default '' check (char_length(pay_instructions) <= 1500),
   pay_qr_url          text check (pay_qr_url is null or char_length(pay_qr_url) <= 400),
   updated_at          timestamptz not null default now()
 );
+alter table public.stay_settings alter column pay_window_hours set default 12;
 insert into public.stay_settings (id) values (1) on conflict (id) do nothing;
 alter table public.stay_settings enable row level security;
 revoke all on public.stay_settings from anon, authenticated;
@@ -3740,7 +3742,7 @@ begin
   return jsonb_build_object('found', true, 'code', b.code, 'status', b.status, 'title', prop.title, 'location', prop.location, 'photo', prop.photo,
     'guest_name', b.guest_name, 'guests', b.guests, 'check_in', b.check_in, 'check_out', b.check_out, 'nights', b.nights, 'currency', b.currency,
     'total', b.total, 'fee_amount', b.fee_amount, 'fee_bs', b.fee_bs, 'balance', b.total - b.fee_amount, 'fee_percent', s.fee_percent,
-    'respond_by', b.respond_by, 'proof_sent', b.proof_path is not null, 'review_note', b.review_note,
+    'respond_by', b.respond_by, 'pay_by', case when b.status = 'aceptada_pendiente_pago' and s.pay_window_hours is not null then b.accepted_at + make_interval(hours => s.pay_window_hours) end, 'proof_sent', b.proof_path is not null, 'review_note', b.review_note,
     'pay_instructions', case when pay then s.pay_instructions end, 'pay_qr_url', case when pay then s.pay_qr_url end,
     'host_name', case when reveal then host_name end, 'host_whatsapp', case when reveal then coalesce(contact, prop.whatsapp) end,
     'free_cancel_until', arrival - make_interval(hours => s.free_cancel_hours),
@@ -3910,13 +3912,15 @@ begin
       'guest_phone', case when adm or b.status in ('conexion_generada', 'en_disputa') or b.verified_at is not null then b.guest_phone end,
       'guest_email', case when adm or b.status in ('conexion_generada', 'en_disputa') or b.verified_at is not null then b.guest_email end,
       'host_id', b.host_id, 'host_name', case when adm then (select display_name from public.profiles where id = b.host_id) end,
+      'host_whatsapp', case when adm then coalesce((select contact_whatsapp from public.profiles where id = b.host_id), p.whatsapp) end,
+      'accepted_at', b.accepted_at, 'pay_by', case when b.status = 'aceptada_pendiente_pago' and s.pay_window_hours is not null then b.accepted_at + make_interval(hours => s.pay_window_hours) end,
       'proof_path', case when adm then b.proof_path end, 'proof_at', b.proof_at, 'verified_at', b.verified_at, 'review_note', b.review_note,
       'cancelled_by', b.cancelled_by, 'cancel_reason', b.cancel_reason, 'late_cancel', b.late_cancel, 'bastet_refund_bs', b.bastet_refund_bs,
       'host_retention', b.host_retention, 'host_refund_due', b.host_refund_due, 'direct_status', b.direct_status, 'direct_amount', b.direct_amount,
       'direct_date', b.direct_date, 'direct_method', b.direct_method, 'direct_proof_path', b.direct_proof_path, 'direct_review', b.direct_review,
       'direct_review_note', b.direct_review_note, 'needs_direct_declaration', b.verified_at is not null and b.direct_status is null and b.status in ('cancelada', 'conexion_generada', 'en_disputa'))
       order by b.created_at desc)
-    from public.stay_bookings b join public.properties p on p.id = b.property_id
+    from public.stay_bookings b join public.properties p on p.id = b.property_id cross join public.stay_settings s
     where (adm or b.host_id = uid) and b.created_at > now() - interval '18 months'), '[]'::jsonb);
 end $$;
 
@@ -3936,25 +3940,27 @@ begin
   return (select to_jsonb(s) from public.stay_settings s where id = 1);
 end $$;
 
-create or replace function public.admin_update_stay_settings(p_enabled boolean, p_bob_per_usd numeric, p_pay_instructions text, p_pay_qr_url text)
+drop function if exists public.admin_update_stay_settings(boolean, numeric, text, text, integer);
+create or replace function public.admin_update_stay_settings(p_enabled boolean, p_bob_per_usd numeric, p_pay_instructions text, p_pay_qr_url text, p_pay_window_hours integer default 12)
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_admin() then raise exception 'Solo administradores' using errcode = '42501'; end if;
   if p_bob_per_usd is null or p_bob_per_usd <= 0 then raise exception 'El tipo de cambio debe ser mayor que cero'; end if;
+  if p_pay_window_hours is not null and p_pay_window_hours not between 1 and 720 then raise exception 'El plazo de pago debe ser de 1 a 720 horas (déjalo vacío para no poner plazo)'; end if;
   if p_enabled and char_length(btrim(coalesce(p_pay_instructions, ''))) < 10 then raise exception 'Antes de activar, escribe las instrucciones de pago (cuenta o QR)'; end if;
   update public.stay_settings set enabled = coalesce(p_enabled, false), bob_per_usd = p_bob_per_usd, pay_instructions = btrim(coalesce(p_pay_instructions, '')),
-         pay_qr_url = nullif(btrim(coalesce(p_pay_qr_url, '')), ''), updated_at = now() where id = 1;
+         pay_qr_url = nullif(btrim(coalesce(p_pay_qr_url, '')), ''), pay_window_hours = p_pay_window_hours, updated_at = now() where id = 1;
 end $$;
 
 revoke all on function public.create_stay_booking(uuid, date, date, integer, text, text, text), public.get_stay_booking(text), public.attach_stay_proof(text, text),
   public.cancel_stay_booking(text, text), public.host_respond_stay_booking(uuid, boolean), public.admin_review_stay_proof(uuid, boolean, text),
   public.host_cancel_stay_booking(uuid, text), public.host_declare_direct_payment(uuid, text, numeric, date, text, text), public.admin_review_direct_payment(uuid, text, text),
   public.admin_set_stay_dispute(uuid, boolean, text), public.my_stay_bookings(), public.stay_booking_events(uuid), public.get_stay_settings(),
-  public.admin_update_stay_settings(boolean, numeric, text, text) from public, anon;
+  public.admin_update_stay_settings(boolean, numeric, text, text, integer) from public, anon;
 grant execute on function public.create_stay_booking(uuid, date, date, integer, text, text, text), public.get_stay_booking(text), public.attach_stay_proof(text, text),
   public.cancel_stay_booking(text, text) to anon, authenticated;
 grant execute on function public.host_respond_stay_booking(uuid, boolean), public.admin_review_stay_proof(uuid, boolean, text), public.host_cancel_stay_booking(uuid, text),
   public.host_declare_direct_payment(uuid, text, numeric, date, text, text), public.admin_review_direct_payment(uuid, text, text), public.admin_set_stay_dispute(uuid, boolean, text),
-  public.my_stay_bookings(), public.stay_booking_events(uuid), public.get_stay_settings(), public.admin_update_stay_settings(boolean, numeric, text, text) to authenticated;
+  public.my_stay_bookings(), public.stay_booking_events(uuid), public.get_stay_settings(), public.admin_update_stay_settings(boolean, numeric, text, text, integer) to authenticated;
 
 notify pgrst, 'reload schema';

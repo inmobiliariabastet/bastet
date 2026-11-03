@@ -58,7 +58,7 @@
       '<h2>Solicitar reserva</h2><p class="srm-place"><b>' + esc(p.title) + '</b><br>' + esc(p.location || '') + '</p>' +
       '<ul class="sd-sum sd-sum--detail"><li><span>Fechas</span><b>' + fdate(sel.from) + ' – ' + fdate(sel.to) + '</b></li><li><span>Huéspedes</span><b>' + sel.guests + '</b></li>' +
         '<li><span>' + money(price, p.currency) + ' × ' + n + ' ' + plural(n, 'noche', 'noches') + '</span><b>' + money(total, p.currency) + '</b></li></ul>' +
-      '<div class="sbk-how"><b>Cómo funciona</b><ol><li>El anfitrión tiene <b>2 horas</b> para aceptar tu solicitud.</li><li>Si acepta, pagas a Bastet el <b>10 %</b> del total (QR o transferencia) y subes tu comprobante.</li>' +
+      '<div class="sbk-how"><b>Cómo funciona</b><ol><li>El anfitrión tiene <b>2 horas</b> para aceptar tu solicitud.</li><li>Si acepta, tienes un plazo (lo verás en tu reserva) para pagar a Bastet el <b>10 %</b> del total (QR o transferencia) y subir tu comprobante.</li>' +
         '<li>Cuando Bastet verifica el pago, te mostramos el WhatsApp del anfitrión.</li><li>El <b>90 %</b> restante lo coordinas directo con el anfitrión: Bastet no lo cobra ni lo garantiza.</li></ol></div>' +
       '<form id="sbk-form" novalidate>' +
         '<label class="srm-label" for="sbk-name">Tu nombre</label><input id="sbk-name" type="text" maxlength="60" autocomplete="name" required>' +
@@ -123,7 +123,7 @@
         case 'expirada':
           body += '<div class="sbk-state sbk-bad"><b>La solicitud venció</b><p>El anfitrión no respondió a tiempo o no se completó el pago. No se cobró nada.</p></div>'; break;
         case 'aceptada_pendiente_pago':
-          body += '<div class="sbk-state sbk-ok"><b>¡El anfitrión aceptó!</b><p>Para confirmar, paga el 10 % a Bastet y sube tu comprobante.</p></div>' + moneyBox(b) + payBox(b) + cancelBtn; break;
+          body += '<div class="sbk-state sbk-ok"><b>¡El anfitrión aceptó!</b><p>Para confirmar, paga el 10 % a Bastet y sube tu comprobante' + (b.pay_by ? ' <b>antes del ' + ftime(b.pay_by) + '</b>; si no, la reserva vence' : '') + '.</p></div>' + moneyBox(b) + payBox(b) + cancelBtn; break;
         case 'comprobante_enviado': case 'pago_en_revision':
           body += '<div class="sbk-state sbk-wait"><b>Estamos verificando tu pago</b><p>Cuando Bastet lo confirme te mostramos aquí el WhatsApp del anfitrión. Esta página se actualiza sola.</p></div>' + moneyBox(b) + cancelBtn; break;
         case 'conexion_generada': case 'pago_verificado':
