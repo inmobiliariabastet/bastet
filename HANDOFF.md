@@ -700,3 +700,5 @@ Después de cada commit + push a `main`:
 3. **Correos:** si siguen cayendo en spam, endurecer DMARC (`p=quarantine`) en el DNS de Hostinger.
 4. **Ideas pendientes ofrecidas a la dueña:** agrupar los filtros en un panel "Más filtros" si la sección se siente cargada; tagline del Brand Book ("Propiedades que se cuidan como se cuida un hogar") en el landing; filtros de fecha / exportar CSV en Analítica.
 5. **Estado "vendida" y alquileres:** el valor `status = 'sold'` se muestra como Vendida/Alquilada/En anticrético según la operación; si hace falta distinguir "reservada" u otros estados, habría que ampliar el `check` de `status`.
+
+- 2026-11-04: «Mi cuenta» muestra el tipo de cuenta (cliente/propietario/agente/empresa/administrador) en una tarjeta y en la etiqueta del menú lateral (assets/js/account-type.js). Pendiente de confirmar: prueba real del formulario de estadía temporal tras correr sell-temporal.sql.

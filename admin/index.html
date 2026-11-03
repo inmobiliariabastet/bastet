@@ -13,7 +13,7 @@
 <link rel="preload" href="../assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261103j">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261104a">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261018e">
 <link rel="stylesheet" href="../assets/css/subscription.css?v=20261027a">   <!-- hoy solo aporta los estilos del formulario de registro (.ob-*) -->
 <link rel="stylesheet" href="../assets/css/owner-services.css?v=20261022a">
@@ -304,6 +304,12 @@
           <h1>Mi cuenta</h1>
           <p class="admin-toolbar-hint">Tu perfil público (se muestra en tus tarjetas del carrusel de propiedades) y tu contraseña de acceso.</p>
         </div>
+      </div>
+
+      <div id="account-type-card" class="account-type-card hidden" role="status">
+        <span class="account-type-label">Tipo de cuenta</span>
+        <b class="account-type-name" data-at-name></b>
+        <span class="account-type-desc" data-at-desc></span>
       </div>
 
       <form id="profile-form" class="invite-admin-card">
@@ -615,7 +621,8 @@
 <script src="../assets/js/connections-admin.js?v=20261103a"></script>
 <script src="../assets/js/operations-admin.js?v=20261103e"></script>
 <script src="../assets/js/verification-admin.js?v=20261103f"></script>
-<script src="../assets/js/account-delete.js?v=20261103h"></script>
+<script src="../assets/js/account-type.js?v=20261104a"></script>
+  <script src="../assets/js/account-delete.js?v=20261103h"></script>
 <script src="../assets/js/client-dashboard.js?v=20261103j"></script>
 <script src="../assets/js/investigations-admin.js?v=20261103a"></script>
 <script src="../assets/js/admin.js?v=20261104a"></script>

@@ -701,3 +701,10 @@ a.btn { text-decoration: none; }
   .cl-nudge, .cl-row { flex-direction: column; align-items: stretch; }
   .cl-row-side { justify-content: flex-start; }
 }
+
+/* Tipo de cuenta (Mi cuenta) */
+.account-type-card{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;max-width:520px;margin:0 0 18px;padding:14px 18px;border:1px solid #cfdcc9;border-radius:14px;background:#eef4ea}
+.account-type-card.hidden{display:none}
+.account-type-label{font-size:.78rem;color:#5b6b57}
+.account-type-name{padding:3px 12px;border-radius:999px;background:#3D4C3A;color:#fff;font-size:.9rem;font-weight:600}
+.account-type-desc{flex-basis:100%;font-size:.88rem;color:#3b4a38}
