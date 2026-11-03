@@ -706,3 +706,5 @@ Después de cada commit + push a `main`:
 - 2026-11-04: supabase/host-contact.sql — el huésped (get_stay_booking, verify_stay_booking) y el admin ven el WhatsApp del dueño de la publicación al confirmarse el pago del 10 %; antes salía vacío si la propiedad no tenía WhatsApp de agente. La tarjeta de la reserva muestra también el número. Test: tests/host_contact_sql_test.py. SQL pendiente de correr por la dueña.
 
 - 2026-11-04 (confirmado por la dueña): sell-temporal.sql y host-contact.sql corridos; prueba real del formulario de estadía temporal y del WhatsApp del anfitrión tras verificar el pago: funcionan. Sin SQL pendiente de correr.
+
+- 2026-11-04: supabase/partners-host.sql (reemplaza las 7 filas «anuncie aquí» de Marcas por una sola «Hospeda a tu gente con nosotros»; main.js ya la muestra como tarjeta de anfitrión). PDF para el abogado regenerado. SQL pendiente de correr por la dueña.
