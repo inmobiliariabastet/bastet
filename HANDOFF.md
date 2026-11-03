@@ -15,7 +15,7 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 | 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped: gratis 4 h tras verificar el pago, después 20 %; anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
 | 2 | **Paso A ✅ (suscripción retirada); paso B ✅ (código + SQL + pruebas; falta correr el SQL y activar; B2 = blindaje de contacto pendiente).** Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
 | 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | ✅ código + SQL + pruebas (falta correr `operations.sql`) |
-| 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | pendiente |
+| 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | ✅ código + SQL + pruebas (falta correr `verification.sql`) |
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | pendiente |
 | — | Historias/estados temporales: **NO se hacen** | decidido |
 
@@ -141,6 +141,16 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+### 2026-11-03 · Fase 4: verificación, reputación, actas y certificado público
+Implementa las secciones 5, 7 y 9.5 de `docs/ESPECIFICACION_MAESTRA.md`.
+- **SQL:** `supabase/verification.sql` (al final de `schema.sql`; idempotente; después de `operations.sql`). Columnas `properties.verified`, `profiles.agent_verified` / `owner_verified` / `public_code` (públicas, **nadie se las concede solo**: triggers); tablas `verification_requests`, `verification_events`, `profile_reviews`; bucket privado `verification-docs`. Ajuste `connection_settings.require_property_verification` (apagado): con él, una propiedad sin verificar se publica pero **no recibe solicitudes de contacto** (trigger sobre `connections`); `verification_required()` lo informa al sitio.
+- **Tres distintivos independientes** (no son reputación): agente (identidad, teléfono, documentación profesional, contrato directo con Bastet), propietario (identidad y documentación), propiedad (identidad del propietario, documentación legal, existencia física). El admin solo aprueba con **todas** las comprobaciones marcadas; rechazar y revocar exigen motivo; historial completo. Una propiedad verificada **pierde** la verificación si cambian su dirección, su ubicación o su dueño. Al aprobar un agente se le asigna un código público `AG-XXXXXX`.
+- **Reseñas:** solo la persona que confirmó una operación concretada con una conexión de Bastet (el mismo enlace de `confirmar.html`, después de confirmar), una por operación, con estrellas y comentario; el reseñado responde y el admin oculta. Aparecen en el perfil del agente con promedio, cantidad y operaciones verificadas.
+- **Certificado y acta:** cada operación confirmada tiene un código `OP-XXXXXXXX` consultable en «Verificar» (sin nombres, montos ni datos del contrato) y un **acta digital** imprimible para el titular y administración (partes, aceptaciones registradas, conexión, comisión). **La firma, la validez probatoria del acta y los datos que puede divulgar el certificado requieren revisión jurídica en Bolivia.**
+- **Verificar** (`verificar.html`) ahora acepta además `BST-####` (propiedad), `AG-XXXXXX` (agente) y `OP-XXXXXXXX` (certificado); límite de 30 consultas por minuto por IP.
+- **Pantalla:** pestaña **Verificación** (`assets/js/verification-admin.js`: solicitar, subir documentos, revisión del admin con lista de comprobaciones, reseñas recibidas, interruptor «exigir verificación»), distintivos y estado en la ficha y en el perfil del agente (`main.js`, `agent-profile.js`), `verify-public.js`, reseña en `confirmar.html`, «Ver acta» en Operaciones. Si el SQL aún no se corrió, el sitio y el panel siguen funcionando sin los distintivos (reintentos sin las columnas nuevas).
+- **Pruebas:** `python tests/verification_sql_test.py` (0 fallas). **Límites:** las Estadías no exigen verificación de propiedad ni del anfitrión; la reputación no cubre Estadías (ya tienen sus reseñas por enlace); los distintivos no aparecen aún en las tarjetas del listado, solo en la ficha y el perfil.
 
 ### 2026-11-03 · Fase 3: comisiones y cierre de operaciones (apagado con el interruptor de conexiones)
 Implementa 1.3 y 1.5 de `docs/ESPECIFICACION_MAESTRA.md`.

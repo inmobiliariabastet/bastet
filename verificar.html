@@ -14,7 +14,7 @@
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014a">
-<link rel="stylesheet" href="assets/css/legal.css?v=20261103a">
+<link rel="stylesheet" href="assets/css/legal.css?v=20261103b">
 <link rel="stylesheet" href="assets/css/responsive-guard.css?v=20261027c">
 <link rel="stylesheet" href="assets/css/a11y.css?v=20261030c">
 </head>
@@ -31,13 +31,13 @@
 
 <main class="legal-main">
   <p class="legal-eyebrow">Verificación</p>
-  <h1>Verificar un contrato o una reserva</h1>
-  <p class="legal-lead">Cada contrato generado en bastet.uno lleva un código de verificación de 8 caracteres (también en el código QR al pie de cada página). Cada reserva de Estadías tiene un código de 10 caracteres. Escríbelo aquí para comprobar que existe.</p>
+  <h1>Verificar contratos, reservas, propiedades y agentes</h1>
+  <p class="legal-lead">Cada contrato generado en bastet.uno lleva un código de verificación de 8 caracteres (también en el código QR al pie de cada página). Cada reserva de Estadías tiene un código de 10 caracteres. Una propiedad se consulta con su código (BST-1004), un agente con su código público (AG-XXXXXX) y la operación de un certificado con su código (OP-XXXXXXXX).</p>
 
   <form class="verify-form" id="verify-form" autocomplete="off">
     <label for="verify-code">Código de verificación</label>
     <div class="verify-row">
-      <input id="verify-code" name="code" type="text" inputmode="text" maxlength="10" minlength="8" required placeholder="K7M2QX9A" autocapitalize="characters" spellcheck="false">
+      <input id="verify-code" name="code" type="text" inputmode="text" maxlength="12" minlength="7" required placeholder="K7M2QX9A · BST-1004 · AG-XXXXXX" autocapitalize="characters" spellcheck="false">
       <button type="submit" class="verify-btn" id="verify-submit">Verificar</button>
     </div>
     <button type="button" class="scan-btn" id="scan-btn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Escanear el código QR con la cámara</button>
@@ -45,7 +45,7 @@
 
   <div class="verify-card hidden" id="verify-result" role="status" aria-live="polite"></div>
 
-  <p class="legal-updated">Por privacidad, de un contrato esta página solo confirma que existe: no muestra datos del propietario ni del inmueble. El detalle de una reserva lo ve quien tiene su código, y nunca incluye el teléfono ni el correo del huésped.</p>
+  <p class="legal-updated">Por privacidad, de un contrato esta página solo confirma que existe: no muestra datos del propietario ni del inmueble. El detalle de una reserva lo ve quien tiene su código, y nunca incluye el teléfono ni el correo del huésped. Las propiedades, los agentes y los certificados muestran solo el estado de verificación y datos mínimos.</p>
 </main>
 
 <footer class="legal-footer">
@@ -65,6 +65,17 @@
 
   function show(cls, html) { box.className = 'verify-card ' + cls; box.innerHTML = html; }
 
+  // Propiedad, agente o certificado de operación: detalle en assets/js/verify-public.js
+  async function verifyPublic(kind, fn, code) {
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    var res = await supabaseClient.rpc(fn, { p_code: code });
+    btn.disabled = false; btn.textContent = 'Verificar';
+    if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>' + esc(/Demasiados intentos/i.test(res.error.message || '') ? 'Demasiadas consultas seguidas. Espera un minuto.' : 'Inténtalo de nuevo en unos minutos.') + '</p>'); return; }
+    if (!res.data || !res.data.found) { show('is-bad', '<h2>No encontramos este código</h2><p>El código <b>' + esc(code) + '</b> no corresponde a ninguna propiedad, agente ni certificado de Bastet. Revisa que esté bien escrito.</p>'); return; }
+    var r = window.VerifyPublic.html(kind, res.data);
+    show(r.cls + ' vs-card', r.html);
+  }
+
   // Reserva de Estadías (código de 10 caracteres): detalle en assets/js/verify-stay.js
   async function verifyStay(code) {
     btn.disabled = true; btn.textContent = 'Verificando…';
@@ -78,6 +89,9 @@
 
   async function verify(code) {
     code = String(code || '').trim().toUpperCase();
+    if (/^BST-?[0-9]{3,6}$/.test(code)) return verifyPublic('property', 'verify_property_code', code);
+    if (/^AG-[A-Z0-9]{6}$/.test(code)) return verifyPublic('agent', 'verify_agent_code', code);
+    if (/^OP-[A-Z0-9]{8}$/.test(code)) return verifyPublic('cert', 'verify_operation_certificate', code);
     if (/^[A-Z0-9]{10}$/.test(code)) return verifyStay(code);
     if (!/^[A-Z0-9]{8}$/.test(code)) { show('is-bad', '<h2>Código inválido</h2><p>El código de un contrato tiene 8 letras y números; el de una reserva, 10. Revisa que esté bien escrito.</p>'); return; }
     btn.disabled = true; btn.textContent = 'Verificando…';
@@ -106,12 +120,13 @@
 
   window.UnoVerify = { verify: verify };   // lo usa el escáner de QR (assets/js/qr-scan.js)
   form.addEventListener('submit', function (e) { e.preventDefault(); verify(input.value); });
-  input.addEventListener('input', function () { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+  input.addEventListener('input', function () { input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''); });
   var q = new URLSearchParams(location.search).get('c');
-  if (q) { input.value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10); verify(input.value); }
+  if (q) { input.value = q.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12); verify(input.value); }
 })();
 </script>
 <script src="assets/js/verify-stay.js?v=20261103a"></script>
+<script src="assets/js/verify-public.js?v=20261103a"></script>
 <script src="assets/js/qr-scan.js?v=20261027b"></script>
 </body>
 </html>

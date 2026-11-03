@@ -139,3 +139,6 @@ body.scan-open { overflow: hidden; }
 .vs-hist li { position: relative; }
 .vs-hist li::before { content: ''; position: absolute; left: -21px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--lg-green); }
 .vs-hist small { display: block; color: rgba(30,38,41,.65); font-size: 13px; }
+
+.vp-note { margin-top: 14px !important; font-size: 13.5px; color: rgba(30,38,41,.7); }
+.vs-card dd { line-height: 1.5; }

@@ -650,9 +650,9 @@ function socialIconLink(url, kind, label) {
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,verified,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
-const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
+const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url,agent_verified,owner_verified,public_code';
 // Con las conexiones activas (supabase/connections.sql) las propiedades de venta, alquiler y anticrético no muestran un WhatsApp directo:
 // el interesado pide contacto con el formulario de la ficha y el agente acepta. Las estadías temporales no entran (tienen su propio flujo).
 const waAttrs = (msg, propId) => ' data-wa-prop="' + escapeHtml(String(propId || '')) + '" data-wa-msg="' + escapeHtml(msg || '') + '"';   // el teléfono se pide al hacer clic (contact-shield.js)
@@ -669,10 +669,12 @@ async function loadProperties() {
   // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
   const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
   // Si algún SQL aún no se corrió (moneda, vigencia, plan), esa columna no existe (42703): se reintenta sin ella, de la más nueva a la más antigua.
-  const noCoords = PUBLIC_PROPERTY_COLUMNS.replace(',latitude,longitude', '');
+  const noVerified = PUBLIC_PROPERTY_COLUMNS.replace('verified,', '');   // sin supabase/verification.sql no existe esa columna
+  const noCoords = noVerified.replace(',latitude,longitude', '');
   const noCurrency = noCoords.replace('currency,', '');
   const attempts = [
     () => fetchActive(PUBLIC_PROPERTY_COLUMNS),
+    () => fetchActive(noVerified),
     () => fetchActive(noCoords),
     () => fetchActive(noCurrency),
     () => fetchProperties(noCurrency),
@@ -725,10 +727,8 @@ async function hideBlockedStays() {
 async function attachAgentInfo(properties) {
   const ownerIds = [...new Set(properties.map((p) => p.owner_id).filter(Boolean))];
   if (!ownerIds.length) return;
-  const { data, error } = await supabaseClient
-    .from('profiles')
-    .select(PUBLIC_AGENT_COLUMNS)
-    .in('id', ownerIds);
+  let { data, error } = await supabaseClient.from('profiles').select(PUBLIC_AGENT_COLUMNS).in('id', ownerIds);
+  if (error) ({ data, error } = await supabaseClient.from('profiles').select('id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url').in('id', ownerIds));   // sin el SQL de verificación
   if (error || !data) return;
   const agentById = {};
   data.forEach((a) => { agentById[a.id] = a; });
@@ -1145,6 +1145,7 @@ function buildAgentSectionHtml(agent, property, message) {
       '<div class="property-modal-agent-info">' +
         '<p class="property-modal-agent-label">Publicado por</p>' +
         '<p class="property-modal-agent-name">' + escapeHtml(agent.display_name || '') + '</p>' +
+        ((agent.agent_verified || agent.owner_verified) ? '<p class="vf-agent">' + (agent.agent_verified ? '✓ Agente verificado por Bastet' : '') + (agent.agent_verified && agent.owner_verified ? ' · ' : '') + (agent.owner_verified ? '✓ Propietario verificado' : '') + '</p>' : '') +
         (hasAgent ? '<p class="property-modal-agent-more">Ver perfil y sus propiedades ›</p>' : '') +
       '</div>' +
       (socials ? '<span class="property-modal-agent-social">' + socials + '</span>' : '') +
@@ -1187,6 +1188,7 @@ function renderModal() {
           (code ? '<span class="property-modal-code">Código ' + code + '</span>' : '') +
           (operationLabel ? '<span class="property-modal-tag">' + operationLabel + '</span>' : '') +
           (PROPERTY_TYPE_LABELS[p.property_type] ? '<span class="property-modal-tag">' + PROPERTY_TYPE_LABELS[p.property_type] + '</span>' : '') +
+          (p.verified ? '<span class="property-modal-tag vf-badge">✓ Propiedad verificada</span>' : (window.Connections && window.Connections.verificationRequired() && p.operation !== 'temporal' ? '<span class="property-modal-tag vf-pending">Pendiente de verificación</span>' : '')) +
         '</div>' +
         '<p class="property-modal-price">' + formatPrice(p.price, p.currency, p.operation) + '</p>' +
         (p.exchange_rate && p.currency !== 'BOB' ? '<p class="property-modal-rate">Tipo de cambio aceptado: ' + escapeHtml(p.exchange_rate) + '</p>' : '') +

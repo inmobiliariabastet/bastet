@@ -40,6 +40,7 @@ create table if not exists public.operations (
   id                    uuid primary key default gen_random_uuid(),
   code                  text not null unique,
   number                text unique,                       -- BST-OP-AAAA-NNNN (al confirmarse)
+  cert_code             text unique,                       -- código del certificado público (OP-XXXXXXXX), se consulta en «Verificar»
   property_id           uuid references public.properties(id) on delete set null,
   titular_id            uuid references auth.users(id) on delete set null,
   connection_id         uuid references public.connections(id) on delete set null,
@@ -72,6 +73,7 @@ create table if not exists public.operations (
   property_snapshot     jsonb,
   created_at            timestamptz not null default now()
 );
+alter table public.operations add column if not exists cert_code text unique;
 create index if not exists operations_titular_idx on public.operations (titular_id, created_at desc);
 create index if not exists operations_property_idx on public.operations (property_id, status);
 alter table public.operations enable row level security;
@@ -140,9 +142,13 @@ revoke all on function public._op_commission(text, numeric, text) from public, a
 -- Confirma una operación: comisión congelada, constancia numerada, propiedad cerrada
 create or replace function public._confirm_operation(p_id uuid, p_with_commission boolean default true)
 returns void language plpgsql security definer set search_path = public as $$
-declare o public.operations; cm jsonb; yr integer; seq integer; snap jsonb;
+declare o public.operations; cm jsonb; yr integer; seq integer; snap jsonb; cert text; alpha constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 begin
   select * into o from public.operations where id = p_id for update;
+  loop
+    select 'OP-' || string_agg(substr(alpha, 1 + floor(random() * 32)::integer, 1), '') into cert from generate_series(1, 8);
+    exit when not exists (select 1 from public.operations where cert_code = cert);
+  end loop;
   yr := extract(year from ((now() at time zone 'UTC') - interval '4 hours'))::integer;
   insert into public.operation_counters (year, last_number) values (yr, 1)
   on conflict (year) do update set last_number = public.operation_counters.last_number + 1 returning last_number into seq;
@@ -153,7 +159,7 @@ begin
     update public.operations set commission_percent = (cm ->> 'percent')::numeric, commission_amount = (cm ->> 'amount')::numeric, bob_per_usd_used = (cm ->> 'rate')::numeric,
            commission_bs = (cm ->> 'bs')::numeric, commission_status = 'exigible' where id = o.id;
   end if;
-  update public.operations set status = 'confirmada', number = 'BST-OP-' || yr || '-' || lpad(seq::text, 4, '0'), property_snapshot = snap, resolved_at = coalesce(resolved_at, now()) where id = o.id;
+  update public.operations set status = 'confirmada', number = 'BST-OP-' || yr || '-' || lpad(seq::text, 4, '0'), cert_code = cert, property_snapshot = snap, resolved_at = coalesce(resolved_at, now()) where id = o.id;
   perform set_config('uno.closure_rpc', '1', true);
   update public.properties set status = 'sold' where id = o.property_id;
   perform public._op_log(o.id, 'system', 'confirmada', o.status, 'confirmada', jsonb_build_object('commission', cm, 'with_commission', p_with_commission));
@@ -348,7 +354,7 @@ begin
   return jsonb_build_object('enabled', s.enabled, 'pay_instructions', s.pay_instructions, 'pay_qr_url', s.pay_qr_url,
     'desist_text', case when adm then s.desist_text end, 'desist_version', s.desist_version,
     'items', coalesce((select jsonb_agg(jsonb_build_object(
-        'id', o.id, 'code', o.code, 'number', o.number, 'kind', o.kind, 'status', o.status, 'property_id', o.property_id,
+        'id', o.id, 'code', o.code, 'number', o.number, 'cert_code', o.cert_code, 'kind', o.kind, 'status', o.status, 'property_id', o.property_id,
         'title', coalesce(p.title, o.property_snapshot ->> 'title'), 'counterparty_name', o.counterparty_name, 'to_interested', o.to_interested,
         'amount', o.amount, 'currency', o.currency, 'signed_date', o.signed_date, 'interested_token', case when o.status = 'pendiente_interesado' then o.interested_token end,
         'interested_confirmed', o.interested_confirmed, 'commission_percent', o.commission_percent, 'commission_amount', o.commission_amount,

@@ -167,7 +167,7 @@ let properties = [];
 const propertyListEl = document.getElementById('property-list');
 
 // Columnas que puede leer una cuenta con sesión; los teléfonos (WhatsApp de la propiedad y del propietario) se piden con my_property_contacts()
-const PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
+const PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,verified,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
 async function attachContacts(rows) {
   if (!rows || !rows.length) return rows;
   const { data } = await supabaseClient.rpc('my_property_contacts');
@@ -178,11 +178,10 @@ async function attachContacts(rows) {
 
 async function loadProperties() {
   propertyListEl.innerHTML = '<p class="property-empty">Cargando propiedades…</p>';
-  let query = supabaseClient.from('properties').select(PROPERTY_COLUMNS).order('sort_order', { ascending: true });
-  if (!currentProfile || currentProfile.role !== 'admin') {
-    query = query.eq('owner_id', currentSession.user.id);
-  }
-  const { data, error } = await query;
+  const ownOnly = !currentProfile || currentProfile.role !== 'admin';
+  const runQuery = (cols) => { let q = supabaseClient.from('properties').select(cols).order('sort_order', { ascending: true }); if (ownOnly) q = q.eq('owner_id', currentSession.user.id); return q; };
+  let { data, error } = await runQuery(PROPERTY_COLUMNS);
+  if (error && error.code === '42703') ({ data, error } = await runQuery(PROPERTY_COLUMNS.replace('verified,', '')));   // sin supabase/verification.sql
 
   if (error) {
     propertyListEl.innerHTML = '<p class="property-empty">Error al cargar propiedades: ' + escapeHtml(error.message) + '</p>';

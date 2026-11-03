@@ -7,7 +7,7 @@
 <title>Confirmar operación — Bastet</title>
 <link rel="icon" href="assets/img/bastet-isotipo-cabeza.png">
 <link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
-<link rel="stylesheet" href="assets/css/legal.css?v=20261103a">
+<link rel="stylesheet" href="assets/css/legal.css?v=20261103b">
 </head>
 <body>
 <header class="legal-header"><div class="legal-header-inner">
@@ -37,7 +37,7 @@
     if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>Inténtalo de nuevo en unos minutos.</p>'); return; }
     var d = res.data || {};
     if (!d.valid && !d.answered) { show('is-bad', '<h2>Enlace no válido</h2><p>Este enlace no corresponde a ninguna operación.</p>'); return; }
-    if (d.answered) { show('is-ok', '<h2>Ya respondiste</h2><p>Gracias: esta operación ya fue registrada.</p>'); return; }
+    if (d.answered) { show('is-ok', '<h2>Ya respondiste</h2><p>Gracias: esta operación ya fue registrada.</p>'); askReview(); return; }
     var money = Number(d.amount).toLocaleString('es-BO', { maximumFractionDigits: 2 }) + (d.currency === 'BOB' ? ' Bs' : ' USD');
     show('', '<h2>¿Se concretó ' + esc(KIND[d.kind] || 'la operación') + '?</h2><p>El titular de <b>' + esc(d.title) + '</b>' + (d.location ? ' (' + esc(d.location) + ')' : '') + ' indica que se concretó ' + esc(KIND[d.kind] || 'la operación') + ' contigo por <b>' + esc(money) + '</b>' + (d.signed_date ? ', firmada el ' + esc(d.signed_date) : '') + '.</p>' +
       '<div class="verify-row" style="margin-top:16px"><button class="verify-btn" id="cf-yes" type="button">Sí, se concretó</button><button class="verify-btn" id="cf-no" type="button" style="background:#fff;color:#3D4C3A">No</button></div>');
@@ -49,6 +49,32 @@
     var res = await supabaseClient.rpc('respond_operation_confirmation', { p_token: token, p_confirm: ok });
     if (res.error) { show('is-bad', '<h2>No se pudo registrar</h2><p>' + esc(res.error.message || 'Inténtalo de nuevo.') + '</p>'); return; }
     show(ok ? 'is-ok' : '', ok ? '<h2>✓ Operación confirmada</h2><p>Gracias. Bastet registró la operación.</p>' : '<h2>Respuesta registrada</h2><p>Bastet revisará el caso. Gracias por avisarnos.</p>');
+    if (ok) askReview();
+  }
+  // Reseña: solo quien confirmó una operación concretada con una conexión de Bastet puede calificar a quien lo atendió (una sola vez)
+  async function askReview() {
+    var res = await supabaseClient.rpc('get_operation_review', { p_token: token });
+    var g = res.data || {};
+    if (res.error || !g.can_review) return;
+    var rating = 0;
+    var holder = document.createElement('div');
+    holder.className = 'verify-card';
+    holder.style.marginTop = '18px';
+    holder.innerHTML = '<h2>¿Cómo te atendió ' + esc(g.reviewed || 'el agente') + '?</h2><p>Tu opinión ayuda a otras personas. Aparecerá en su perfil con tu nombre y la inicial de tu apellido.</p>' +
+      '<div id="rv-stars" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas" style="font-size:34px;margin:10px 0">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-n="' + n + '" aria-label="' + n + ' estrellas" style="border:0;background:none;cursor:pointer;font-size:34px;color:#cfcac2">★</button>'; }).join('') + '</div>' +
+      '<textarea id="rv-text" rows="4" maxlength="1200" placeholder="Cuéntanos tu experiencia (opcional)" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cfcac2;border-radius:12px;font:inherit"></textarea>' +
+      '<p id="rv-err" style="color:#B3261E;display:none"></p><div class="verify-row" style="margin-top:12px"><button class="verify-btn" id="rv-send" type="button">Publicar mi reseña</button></div>';
+    box.parentNode.insertBefore(holder, box.nextSibling);
+    var stars = holder.querySelectorAll('#rv-stars button');
+    function paint() { stars.forEach(function (b) { b.style.color = Number(b.dataset.n) <= rating ? '#F1BF46' : '#cfcac2'; }); }
+    stars.forEach(function (b) { b.addEventListener('click', function () { rating = Number(b.dataset.n); paint(); }); });
+    holder.querySelector('#rv-send').addEventListener('click', async function () {
+      var err = holder.querySelector('#rv-err'); err.style.display = 'none';
+      if (!rating) { err.textContent = 'Elige de 1 a 5 estrellas.'; err.style.display = 'block'; return; }
+      var r = await supabaseClient.rpc('submit_operation_review', { p_token: token, p_rating: rating, p_comment: holder.querySelector('#rv-text').value });
+      if (r.error) { err.textContent = r.error.message || 'No se pudo publicar tu reseña.'; err.style.display = 'block'; return; }
+      holder.innerHTML = '<h2>¡Gracias por tu reseña!</h2><p>Ya está publicada en el perfil.</p>';
+    });
   }
   init();
 })();

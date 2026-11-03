@@ -40,6 +40,8 @@
         '<div class="ap-head">' + avatar + '<h2>' + esc(a.display_name || 'Agente') + '</h2>' +
           '<p class="ap-sub">' + (list.length ? list.length + (list.length === 1 ? ' propiedad activa' : ' propiedades activas') : 'Sin propiedades activas por ahora') +
           (cities.length ? ' · ' + esc(cities.slice(0, 3).join(', ')) : '') + '</p>' +
+          ((a.agent_verified || a.owner_verified) ? '<p class="vf-agent">' + (a.agent_verified ? '✓ Agente verificado por Bastet' : '') + (a.agent_verified && a.owner_verified ? ' · ' : '') + (a.owner_verified ? '✓ Propietario verificado' : '') + (a.public_code ? ' · código ' + esc(a.public_code) : '') + '</p>' : '') +
+          '<div id="ap-rep" class="ap-rep"></div>' +
           (ops.length ? '<p class="ap-tags">' + ops.map((t) => '<span>' + esc(t) + '</span>').join('') + '</p>' : '') +
         '</div>' +
         '<div class="ap-actions">' + (window.Connections && window.Connections.isOn()
@@ -56,6 +58,18 @@
           }).join('') + '</ul>' : '') +
       '</div>';
     document.body.appendChild(root);
+    // Reputación: promedio y reseñas de quienes concretaron una operación con una conexión de Bastet (supabase/verification.sql)
+    (async () => {
+      try {
+        const rep = await supabaseClient.rpc('profile_reputation', { p_ids: [a.id] });
+        const r = rep.data && rep.data[0]; if (!r || !root) return;
+        const box = root.querySelector('#ap-rep'); if (!box) return;
+        const lst = r.review_count ? await supabaseClient.rpc('list_profile_reviews', { p_profile: a.id, p_limit: 5 }) : { data: [] };
+        box.innerHTML = '<p class="ap-rep-line">' + (r.review_count ? '<b>★ ' + String(r.avg_rating).replace('.', ',') + '</b> · ' + r.review_count + (r.review_count === 1 ? ' reseña verificada' : ' reseñas verificadas') : 'Todavía sin reseñas') +
+          (r.verified_operations ? ' · ' + r.verified_operations + (r.verified_operations === 1 ? ' operación verificada' : ' operaciones verificadas') : '') + '</p>' +
+          ((lst.data || []).length ? '<ul class="ap-reviews">' + lst.data.map((v) => '<li><b>' + '★'.repeat(v.rating) + '☆'.repeat(5 - v.rating) + '</b> <span>' + esc(v.reviewer_name) + '</span>' + (v.comment ? '<p>' + esc(v.comment) + '</p>' : '') + (v.reply ? '<p class="ap-reply">Respuesta: ' + esc(v.reply) + '</p>' : '') + '</li>').join('') + '</ul>' : '');
+      } catch (e) { /* sin el SQL de verificación no se muestra nada */ }
+    })();
     root.querySelector('[data-ap-close]').addEventListener('click', close);
     const apWa = root.querySelector('#ap-wa'); if (apWa) apWa.addEventListener('click', () => { if (o.onContact) o.onContact(); });
     root.addEventListener('click', (e) => {

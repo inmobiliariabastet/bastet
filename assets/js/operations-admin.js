@@ -74,9 +74,11 @@
       }
       if (o.commission_status === 'comprobante_enviado' && !adm) h += '<p class="bk-fine">Recibimos tu comprobante el ' + ftime(o.proof_at) + '. Bastet lo está revisando.</p>';
       if (o.commission_status === 'pagada') h += '<p class="bk-fine">Pago verificado el ' + ftime(o.paid_at) + '. Gracias.</p>';
+      if (o.cert_code) h += '<p class="bk-fine">Certificado público: <b>' + esc(o.cert_code) + '</b> · <a href="verificar.html?c=' + esc(o.cert_code) + '" target="_blank" rel="noopener">Ver cómo lo consulta el público</a></p>';
     }
     const acts = [];
     if (['pendiente_interesado', 'en_revision'].includes(o.status) && !adm) acts.push('<button class="btn btn-ghost btn-sm" data-act="cancel">Cancelar solicitud</button>');
+    if (o.status === 'confirmada') acts.push('<button class="btn btn-ghost btn-sm" data-act="acta">Ver acta de la operación</button>');
     if (adm) {
       if (['en_revision', 'pendiente_interesado'].includes(o.status)) acts.push('<button class="btn btn-primary btn-sm" data-act="resolve-confirm">Confirmar con comisión</button><button class="btn btn-ghost btn-sm" data-act="resolve-free">Cerrar sin comisión</button><button class="btn btn-ghost btn-sm" data-act="resolve-reject">Rechazar</button>');
       if (o.commission_status === 'comprobante_enviado') acts.push('<button class="btn btn-ghost btn-sm" data-act="proof">Ver comprobante</button><button class="btn btn-primary btn-sm" data-act="verify">Verificar pago</button><button class="btn btn-ghost btn-sm" data-act="deny">Rechazar comprobante</button>');
@@ -204,6 +206,25 @@
     modal('<h2>Historial · ' + esc(o.code) + '</h2><ul class="bk-events">' + (ev || []).map((e) => '<li><b>' + esc(String(e.event).replace(/_/g, ' ')) + '</b> <small>' + esc(e.actor) + ' · ' + ftime(e.at) + '</small>' + (e.data ? '<br><small>' + esc(JSON.stringify(e.data)) + '</small>' : '') + '</li>').join('') + '</ul><div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-close>Cerrar</button></div>');
   }
 
+  /* Acta digital: documento imprimible con los datos de la operación y las aceptaciones registradas */
+  async function openActa(o) {
+    const { data: a, error } = await supabaseClient.rpc('get_operation_acta', { p_id: o.id });
+    if (error) { toast(error.message || 'No se pudo generar el acta', true); return; }
+    const w = window.open('', '_blank'); if (!w) { toast('Permite las ventanas emergentes para ver el acta.', true); return; }
+    const row = (k, v) => v == null || v === '' ? '' : '<tr><th>' + esc(k) + '</th><td>' + esc(v) + '</td></tr>';
+    const p = a.property || {};
+    w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Acta ' + esc(a.number) + '</title><style>body{font:14px/1.55 Georgia,serif;max-width:760px;margin:30px auto;padding:0 18px;color:#1E2629}h1{font-size:22px;color:#3D4C3A}table{width:100%;border-collapse:collapse;margin:8px 0 18px}th{text-align:left;width:34%;padding:6px 8px;background:#F4F1EC;border:1px solid #ddd}td{padding:6px 8px;border:1px solid #ddd}.n{font-size:12px;color:#666}button{padding:8px 16px;margin-bottom:16px}@media print{button{display:none}}</style></head><body>' +
+      '<button onclick="window.print()">Imprimir / guardar como PDF</button><h1>ACTA DIGITAL DE OPERACIÓN INMOBILIARIA</h1><p>Bastet Real State S.R.L. · Acta N.º <b>' + esc(a.number) + '</b> · Certificado público <b>' + esc(a.cert_code) + '</b></p>' +
+      '<h3>Operación</h3><table>' + row('Tipo', KIND[a.kind] || a.kind) + row('Fecha de firma', a.signed_date ? fdate(a.signed_date) : '') + row('Confirmada el', ftime(a.confirmed_at)) + row('Monto', a.amount ? money(a.amount, a.currency) : '') + '</table>' +
+      '<h3>Inmueble</h3><table>' + row('Título', p.title) + row('Código', p.code_number ? 'BST-' + p.code_number : '') + row('Ubicación', [p.address, p.location].filter(Boolean).join(', ')) + '</table>' +
+      '<h3>Partes</h3><table>' + row('Titular (quien publicó)', a.titular && a.titular.name) + row('Agente verificado por Bastet', a.titular && a.titular.agent_verified ? 'Sí' : 'No') + row('Propietario verificado', a.titular && a.titular.owner_verified ? 'Sí' : 'No') +
+        row('Contraparte', a.counterparty && a.counterparty.name) + row('Confirmación de la contraparte', a.counterparty && a.counterparty.confirmed ? 'Confirmó por enlace el ' + ftime(a.counterparty.confirmed_at) : 'No confirmó por enlace (operación decidida por administración)') + '</table>' +
+      (a.connection ? '<h3>Conexión de Bastet</h3><table>' + row('Constancia de conexión', a.connection.number) + row('Aceptada el', ftime(a.connection.accepted_at)) + row('Pago verificado el', ftime(a.connection.verified_at)) + row('Contrato marco', a.connection.framework_version ? 'versión ' + a.connection.framework_version : '') + '</table>' : '') +
+      '<h3>Comisión</h3><table>' + row('Comisión a Bastet', a.commission && a.commission.bs != null ? bs(a.commission.bs) : 'No aplica') + row('Porcentaje', a.commission && a.commission.percent != null ? a.commission.percent + ' %' : '') + row('Tipo de cambio interno', a.commission && a.commission.rate) + '</table>' +
+      '<p class="n">Documento generado por la plataforma con los datos y aceptaciones registrados. El mecanismo de firma y su validez probatoria están pendientes de revisión jurídica en Bolivia; este documento no reemplaza el contrato entre las partes.</p></body></html>');
+    w.document.close();
+  }
+
   document.addEventListener('click', async (e) => {
     const f = e.target.closest('#operations-root [data-filter]'); if (f) { filter = f.dataset.filter; draw(); return; }
     const btn = e.target.closest('#operations-root [data-act]'); if (!btn) return;
@@ -220,6 +241,7 @@
       case 'resolve-free': return decide('sin_comision', 'Explica por qué se cierra sin comisión (queda en el historial):');
       case 'resolve-reject': return decide('rechazar', 'Explica por qué se rechaza (queda en el historial):');
       case 'events': return showEvents(o);
+      case 'acta': return openActa(o);
       default: return;
     }
   });
