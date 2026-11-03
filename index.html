@@ -3,13 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>
-// Al entrar a bastet.uno se va directo a Propiedades. Los enlaces con ancla (index.html#hero, #vender…) siguen mostrando el inicio.
-if (!window.location.hash) window.location.replace('marketplace.html' + window.location.search);
-</script>
-<noscript><meta http-equiv="refresh" content="0;url=marketplace.html"></noscript>
-<title>Bastet · Propiedades e inmobiliarias en Bolivia</title>
-<meta name="description" content="Bastet, propiedades e inmobiliaria en Bolivia. Certeza legal, resultados en 30 días.">
+<title>Bastet · Compra, alquila o reserva una estadía en Bolivia</title>
+<meta name="description" content="Encuentra casas, departamentos y habitaciones en venta, alquiler y anticrético, o reserva una estadía por noches en Bolivia. Inmuebles revisados por Bastet.">
 <link rel="canonical" href="https://bastet.uno/">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/bastet-favicon-32.png?v=20261026">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/img/bastet-favicon-192.png?v=20261026">
@@ -24,10 +19,11 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
 <link rel="stylesheet" href="assets/css/sell.css?v=20261014d">
 <link rel="stylesheet" href="assets/css/steps.css?v=20261030b">
 <link rel="stylesheet" href="assets/css/prop-extras.css?v=20261103a">
+<link rel="stylesheet" href="assets/css/home.css?v=20261104a">
 <link rel="stylesheet" href="assets/css/responsive-guard.css?v=20261027c">
 <link rel="stylesheet" href="assets/css/a11y.css?v=20261030c">
 </head>
-<body class="brand">
+<body class="brand home2">
 
 <nav class="navbar">
   <div class="navbar-inner">
@@ -45,7 +41,7 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
       <a href="#hero" class="navbar-link is-active" aria-current="page">Inicio</a>
       <a href="marketplace.html" class="navbar-link">Propiedades</a>
       <a href="estadias.html" class="navbar-link">Estadías Temporales</a>
-      <button type="button" data-agent-access class="navbar-link navbar-link--btn">Hazte un agente</button>
+      <button type="button" data-host-signup class="navbar-link navbar-link--btn">Sé anfitrión</button>
       <button type="button" data-sell-open class="navbar-link navbar-link--btn">Publica con nosotros</button>
       <a href="verificar.html" class="navbar-link">Verificar</a>
       <a href="app.html" data-install-app class="navbar-link" hidden>Instalar app</a>
@@ -57,6 +53,7 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
     <a href="#hero" class="navbar-mobile-link">Inicio</a>
     <a href="marketplace.html" class="navbar-mobile-link">Propiedades</a>
     <a href="estadias.html" class="navbar-mobile-link">Estadías Temporales</a>
+    <button type="button" data-host-signup class="navbar-mobile-link navbar-mobile-link--btn">Sé anfitrión</button>
     <button type="button" data-agent-access class="navbar-mobile-link navbar-mobile-link--btn">Hazte un agente</button>
     <button type="button" data-sell-open class="navbar-mobile-link navbar-mobile-link--btn">Publica con nosotros</button>
     <a href="verificar.html" class="navbar-mobile-link">Verificador de contratos</a>
@@ -65,101 +62,105 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
   </div>
 </nav>
 
-<section id="hero" class="home-hero">
-  <div class="home-hero-card">
-    <div class="home-hero-copy">
-      <p class="home-hero-eyebrow">Bastet · Propiedades e inmobiliarias</p>
-      <h1 class="home-hero-title">Vende o compra tu inmueble en 30 días o menos.</h1>
-      <p class="home-hero-sub">Conectamos propiedades y compradores en un solo lugar, con una experiencia inmobiliaria más rápida, transparente y eficiente.</p>
-      <div class="home-hero-cta">
-        <a href="marketplace.html" class="btn-pill btn-pill--green">Buscar un inmueble</a>
-        <button type="button" data-sell-open class="btn-pill btn-pill--line">Vender mi inmueble</button>
+<section id="hero" class="hm-hero">
+  <div class="hm-hero-media" aria-hidden="true"><img src="assets/img/hero-familia.webp" alt="" width="1672" height="941" fetchpriority="high"></div>
+  <div class="hm-hero-inner">
+    <h1 class="hm-title">Encuentra dónde vivir o dónde quedarte</h1>
+    <p class="hm-sub">Compra, alquila o reserva una estadía por noches. Inmuebles revisados por Bastet y reservas con código verificable.</p>
+
+    <form class="hm-search" id="home-search" action="marketplace.html" method="get" data-mode="venta" aria-label="Buscar inmuebles y estadías">
+      <div class="hm-tabs" role="tablist" aria-label="Qué buscas">
+        <button type="button" role="tab" class="hm-tab is-active" data-mode="venta" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Comprar</button>
+        <button type="button" role="tab" class="hm-tab" data-mode="alquiler" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg>Alquilar</button>
+        <button type="button" role="tab" class="hm-tab" data-mode="anticretico" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2.5"/></svg>Anticrético</button>
+        <button type="button" role="tab" class="hm-tab" data-mode="temporal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V8M3 14h18v4M21 14v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11" r="1.6"/></svg>Estadías por noche</button>
       </div>
-    </div>
-    <div class="home-hero-photo">
-      <img src="assets/img/hero-familia.webp" alt="Una familia jugando en el jardín de su casa al atardecer" width="1672" height="941" fetchpriority="high">
-    </div>
-  </div>
+      <div class="hm-capsule">
+        <label class="hm-seg"><span>Dónde</span>
+          <select name="ciudad" id="home-search-city"><option value="">Todas las ciudades</option></select></label>
+        <label class="hm-seg" data-only="props"><span>Tipo de inmueble</span>
+          <select name="tipo"><option value="">Cualquier tipo</option><option value="casa">Casa</option><option value="departamento">Departamento</option><option value="habitacion">Habitación</option><option value="terreno">Terreno</option></select></label>
+        <label class="hm-seg" data-only="stays"><span>Llegada</span><input type="date" name="llegada" aria-label="Fecha de llegada"></label>
+        <label class="hm-seg" data-only="stays"><span>Salida</span><input type="date" name="salida" aria-label="Fecha de salida"></label>
+        <label class="hm-seg" data-only="stays"><span>Huéspedes</span>
+          <select name="huespedes"><option value="1">1 huésped</option><option value="2" selected>2 huéspedes</option><option value="3">3 huéspedes</option><option value="4">4 huéspedes</option><option value="5">5 huéspedes</option><option value="6">6 huéspedes</option><option value="8">8 huéspedes</option><option value="10">10 huéspedes</option></select></label>
+        <button type="submit" class="hm-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg><span>Buscar</span></button>
+      </div>
+    </form>
 
-  <form class="search-pill" id="home-search" action="marketplace.html" method="get" aria-label="Buscar propiedades">
-    <label class="search-field"><span>Dónde</span>
-      <select name="ciudad" id="home-search-city"><option value="">Todas las ciudades</option></select></label>
-    <label class="search-field"><span>Operación</span>
-      <select name="op"><option value="">Venta, alquiler…</option><option value="venta">Venta</option><option value="alquiler">Alquiler</option><option value="anticretico">Anticrético</option><option value="temporal">Temporal (por día)</option></select></label>
-    <label class="search-field"><span>Tipo</span>
-      <select name="tipo"><option value="">Cualquier tipo</option><option value="casa">Casa</option><option value="departamento">Departamento</option><option value="habitacion">Habitación</option><option value="terreno">Terreno</option></select></label>
-    <button type="submit" class="search-go" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
-  </form>
-</section>
-
-<section id="propiedades" class="propiedades-section">
-  <div class="propiedades-inner reveal">
-    <h2 class="section-heading section-heading--light">Propiedades destacadas</h2>
-    <p class="section-sub section-sub--light">Una selección de nuestras propiedades. Explore todas, con filtros, en la sección Propiedades.</p>
-    <div class="prop-grid" id="prop-grid" aria-live="polite"></div>
-    <div class="prop-cta-wrap">
-      <a href="marketplace.html" class="cta-button cta-button--glass"><span>Ver propiedades</span></a>
-    </div>
+    <p class="hm-hostline"><button type="button" class="hm-hostlink" data-host-signup>¿Tienes una casa, departamento o habitación para huéspedes? Regístrate como anfitrión</button></p>
   </div>
 </section>
+
+<div id="hm-feed" class="hm-feed" aria-live="polite"><p class="hm-loading">Cargando inmuebles y estadías…</p></div>
+<div id="prop-grid" hidden></div>
 
 <div class="property-modal-backdrop hidden" id="property-modal-backdrop">
   <div class="property-modal" id="property-modal" onclick="event.stopPropagation()"></div>
 </div>
 
-<section id="features" class="features-section">
-  <h2 class="section-heading section-heading--light">Qué incluye nuestra asesoría</h2>
-  <div class="reveal">
-    <p class="section-sub section-sub--light" style="margin-top:40px;">Un servicio integral que cubre cada etapa de la compra-venta de su inmueble.</p>
-    <div class="features-grid">
-      <div class="feature-item"><span class="feature-icon">01</span><div><h4 class="feature-title">Verificación registral y catastral</h4><p class="feature-text">Confirmamos la situación exacta del inmueble ante los registros públicos correspondientes.</p></div></div>
-      <div class="feature-item"><span class="feature-icon">02</span><div><h4 class="feature-title">Revisión de títulos y cadena de propiedad</h4><p class="feature-text">Trazamos el historial completo de titularidad para descartar vicios o contingencias.</p></div></div>
-      <div class="feature-item"><span class="feature-icon">03</span><div><h4 class="feature-title">Elaboración y revisión de contratos</h4><p class="feature-text">Redactamos y auditamos cada cláusula para proteger sus intereses de forma equilibrada.</p></div></div>
-      <div class="feature-item"><span class="feature-icon">04</span><div><h4 class="feature-title">Coordinación notarial y de escrituración</h4><p class="feature-text">Gestionamos directamente con la notaría los tiempos y requisitos de firma.</p></div></div>
-      <div class="feature-item"><span class="feature-icon">05</span><div><h4 class="feature-title">Due diligence de gravámenes y afectaciones</h4><p class="feature-text">Identificamos hipotecas, embargos o cargas antes de que representen un riesgo.</p></div></div>
-      <div class="feature-item"><span class="feature-icon">06</span><div><h4 class="feature-title">Acompañamiento hasta el cierre</h4><p class="feature-text">Le asistimos hasta la entrega final de la escritura debidamente inscrita.</p></div></div>
+<section class="hm-host" id="anfitriones" aria-labelledby="hm-host-title">
+  <div class="hm-host-copy">
+    <h2 id="hm-host-title">Haz que tu espacio trabaje para ti</h2>
+    <p>Publica tu casa, departamento o habitación como estadía temporal. Tú decides qué fechas ofreces y a quién aceptas; Bastet verifica el pago de cada reserva.</p>
+    <ul class="hm-host-list">
+      <li><b>Publicar es gratis</b> y no vence. Bloqueas en tu calendario las fechas que no ofreces.</li>
+      <li><b>Tú aceptas cada reserva.</b> Recibes el aviso en tu panel y tienes 2 horas para responder.</li>
+      <li><b>Tú cobras el 90 %</b> directo del huésped. Bastet cobra solo el 10 % al huésped para confirmar la reserva.</li>
+    </ul>
+    <div class="hm-host-actions">
+      <button type="button" class="hm-btn" data-host-signup>Registrarme como anfitrión</button>
+      <a class="hm-btn hm-btn--line" href="estadias.html">Ver estadías publicadas</a>
     </div>
+  </div>
+  <div class="hm-host-photo" aria-hidden="true"><img src="assets/img/hero-familia.webp" alt="" width="1672" height="941" loading="lazy"></div>
+</section>
+
+<section class="hm-why" aria-labelledby="hm-why-title">
+  <h2 id="hm-why-title">Reserva y compra con tranquilidad</h2>
+  <div class="hm-why-grid">
+    <article><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6l7-3zM9 12l2 2 4-4"/></svg><h3>Verificación de Bastet</h3><p>Distintivos independientes para agentes, propietarios y propiedades, otorgados tras revisar documentos.</p></article>
+    <article><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><h3>Contacto protegido</h3><p>Los teléfonos no se publican en el sitio: se entregan cuando tu solicitud o tu reserva se confirma.</p></article>
+    <article><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.500"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h3>Reglas claras en estadías</h3><p>Pagas el 10 % a Bastet para confirmar y el resto lo coordinas con el anfitrión. Cancelas gratis durante 4 horas.</p></article>
+    <article><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.500-4.500M9 11l1.500 1.500L13.500 9"/></svg><h3>Todo se puede comprobar</h3><p>Verifica una reserva, una solicitud, una propiedad o un agente con su código en <a href="verificar.html">bastet.uno/verificar</a>.</p></article>
   </div>
 </section>
 
-<section id="garantias" class="garantias-section">
-  <h2 class="section-heading section-heading--light" style="margin-bottom:56px;">Garantías que respaldan su decisión</h2>
-  <div class="reveal">
-    <div class="trust-grid">
-      <div class="trust-card">
-        <span class="trust-stat">30 días</span>
-        <p class="trust-text">Como plazo estándar de resolución; hasta 3 meses en casos de mayor complejidad registral.</p>
-      </div>
-      <div class="trust-card">
-        <span class="trust-stat">+500</span>
-        <p class="trust-text">Alianzas estratégicas con notarías e instituciones registrales para agilizar cada trámite.</p>
-      </div>
-      <div class="trust-card">
-        <span class="trust-stat">Vigencia Actual</span>
-        <p class="trust-text">Marco legal sólido: cada operación se sustenta en la normativa civil y registral vigente.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="partners-strip" aria-label="Empresas con las que trabajamos">
+<section class="partners-strip hm-partners" aria-labelledby="hm-partners-title">
+  <h2 id="hm-partners-title">Empresas que trabajan con nosotros</h2>
+  <p class="hm-partners-sub">Organizaciones que confían en Bastet para encontrar el espacio de su gente.</p>
   <div class="partners-track" id="partners-track"></div>
 </section>
 
-<section class="testimonials-section">
-  <div class="reveal">
-    <h2 class="section-heading section-heading--dark" style="margin-bottom:16px;">La experiencia de quienes confiaron en nosotros</h2>
-    <p class="section-sub" style="margin-bottom:32px;">Familias y clientes que compraron o vendieron su propiedad con Bastet.</p>
-    <div class="testi-ring-stage" id="testi-ring-stage"></div>
+<section class="hm-testi" id="testimonios" aria-labelledby="hm-testi-title">
+  <div class="hm-testi-inner">
+    <h2 id="hm-testi-title">Lo que cuentan quienes ya encontraron su lugar</h2>
+    <div class="hm-testi-stage" id="hm-testi"></div>
   </div>
 </section>
 
-<section id="pricing" class="pricing-section">
-  <div class="pricing-inner reveal">
-    <h2 class="section-heading section-heading--light">Nosotros nos ocupamos de todo.</h2>
-    <p class="pricing-text">Tras una evaluación inicial, nuestros honorarios se integran al precio final de venta, para que usted reciba exactamente el monto acordado por su propiedad.</p>
-    <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="cta-button cta-button--block cta-button--arrow" style="margin-top:8px;"><span>Solicitar evaluación</span></a>
+<section class="hm-sell" id="vender-con-bastet" aria-labelledby="hm-sell-title">
+  <div class="hm-sell-head">
+    <h2 id="hm-sell-title">¿Vendes un inmueble? Hazlo con respaldo legal</h2>
+    <p>Bastet gestiona la verificación registral, la revisión de títulos y los contratos, y te acompaña hasta la escritura inscrita. Después de una evaluación inicial, los honorarios se integran al precio final de venta.</p>
+    <div class="hm-host-actions">
+      <button type="button" data-sell-open class="hm-btn">Vender mi inmueble</button>
+      <a href="#" data-whatsapp-generic target="_blank" rel="noopener" class="hm-btn hm-btn--line">Hablar con un asesor</a>
+    </div>
   </div>
+  <div class="hm-sell-stats">
+    <div><b>30 días</b><span>plazo estándar de resolución; hasta 3 meses en casos de mayor complejidad registral</span></div>
+    <div><b>+500</b><span>alianzas con notarías e instituciones registrales para agilizar cada trámite</span></div>
+    <div><b>Marco legal vigente</b><span>cada operación se sustenta en la normativa civil y registral actual</span></div>
+  </div>
+  <ul class="hm-sell-list">
+    <li>Verificación registral y catastral</li>
+    <li>Revisión de títulos y cadena de propiedad</li>
+    <li>Elaboración y revisión de contratos</li>
+    <li>Coordinación notarial y de escrituración</li>
+    <li>Revisión de gravámenes y afectaciones</li>
+    <li>Acompañamiento hasta el cierre</li>
+  </ul>
 </section>
 
 <div style="padding:0 20px">
@@ -325,7 +326,10 @@ if (!window.location.hash) window.location.replace('marketplace.html' + window.l
 <script src="assets/js/agent-profile.js?v=20261103d"></script>
 <script src="assets/js/contact-shield.js?v=20261103b"></script>
 <script src="assets/js/connections.js?v=20261103d"></script>
-<script src="assets/js/main.js?v=20261103f"></script>
+<script src="assets/js/client-prefill.js?v=20261103j"></script>
+<script src="assets/js/estadias-extras.js?v=20261029b"></script>
+<script src="assets/js/home.js?v=20261104a"></script>
+<script src="assets/js/main.js?v=20261104b"></script>
 <script src="assets/js/sell.js?v=20261103f"></script>
 <script src="assets/js/sell-steps.js?v=20261030b"></script>
 <script src="assets/js/request-property.js?v=20261103f"></script>

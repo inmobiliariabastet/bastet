@@ -689,11 +689,13 @@ async function loadProperties() {
   if (error) {
     console.error('Error cargando propiedades:', error);
     allProperties = [];
+    if (window.HomeFeed) window.HomeFeed.render([]);
   } else {
     allProperties = data || [];
     if (window.PropFavs) window.PropFavs.prune(allProperties.map((p) => p.id));
     await hideBlockedStays();
     await attachAgentInfo(allProperties);
+    if (window.HomeFeed) window.HomeFeed.render(allProperties);   // Inicio: filas de inmuebles y estadías (assets/js/home.js)
   }
 
   if (HAS_FILTERS) {
@@ -1072,6 +1074,7 @@ function buildLeadForm(property) {
     }
     showSent(gated ? sentCode : null);
   });
+  if (window.ClientPrefill) window.ClientPrefill.fill(form, { '[name=lead_name]': 'name', '[name=lead_whatsapp]': 'phone' });
   return form;
 }
 

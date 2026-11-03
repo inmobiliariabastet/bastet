@@ -1263,7 +1263,7 @@ function renderUserList(users) {
     row.title = 'Ver propiedades publicadas por este usuario';
     const isSelf = currentSession && user.id === currentSession.user.id;
 
-    const planText = user.interest ? 'Cuenta de ' + ({ propietario: 'propietario', agente: 'agente', empresa: 'empresa' }[user.interest] || user.interest) : 'Sin tipo de cuenta';
+    const planText = user.interest ? 'Cuenta de ' + ({ propietario: 'propietario', agente: 'agente', empresa: 'empresa', cliente: 'cliente' }[user.interest] || user.interest) : 'Sin tipo de cuenta';
     const details = [user.full_name, user.whatsapp, user.city, user.company].filter(Boolean).map(escapeHtml).join(' · ');
     const waDigits = (user.whatsapp || '').replace(/[^0-9]/g, '');
     row.innerHTML =

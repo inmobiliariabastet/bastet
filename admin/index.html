@@ -13,7 +13,7 @@
 <link rel="preload" href="../assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261103h">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261103j">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261018e">
 <link rel="stylesheet" href="../assets/css/subscription.css?v=20261027a">   <!-- hoy solo aporta los estilos del formulario de registro (.ob-*) -->
 <link rel="stylesheet" href="../assets/css/owner-services.css?v=20261022a">
@@ -45,6 +45,7 @@
       <span class="admin-logo-sub">Panel de usuario</span>
     </div>
     <nav class="admin-nav" aria-label="Secciones">
+      <button type="button" class="admin-tab hidden" data-tab="client"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg>Mi espacio</button>
       <div class="admin-nav-group">Ventas</div>
       <button type="button" class="admin-tab is-active" data-tab="properties"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg>Propiedades</button>
       <button type="button" class="admin-tab hidden" data-tab="owner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Mi gestión</button>
@@ -83,6 +84,7 @@
   </aside>
   <div id="admin-scrim" class="admin-scrim"></div>
   <nav id="admin-bottombar" class="admin-bottombar" aria-label="Accesos rápidos">
+    <button type="button" class="abb-item hidden" data-go="client"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg><span>Mi espacio</span></button>
     <button type="button" class="abb-item is-active" data-go="properties"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg><span>Propiedades</span></button>
     <button type="button" class="abb-item" data-go="leads"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg><span>Clientes</span><b class="abb-badge hidden" id="abb-leads-count"></b></button>
     <button type="button" class="abb-item" data-go="contracts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><span>Contratos</span></button>
@@ -290,6 +292,10 @@
       <h2 class="admin-subheading">Usuarios con acceso</h2>
       <p class="admin-toolbar-hint">Las cuentas nuevas aparecen aquí al entrar con Google. Desactiva a alguien para quitarle acceso de inmediato (no borra sus propiedades).</p>
       <div id="user-list" class="user-list"></div>
+    </div>
+
+    <div id="tab-panel-client" class="tab-panel hidden">
+      <div id="client-root" class="cl-root"><p class="cl-empty">Cargando…</p></div>
     </div>
 
     <div id="tab-panel-account" class="tab-panel hidden">
@@ -592,7 +598,7 @@
 <script src="../assets/js/property-fields.js?v=20261103f"></script>
 <script src="../assets/js/image-optimize.js?v=20261026a"></script>
 <script src="../assets/js/publications.js?v=20261103g"></script>
-<script src="../assets/js/onboarding.js?v=20261103a"></script>
+<script src="../assets/js/onboarding.js?v=20261104a"></script>
 <script src="../assets/js/leads.js?v=20261018a"></script>
 <script src="../assets/js/sell-admin.js?v=20261103f"></script>
 <script src="../assets/js/collections.js?v=20261014a"></script>
@@ -610,7 +616,8 @@
 <script src="../assets/js/operations-admin.js?v=20261103e"></script>
 <script src="../assets/js/verification-admin.js?v=20261103f"></script>
 <script src="../assets/js/account-delete.js?v=20261103h"></script>
+<script src="../assets/js/client-dashboard.js?v=20261103j"></script>
 <script src="../assets/js/investigations-admin.js?v=20261103a"></script>
-<script src="../assets/js/admin.js?v=20261103g"></script>
+<script src="../assets/js/admin.js?v=20261104a"></script>
 </body>
 </html>

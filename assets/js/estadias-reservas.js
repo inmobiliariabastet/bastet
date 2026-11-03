@@ -69,6 +69,7 @@
         '<p class="sd-muted sd-fine">Todavía no pagas nada. Guardaremos tu nombre y WhatsApp solo para esta reserva.</p>' +
       '</form>');
     form();
+    if (window.ClientPrefill) window.ClientPrefill.fill(modal, { '#sbk-name': 'name', '#sbk-phone': 'phone', '#sbk-mail': 'email' });
     modal.addEventListener('submit', async (e) => {
       if (e.target.id !== 'sbk-form') return;
       e.preventDefault();
