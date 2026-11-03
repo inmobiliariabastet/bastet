@@ -613,3 +613,21 @@ a.btn { text-decoration: none; }
 .bk-check small { color: rgba(30,38,41,.6); }
 .bk-events { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; display: grid; gap: 10px; font-size: 14px; }
 .modal-panel label { display: block; margin: 10px 0; font-size: 14px; }
+
+/* Conexiones (connections-admin.js) y contrato marco (publications.js) */
+.bk-pay { border: 1px solid rgba(30,38,41,.2); border-radius: 14px; padding: 12px 14px; margin: 10px 0 0; }
+.bk-pay h3 { margin: 0 0 8px; font-size: 16px; }
+.bk-pay label { display: block; margin: 10px 0; font-size: 14px; }
+.bk-qr { display: block; width: 180px; max-width: 100%; margin: 0 auto 10px; border-radius: 12px; }
+.cx-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0 16px; display: block; overflow-x: auto; }
+.cx-table th, .cx-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(30,38,41,.12); white-space: nowrap; }
+.cx-table tr.is-off td { opacity: .55; }
+.cx-rule { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 4px 14px; align-items: end; margin-top: 8px; }
+.cx-rule h3 { grid-column: 1 / -1; margin: 6px 0 0; font-size: 16px; }
+.cx-rule label { display: block; font-size: 13.5px; margin: 8px 0; }
+.cx-rule input[type=number], .cx-rule input[type=text], .cx-rule select { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; background: #fff; }
+.bk-settings select { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; }
+.fw-panel { max-width: 640px; }
+.fw-hint { margin: 0 0 10px; font-size: 14px; color: rgba(30,38,41,.7); }
+.fw-text { max-height: 45vh; overflow: auto; white-space: pre-wrap; padding: 14px 16px; border: 1px solid rgba(30,38,41,.2); border-radius: 12px; background: #FAF8F5; font-size: 14px; line-height: 1.55; }
+.fw-check { display: flex; gap: 8px; align-items: flex-start; margin: 14px 0 6px; font-size: 14px; }

@@ -623,7 +623,7 @@ function buildTileAgentHtml(property) {
       ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
       : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt=""></span>');
   // WhatsApp del agente (su perfil) o, si no lo tiene, el de la propiedad; sin ninguno, el número general de Bastet
-  const waIcon = '<a class="property-modal-social-link" href="' + escapeHtml(whatsappUrl(propertyWhatsappMessage(property), (agent && agent.contact_whatsapp) || property.whatsapp)) + '" target="_blank" rel="noopener" data-tile-wa aria-label="Escribir por WhatsApp a ' + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const waIcon = '<a class="property-modal-social-link" href="' + (contactGated(property) ? '#' : escapeHtml(whatsappUrl(propertyWhatsappMessage(property), (agent && agent.contact_whatsapp) || property.whatsapp))) + '"' + (contactGated(property) ? '' : ' target="_blank" rel="noopener"') + ' data-tile-wa aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   const socials = waIcon + (agent
     ? socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
       socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
@@ -653,8 +653,12 @@ function socialIconLink(url, kind, label) {
 const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
 const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp,facebook_url,instagram_url,tiktok_url';
+// Con las conexiones activas (supabase/connections.sql) las propiedades de venta, alquiler y anticrético no muestran un WhatsApp directo:
+// el interesado pide contacto con el formulario de la ficha y el agente acepta. Las estadías temporales no entran (tienen su propio flujo).
+const contactGated = (p) => !!(window.Connections && window.Connections.isOn() && p && p.operation !== 'temporal');   // sin operación (listados antiguos) cuenta como venta
 
 async function loadProperties() {
+  if (window.Connections) await window.Connections.init();
   const fetchProperties = (columns) => supabaseClient
     .from('properties')
     .select(columns)
@@ -975,6 +979,7 @@ propGridEl.addEventListener('click', (e) => {
     return;
   }
   if (e.target.closest('[data-tile-wa]')) {
+    if (contactGated(property)) { e.preventDefault(); openProperty(property); return; }   // con conexiones: abre la ficha para pedir contacto
     trackEvent(property.id, 'whatsapp_click');        // el enlace del ícono abre WhatsApp por sí solo
     return;
   }
@@ -1000,23 +1005,26 @@ function trackEvent(propertyId, eventType) {
    El visitante nunca escribe en la tabla: llama a la función SQL submit_property_lead, que valida,
    limita abusos y asigna el agente. Si el SQL aún no se corrió, muestra un error genérico. */
 const LEAD_CONSENT_TEXT = 'Acepto que mis datos se compartan con el agente de esta propiedad para que me contacte';
+const CONNECTION_CONSENT_TEXT = 'Acepto que Bastet comparta mis datos con el agente de esta propiedad cuando acepte mi solicitud y se confirme la conexión';
 
 function buildLeadForm(property) {
   const form = document.createElement('form');
   form.className = 'agent-form lead-form';
   form.noValidate = false;
   form.innerHTML =
-    '<h4 class="lead-form-title">Quiero que me contacten</h4>' +
-    '<p class="agent-form-hint">Déjanos tus datos y el agente de esta propiedad te escribirá por WhatsApp.</p>' +
+    '<h4 class="lead-form-title">' + (contactGated(property) ? 'Solicitar contacto con el agente' : 'Quiero que me contacten') + '</h4>' +
+    '<p class="agent-form-hint">' + (contactGated(property)
+      ? 'Déjanos tus datos y el agente de esta propiedad decidirá si te contacta. Tus datos se comparten con él solo cuando acepta y Bastet confirma la conexión.'
+      : 'Déjanos tus datos y el agente de esta propiedad te escribirá por WhatsApp.') + '</p>' +
     '<label class="agent-field"><span>Nombre *</span><input type="text" name="lead_name" required minlength="3" maxlength="120" autocomplete="name"></label>' +
     '<label class="agent-field"><span>WhatsApp *</span><input type="tel" name="lead_whatsapp" required minlength="7" maxlength="30" placeholder="+591 7xxxxxxx" autocomplete="tel"></label>' +
     '<label class="agent-field"><span>Mensaje (opcional)</span><textarea name="lead_message" rows="3" maxlength="500" placeholder="Ej: Quisiera agendar una visita"></textarea></label>' +
     // Campo trampa: las personas no lo ven; los bots suelen llenarlo.
     '<div class="lead-hp" aria-hidden="true"><label>Sitio web<input type="text" name="lead_website" tabindex="-1" autocomplete="off"></label></div>' +
-    '<label class="lead-consent"><input type="checkbox" name="lead_consent" required><span>' + LEAD_CONSENT_TEXT + '</span></label>' +
+    '<label class="lead-consent"><input type="checkbox" name="lead_consent" required><span>' + (contactGated(property) ? CONNECTION_CONSENT_TEXT : LEAD_CONSENT_TEXT) + '</span></label>' +
     '<p class="lead-privacy">Más información en nuestra <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</p>' +
     '<p class="agent-form-error hidden" role="alert" data-lead-error></p>' +
-    '<button type="submit" class="cta-button cta-button--block" data-lead-submit><span>Enviar mis datos</span></button>';
+    '<button type="submit" class="cta-button cta-button--block" data-lead-submit><span>' + (contactGated(property) ? 'Solicitar contacto' : 'Enviar mis datos') + '</span></button>';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1025,33 +1033,45 @@ function buildLeadForm(property) {
     const field = (name) => form.elements[name];
     errorEl.classList.add('hidden');
 
-    const showSent = () => {
-      form.innerHTML =
-        '<div class="agent-success"><p class="agent-success-title">¡Listo, recibimos tus datos!</p>' +
-        '<p class="agent-form-hint">El agente te contactará por WhatsApp lo antes posible.</p></div>';
+    const showSent = (code) => {
+      form.innerHTML = contactGated(property)
+        ? '<div class="agent-success"><p class="agent-success-title">¡Solicitud enviada!</p>' +
+          '<p class="agent-form-hint">El agente revisará tu solicitud y, si la acepta, te contactará por WhatsApp.' + (code ? ' Tu código de solicitud es <b>' + escapeHtml(code) + '</b>.' : '') + '</p></div>'
+        : '<div class="agent-success"><p class="agent-success-title">¡Listo, recibimos tus datos!</p>' +
+          '<p class="agent-form-hint">El agente te contactará por WhatsApp lo antes posible.</p></div>';
     };
     if (field('lead_website').value) { showSent(); return; } // bot: se finge éxito y no se envía nada
 
     submitBtn.disabled = true;
     submitBtn.querySelector('span').textContent = 'Enviando…';
-    const { error } = await supabaseClient.rpc('submit_property_lead', {
-      p_property_id: property.id,
-      p_name: field('lead_name').value.trim(),
-      p_whatsapp: field('lead_whatsapp').value.trim(),
-      p_message: field('lead_message').value.trim() || null,
-      p_consent: field('lead_consent').checked,
-    });
+    const gated = contactGated(property);
+    const { data: sentCode, error } = gated
+      ? await supabaseClient.rpc('request_connection', {
+        p_property: property.id,
+        p_name: field('lead_name').value.trim(),
+        p_phone: field('lead_whatsapp').value.trim(),
+        p_email: null,
+        p_message: field('lead_message').value.trim() || null,
+        p_consent: field('lead_consent').checked,
+      })
+      : await supabaseClient.rpc('submit_property_lead', {
+        p_property_id: property.id,
+        p_name: field('lead_name').value.trim(),
+        p_whatsapp: field('lead_whatsapp').value.trim(),
+        p_message: field('lead_message').value.trim() || null,
+        p_consent: field('lead_consent').checked,
+      });
     if (error) {
       submitBtn.disabled = false;
-      submitBtn.querySelector('span').textContent = 'Enviar mis datos';
+      submitBtn.querySelector('span').textContent = contactGated(property) ? 'Solicitar contacto' : 'Enviar mis datos';
       // P0001 = mensaje propio de la función (ya viene en español); cualquier otra cosa, mensaje genérico.
-      errorEl.textContent = error.code === 'P0001' && error.message
+      errorEl.textContent = (error.code === 'P0001' || (gated && error.message)) && error.message
         ? error.message
         : 'No pudimos enviar tus datos. Inténtalo de nuevo o escríbenos por WhatsApp.';
       errorEl.classList.remove('hidden');
       return;
     }
-    showSent();
+    showSent(gated ? sentCode : null);
   });
   return form;
 }
@@ -1114,7 +1134,7 @@ function buildAgentSectionHtml(agent, property, message) {
     : (hasAgent
       ? '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
       : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
-  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + escapeHtml(whatsappUrl(message, (hasAgent && agent.contact_whatsapp) || (property && property.whatsapp))) + '" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp a ' + escapeHtml(a.display_name || 'Bastet') + '" title="Escribir por WhatsApp"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + (contactGated(property) ? '#' : escapeHtml(whatsappUrl(message, (hasAgent && agent.contact_whatsapp) || (property && property.whatsapp)))) + '"' + (contactGated(property) ? '' : ' target="_blank" rel="noopener"') + ' aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(a.display_name || 'Bastet') + '" title="' + (contactGated(property) ? 'Solicitar contacto' : 'Escribir por WhatsApp') + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   agent = a;   // el resto de la función usa `agent`
   const socials = waIcon +
     socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
@@ -1188,7 +1208,7 @@ function renderModal() {
     '</div>' +
     '<div class="ps-bar">' +
       (window.PropFavs ? '<button type="button" class="ps-save' + (faved ? ' is-on' : '') + '" id="ps-save" aria-pressed="' + faved + '">' + HEART_SVG + '<span>' + (faved ? 'Guardada' : 'Guardar') + '</span></button>' : '') +
-      '<a class="ps-wa" id="ps-wa" href="' + escapeHtml(waHref) + '" target="_blank" rel="noopener">Consultar por WhatsApp</a>' +
+      '<a class="ps-wa" id="ps-wa" href="' + (contactGated(p) ? '#' : escapeHtml(waHref)) + '"' + (contactGated(p) ? '' : ' target="_blank" rel="noopener"') + '>' + (contactGated(p) ? 'Solicitar contacto' : 'Consultar por WhatsApp') + '</a>' +
     '</div>';
 
   // El formulario vive fuera del innerHTML para no perder lo escrito al cambiar de foto.
@@ -1208,8 +1228,15 @@ function renderModal() {
   };
   const toggleFav = () => { const on = window.PropFavs.toggle(p.id); syncFav(on); if (favOnly && !on) { closeProperty(); renderPropertyGrid(false); } };
   ['modal-fav', 'ps-save'].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener('click', toggleFav); });
-  document.getElementById('modal-whatsapp-cta').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));
-  document.getElementById('ps-wa').addEventListener('click', () => trackEvent(p.id, 'whatsapp_click'));
+  // Con conexiones activas el botón lleva al formulario «Solicitar contacto»; sin ellas, abre WhatsApp como siempre
+  const goLeadForm = (e) => {
+    e.preventDefault();
+    const slot = document.getElementById('lead-form-slot');
+    if (slot) { slot.scrollIntoView({ behavior: 'smooth', block: 'center' }); const f = slot.querySelector('input'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 350); }
+  };
+  ['modal-whatsapp-cta', 'ps-wa'].forEach((id) => document.getElementById(id).addEventListener('click', (e) => {
+    if (contactGated(p)) goLeadForm(e); else trackEvent(p.id, 'whatsapp_click');
+  }));
   document.getElementById('modal-share').addEventListener('click', async () => {
     const url = location.origin + location.pathname + '?p=' + encodeURIComponent(code || p.id);
     try {

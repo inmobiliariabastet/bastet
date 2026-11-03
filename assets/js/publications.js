@@ -6,6 +6,7 @@
   'use strict';
 
   const state = { account: null };
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   async function fetchAccount() {
     try {
@@ -26,9 +27,39 @@
     toast.t = setTimeout(() => { el.className = 'ct-toast'; }, 4200);
   }
 
-  // Las publicaciones no vencen: no hay nada que marcar en la tarjeta ni que validar antes de publicar
+  // Las publicaciones no vencen: no hay nada que marcar en la tarjeta
   function decorateCard() {}
-  async function confirmPublish() { return true; }
+
+  /* Contrato marco (supabase/connections.sql): si las conexiones están activas, antes de publicar (y tras cada versión nueva) el titular lo lee y
+     lo acepta. Devuelve una promesa: true = ya está aceptado, false = lo cerró sin aceptar. La base de datos lo exige igual. */
+  async function ensureFramework() {
+    let f = null;
+    try { const { data, error } = await supabaseClient.rpc('my_framework'); if (!error) f = data; } catch (e) { /* sin el SQL no hay contrato */ }
+    if (!f || !f.required || f.accepted) return true;
+    return new Promise((resolve) => {
+      const prev = document.getElementById('fw-overlay'); if (prev) prev.remove();
+      const o = document.createElement('div');
+      o.className = 'modal-overlay'; o.id = 'fw-overlay';
+      o.innerHTML = '<div class="modal-panel fw-panel" role="dialog" aria-modal="true" aria-labelledby="fw-title"><h2 id="fw-title">Contrato marco de Bastet</h2>' +
+        '<p class="fw-hint">Para publicar propiedades debes leer y aceptar este contrato (versión ' + esc(f.version) + '). Lo aceptas una sola vez.</p>' +
+        '<div class="fw-text" tabindex="0">' + esc(f.text) + '</div>' +
+        '<label class="fw-check"><input type="checkbox" id="fw-ok"> He leído y acepto el contrato marco de Bastet.</label>' +
+        '<p id="fw-err" class="form-error hidden"></p>' +
+        '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" id="fw-cancel">Ahora no</button><button type="button" class="btn btn-accent" id="fw-accept" disabled>Aceptar y continuar</button></div></div>';
+      document.body.appendChild(o);
+      const done = (v) => { o.remove(); resolve(v); };
+      const ok = o.querySelector('#fw-ok'), go = o.querySelector('#fw-accept');
+      ok.addEventListener('change', () => { go.disabled = !ok.checked; });
+      o.querySelector('#fw-cancel').addEventListener('click', () => done(false));
+      go.addEventListener('click', async () => {
+        go.disabled = true; go.textContent = 'Guardando…';
+        const { error } = await supabaseClient.rpc('accept_framework_contract', { p_version: f.version });
+        if (error) { const er = o.querySelector('#fw-err'); er.textContent = error.message || 'No se pudo registrar tu aceptación.'; er.classList.remove('hidden'); go.disabled = false; go.textContent = 'Aceptar y continuar'; return; }
+        done(true);
+      });
+    });
+  }
+  async function confirmPublish() { return ensureFramework(); }
 
   /* Destacar (solo administración): confirma y llama a feature_property; la base de datos lo exige igual. */
   async function featureProperty(p) {
@@ -53,7 +84,7 @@
   });
 
   window.UnoPublications = {
-    refresh, decorateCard, confirmPublish, featureProperty,
+    refresh, decorateCard, confirmPublish, featureProperty, ensureFramework,
     insufficientMessage: () => 'No se pudo publicar. Inténtalo de nuevo.',
     fillLine: () => {}, supportsAutoRenew: false,
     get account() { return state.account; },
