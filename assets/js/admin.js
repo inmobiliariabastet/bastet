@@ -215,6 +215,7 @@ function featureBtnHtml(property) {
     const until = property.featured_until && new Date(property.featured_until) > new Date() ? ' hasta el ' + new Date(property.featured_until).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
     return '<div class="prop-feature is-on">' + STAR_ICON + '<span>Destacada' + until + '</span></div>';
   }
+  if (!(typeof currentProfile !== 'undefined' && currentProfile && currentProfile.role === 'admin')) return '';   // solo administración destaca
   return '<button type="button" class="prop-feature-btn" data-action="feature">' + STAR_ICON + '<span>Destacar esta propiedad</span></button>';
 }
 
@@ -1220,22 +1221,16 @@ const userListEl = document.getElementById('user-list');
 
 async function loadUsers() {
   userListEl.innerHTML = '<p class="property-empty">Cargando…</p>';
-  const [{ data, error }, subsRes] = await Promise.all([
-    supabaseClient.from('profiles').select('*').order('created_at', { ascending: true }),
-    supabaseClient.from('subscriptions').select('user_id,plan_code,current_period_end,source'),
-  ]);
+  const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: true });
 
   if (error) {
     userListEl.innerHTML = '<p class="property-empty">Error al cargar usuarios: ' + escapeHtml(error.message) + '</p>';
     return;
   }
-  const subs = {};
-  ((subsRes && subsRes.data) || []).forEach((s) => { subs[s.user_id] = s; });
-  renderUserList(data || [], subs);
+  renderUserList(data || []);
 }
 
-function renderUserList(users, subs) {
-  subs = subs || {};
+function renderUserList(users) {
   if (!users.length) {
     userListEl.innerHTML = '<p class="property-empty">No hay usuarios registrados todavía.</p>';
     return;
@@ -1247,10 +1242,7 @@ function renderUserList(users, subs) {
     row.title = 'Ver propiedades publicadas por este usuario';
     const isSelf = currentSession && user.id === currentSession.user.id;
 
-    const sub = subs[user.id];
-    const planLabel = sub ? ({ propietario: 'Propietario', agente: 'Agente', empresa: 'Empresa' }[sub.plan_code] || sub.plan_code) : null;
-    const subOn = sub && new Date(sub.current_period_end) > new Date();
-    const planText = !sub ? "Sin plan" : (sub.source === 'trial' ? 'Prueba ' : 'Plan ') + planLabel + (subOn ? ' · hasta ' + new Date(sub.current_period_end).toLocaleDateString('es-BO', { day: '2-digit', month: 'short' }) : ' · vencido');
+    const planText = user.interest ? 'Cuenta de ' + ({ propietario: 'propietario', agente: 'agente', empresa: 'empresa' }[user.interest] || user.interest) : 'Sin tipo de cuenta';
     const details = [user.full_name, user.whatsapp, user.city, user.company].filter(Boolean).map(escapeHtml).join(' · ');
     const waDigits = (user.whatsapp || '').replace(/[^0-9]/g, '');
     row.innerHTML =

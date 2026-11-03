@@ -1,8 +1,8 @@
 /* Registro de nuevos usuarios: la primera vez que alguien entra al panel (y todavía no se registró) ve un formulario obligatorio
- * con nombre, WhatsApp, ciudad, empresa e interés. Los datos quedan en su perfil y se ven en el panel > Usuarios.
- * Luego puede empezar la PRUEBA GRATUITA de 7 días (solo si todavía no eligió ni tiene un plan) o elegir un plan desde el inicio.
+ * con nombre, WhatsApp, ciudad, empresa y tipo de cuenta. Los datos quedan en su perfil y se ven en el panel > Usuarios.
+ * Ya no hay planes ni prueba gratuita (2026-11-03): al guardar, la persona sigue directo al panel.
  * Las reglas las aplica la base de datos (supabase/registration.sql); aquí solo se muestra y se envía el formulario.
- * Escucha el evento `uno:subscription` que publica publications.js. */
+ * Escucha el evento `uno:account` que publica publications.js. */
 (function () {
   'use strict';
 
@@ -15,20 +15,17 @@
     if (overlay) { overlay.remove(); overlay = null; document.body.classList.remove('ob-open'); }
   }
 
-  async function open(s) {
+  async function open() {
     if (overlay) { return; }
     let meta = {};
     try { const { data } = await supabaseClient.auth.getUser(); meta = (data && data.user && data.user.user_metadata) || {}; } catch (e) { /* sin datos de Google: el formulario queda vacío */ }
     if (overlay) return;
-    const canTrial = !!s.trial_eligible;
     overlay = document.createElement('div');
     overlay.className = 'modal-overlay ob-overlay';
     overlay.innerHTML =
       '<div class="modal-panel ob-panel" role="dialog" aria-modal="true" aria-labelledby="ob-title">' +
         '<h2 id="ob-title">Bienvenido a Bastet</h2>' +
-        '<p class="ob-lead">Cuéntanos quién eres para crear tu cuenta. ' + (canTrial ? 'Si eres propietario podrás <b>probar gratis por 7 días</b>; las cuentas de agente y de empresa eligen un plan de pago.' : 'Después podrás seguir al panel.') + '</p>' +
-        (canTrial ? '<div class="ob-trial" id="ob-trial" hidden><b>Prueba gratuita de 7 días · cuenta de propietario</b><span>Al aceptar con «Probar 7 días gratis», tu cuenta queda habilitada con el plan Propietario y puedes publicar por 7 días sin suscripción. Pasados los 7 días debes suscribirte a un plan; si no lo haces, tu cuenta se da de baja y tus propiedades dejan de mostrarse en Bastet. Solo se puede usar una vez por cuenta de Google.</span></div>' : '') +
-        '<div class="ob-trial ob-paid" id="ob-paid" hidden><b>Cuenta de agente o de empresa</b><span>Estas cuentas no tienen prueba gratuita: guarda tus datos y elige tu plan para empezar a publicar.</span></div>' +
+        '<p class="ob-lead">Cuéntanos quién eres para crear tu cuenta. Después podrás seguir al panel y publicar tus propiedades.</p>' +
         '<form id="ob-form" novalidate>' +
           '<div class="field"><label for="ob-name">Nombre completo</label><input type="text" id="ob-name" maxlength="120" autocomplete="name" required value="' + esc(meta.full_name || meta.name || '') + '"></div>' +
           '<div class="field"><label for="ob-wa">WhatsApp</label><input type="tel" id="ob-wa" maxlength="30" autocomplete="tel" placeholder="Ej: 77123456 o +591 77123456" required></div>' +
@@ -43,11 +40,7 @@
           '<label class="ob-consent"><input type="checkbox" id="ob-adult"> <span>Confirmo que tengo <b>18 años o más</b>. Bastet no está dirigido a menores de edad.</span></label>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-consent"> <span>Acepto que Bastet use estos datos para gestionar mi cuenta y contactarme. <a href="../privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></span></label>' +
           '<p id="ob-error" class="form-error" role="alert" hidden></p>' +
-          '<div class="ob-actions">' +
-            (canTrial
-              ? '<button type="submit" class="btn btn-accent" data-ob="trial" id="ob-btn-trial" hidden>Probar 7 días gratis</button><button type="submit" class="btn btn-primary" data-ob="plan" id="ob-btn-plan">Guardar y elegir mi plan</button>'
-              : '<button type="submit" class="btn btn-accent" data-ob="plan">Guardar y continuar</button>') +
-          '</div>' +
+          '<div class="ob-actions"><button type="submit" class="btn btn-accent">Guardar y continuar</button></div>' +
           '<button type="button" class="ob-logout" id="ob-logout">Salir de esta cuenta</button>' +
         '</form>' +
       '</div>';
@@ -56,18 +49,6 @@
 
     const form = overlay.querySelector('#ob-form');
     const err = overlay.querySelector('#ob-error');
-    let mode = 'plan';
-    const sel = form.querySelector('#ob-interest');
-    const syncInterest = () => {
-      const v = sel.value, owner = v === 'propietario';
-      const trialBox = form.querySelector('#ob-trial') || overlay.querySelector('#ob-trial');
-      if (trialBox) trialBox.hidden = !(canTrial && owner);
-      overlay.querySelector('#ob-paid').hidden = !(v === 'agente' || v === 'empresa');
-      const bt = form.querySelector('#ob-btn-trial'); if (bt) bt.hidden = !(canTrial && owner);
-      const bp = form.querySelector('#ob-btn-plan'); if (bp) bp.textContent = canTrial ? (owner ? 'Elegir un plan ahora' : 'Guardar y elegir mi plan') : 'Guardar y continuar';
-    };
-    sel.addEventListener('change', syncInterest); syncInterest();
-    form.querySelectorAll('[data-ob]').forEach((b) => b.addEventListener('click', () => { mode = b.dataset.ob; }));
     overlay.querySelector('#ob-logout').addEventListener('click', async () => {
       close();                                         // el formulario se cierra al instante; el panel vuelve a la pantalla de acceso
       try { await supabaseClient.auth.signOut(); } catch (e) { /* si falla, la recarga de abajo limpia la sesión local */ }
@@ -88,35 +69,23 @@
       buttons.forEach((b) => { b.disabled = true; });
       const { error } = await supabaseClient.rpc('complete_registration', {
         p_full_name: val('ob-name'), p_whatsapp: val('ob-wa'), p_city: val('ob-city'), p_company: val('ob-company'),
-        p_interest: val('ob-interest') || null, p_consent: true, p_adult: true, p_start_trial: mode === 'trial',
+        p_interest: val('ob-interest') || null, p_consent: true, p_adult: true,
       });
       if (error) { buttons.forEach((b) => { b.disabled = false; }); return fail(error.message || 'No se pudo guardar tu registro.'); }
       close();
       if (window.UnoPublications) await window.UnoPublications.refresh();
-      // sendToPlans() (más abajo) lleva a Suscripción a quien quedó sin plan; con prueba iniciada se queda en el panel
     });
     const first = form.querySelector('#ob-name'); if (first) first.focus();
   }
 
   // Solo se exige a quien NO es administrador y la base de datos dice expresamente que aún no se registró
-  // Quien ya se registró pero no tiene plan vigente (nunca eligió uno, o su prueba/plan venció) entra directo a «Suscripción»
-  // para elegir un plan. Se hace una sola vez por carga del panel, para no quitarle el control después.
-  let sentToPlans = false;
-  function sendToPlans(s) {
-    if (sentToPlans || !s || s.exempt === true || s.registered !== true) return;
-    if (s.status !== 'none' && s.status !== 'expired') return;
-    const tab = document.querySelector('.admin-tab[data-tab="subscription"]');
-    if (!tab) return;
-    sentToPlans = true;
-    setTimeout(() => tab.click(), 600);          // después de que el panel termine de mostrar su pestaña inicial
-  }
-  document.addEventListener('uno:subscription', (e) => {
-    const s = e.detail;
-    if (s && s.exempt !== true && s.registered === false) open(s); else { close(); sendToPlans(s); }
+  document.addEventListener('uno:account', (e) => {
+    const a = e.detail;
+    if (a && a.exempt !== true && a.registered === false) open(); else close();
   });
   // Si la sesión se cierra por cualquier motivo, el formulario no debe quedar abierto sobre la pantalla de acceso
-  supabaseClient.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') { close(); sentToPlans = false; } });
-  // Si el plan ya se cargó antes de que este archivo se ejecutara, no esperar al próximo evento
-  const early = window.UnoPublications && window.UnoPublications.subscription;
-  if (early && early.exempt !== true && early.registered === false) open(early); else sendToPlans(early);
+  supabaseClient.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') close(); });
+  // Si la cuenta ya se cargó antes de que este archivo se ejecutara, no esperar al próximo evento
+  const early = window.UnoPublications && window.UnoPublications.account;
+  if (early && early.exempt !== true && early.registered === false) open();
 })();

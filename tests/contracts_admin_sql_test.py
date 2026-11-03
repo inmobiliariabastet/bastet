@@ -29,7 +29,7 @@ adm, a1, a2, adm2 = [r[0] for r in cur.fetchall()]
 cur.execute("alter table public.profiles disable trigger protect_profile_privileged")
 cur.execute("update public.profiles set role='admin' where id in (%s,%s)", (adm, adm2)); cur.execute("update public.profiles set display_name='Ana Agente' where id=%s", (a1,))
 cur.execute("insert into credit_wallets(user_id,balance) values (%s,50),(%s,50)", (a1, a2))
-for u in (a1, a2): cur.execute("select public._activate_subscription(%s,'agente','admin',null,null)", (u,))   # los contratos los cubre el plan, no créditos
+for u in (a1, a2): cur.execute("update public.profiles set interest='agente', registered_at=now() where id=%s", (u,))   # los contratos los genera cualquier cuenta de agente o empresa
 fails = 0
 def as_(uid, sql, args=None):
     cur.execute("reset role; select set_config('request.jwt.claim.sub',%s,false)", (str(uid) if uid else '',))

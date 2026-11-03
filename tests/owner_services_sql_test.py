@@ -63,7 +63,7 @@ def one(sql, a=None):
     su(sql, a); return cur.fetchone()[0]
 def row(sql, a=None):
     su(sql, a); return cur.fetchone()
-def plan(u, p, days=None): su("select _activate_subscription(%s,%s,'admin',%s,null)", (u, p, days))
+def plan(u, p, days=None): su("update public.profiles set interest=%s, registered_at=coalesce(registered_at, now()) where id=%s", (p, u))   # tipo de cuenta
 plan(own, 'propietario'); plan(own2, 'propietario'); plan(ag1, 'agente'); plan(ag2, 'agente'); plan(emp, 'empresa'); plan(agx, 'agente')
 INS = "insert into properties(id,title,location,price,area,rooms,baths,owner_id) values (gen_random_uuid(),%s,'La Paz','100000','100','3','2',%s) returning id"
 pid = as_(own, INS, ('Casa de prueba', own))[1][0][0]
@@ -81,16 +81,16 @@ su("select * from list_agent_directory() limit 0")
 eq("directorio: solo datos públicos (sin correo, teléfono ni rol)", sorted(x.name for x in cur.description),
    sorted(['id', 'display_name', 'avatar_url', 'facebook_url', 'instagram_url', 'tiktok_url', 'plan_name', 'active_properties']))
 chk("anon no ve el directorio", as_(None, "select * from list_agent_directory()"), True)
-su("update subscriptions set current_period_end = now() - interval '1 day' where user_id=%s", (agx,))
-eq("un agente con plan vencido sale del directorio", len(as_(own, "select * from list_agent_directory()")[1]), 3)
-su("update subscriptions set current_period_end = now() + interval '20 days' where user_id=%s", (agx,))
+plan(agx, 'propietario')
+eq("quien cambia a cuenta de propietario sale del directorio", len(as_(own, "select * from list_agent_directory()")[1]), 3)
+plan(agx, 'agente')
 
 # ── ofertas: quién puede crear y qué se valida
 chk("un agente no ofrece propiedades como propietario", as_(ag1, OFFER, (pid, ag2, T())), True)
-chk("sin plan no puede", as_(plain, OFFER, (pid, ag1, T())), True)
+chk("una cuenta sin tipo de propietario no puede", as_(plain, OFFER, (pid, ag1, T())), True)
 chk("no ofrece una propiedad ajena", as_(own, OFFER, (pid_other, ag1, T())), True)
 chk("no se ofrece a sí mismo", as_(own, OFFER, (pid, own, T())), True)
-chk("el destinatario debe ser agente con plan (un propietario no sirve)", as_(own, OFFER, (pid, own2, T())), True)
+chk("el destinatario debe ser agente o empresa (un propietario no sirve)", as_(own, OFFER, (pid, own2, T())), True)
 chk("el admin no es destinatario", as_(own, OFFER, (pid, adm, T())), True)
 chk("agente inexistente", as_(own, OFFER, (pid, '00000000-0000-0000-0000-000000000000', T())), True)
 for nm, kw in [("comisión 0", dict(comision_porcentaje=0)), ("comisión 20 %", dict(comision_porcentaje=20)), ("plazo 5", dict(plazo_dias=5)), ("plazo 400", dict(plazo_dias=400)),
@@ -131,14 +131,14 @@ eq("eventos solo para las partes", (len(as_(own, "select * from owner_offer_even
 chk("el propietario no responde su propia oferta", as_(own, "select respond_owner_offer(%s,true,null)", (o1['id'],)), True)
 chk("otro agente no responde la oferta ajena", as_(ag2, "select respond_owner_offer(%s,true,null)", (o1['id'],)), True)
 chk("nota demasiado larga", as_(ag1, "select respond_owner_offer(%s,true,%s)", (o1['id'], 'x' * 501)), True)
-su("update subscriptions set current_period_end = now() - interval '1 day' where user_id=%s", (ag1,))
-chk("sin plan vigente el agente no puede aceptar", as_(ag1, "select respond_owner_offer(%s,true,null)", (o1['id'],)), True)
+plan(ag1, 'propietario')
+chk("una cuenta de propietario no puede aceptar", as_(ag1, "select respond_owner_offer(%s,true,null)", (o1['id'],)), True)
 chk("…pero sí puede rechazar", as_(ag1, "select respond_owner_offer(%s,false,'No tengo disponibilidad')", (o1['id'],)), False)
 eq("rechazada con su nota", row("select status, response_note from owner_offers where id=%s", (o1['id'],)), ('rejected', 'No tengo disponibilidad'))
 chk("no se responde dos veces", as_(ag1, "select respond_owner_offer(%s,true,null)", (o1['id'],)), True)
-chk("sin plan vigente no se puede ofrecer a ese agente", as_(own, OFFER, (pid, ag1, T())), True)
+chk("una cuenta de propietario no recibe ofertas", as_(own, OFFER, (pid, ag1, T())), True)
 plan(ag1, 'agente')
-chk("con el plan renovado se puede volver a ofrecer", as_(own, OFFER, (pid, ag1, T())), False)
+chk("al volver a ser agente se le puede ofrecer", as_(own, OFFER, (pid, ag1, T())), False)
 oid2 = r2[1][0][0]['id']
 su("insert into agent_legal_profiles(user_id,ci,phone,registration) values (%s,'7654321','71122334','REG-9')", (ag2,))
 chk("el agente acepta", as_(ag2, "select respond_owner_offer(%s,true,'Con gusto')", (oid2,)), False)
@@ -156,12 +156,9 @@ chk("el propietario cancela la pendiente", as_(own, "select cancel_owner_offer(%
 eq("quedó cancelada", one("select status from owner_offers where id=%s", (o3['id'],)), 'canceled')
 chk("no se responde una cancelada", as_(ag2, "select respond_owner_offer(%s,true,null)", (o3['id'],)), True)
 # máximo 10 pendientes por propietario (el plan permite 3 propiedades activas: se liberan las ya ofrecidas con otras propiedades)
-su("update subscriptions set plan_code='empresa' where user_id=%s", (own,))     # solo para tener propiedades suficientes en la prueba
-su("update subscriptions set plan_code='propietario' where user_id=%s", (own,))
 su("delete from owner_offers where owner_id=%s", (own,))
 props = [as_(own, INS, ('Q%d' % k, own)) for k in range(12)]
 ids = [p[1][0][0] for p in props if p[0] == 'ok'] + [pid, pid2]
-su("update subscriptions set plan_code='propietario' where user_id=%s", (own,))
 n_ok = 0
 for pr in [pid, pid2]:
     for ag in (ag1, ag2): n_ok += as_(own, OFFER, (pr, ag, T()))[0] == 'ok'
@@ -173,8 +170,8 @@ chk("tope de 10 ofertas pendientes", as_(own, OFFER, (pid, agx, T())), True)
 # ── solicitudes a Maat Fima Legal
 LEG = "select create_legal_request(%s,%s::uuid,%s)"
 eq("6 servicios configurados y legibles", as_(own, "select count(*) from legal_service_types where active")[1][0][0], 6)
-chk("un agente no solicita (es del plan Propietario)", as_(ag1, LEG, ('tramites', None, 'Necesito ayuda con un trámite')), True)
-chk("sin plan no solicita", as_(plain, LEG, ('tramites', None, 'Necesito ayuda con un trámite')), True)
+chk("un agente no solicita (es para cuentas de propietario)", as_(ag1, LEG, ('tramites', None, 'Necesito ayuda con un trámite')), True)
+chk("una cuenta sin tipo de propietario no solicita", as_(plain, LEG, ('tramites', None, 'Necesito ayuda con un trámite')), True)
 chk("servicio inexistente", as_(own, LEG, ('brujeria', None, 'Necesito ayuda con algo')), True)
 chk("descripción corta", as_(own, LEG, ('tramites', None, 'corto')), True)
 chk("propiedad ajena", as_(own, LEG, ('saneamiento', pid_other, 'Necesito sanear los documentos')), True)

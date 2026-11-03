@@ -1,6 +1,6 @@
 /* Herramienta "Contrato de Exclusividad" del panel de agentes.
    - Asistente de 4 pasos + vista previa en vivo (el contrato tal cual saldrá en el PDF).
-   - Sin costo adicional: la función SQL create_exclusivity_contract exige un plan vigente (Agente o Empresa), numera y guarda en una
+   - Sin costo adicional: la función SQL create_exclusivity_contract exige una cuenta de agente o de empresa, numera y guarda en una
      sola transacción. Antes de cobrar se hace una prueba de generación del PDF; si falla, no se cobra.
    - El PDF se genera siempre desde los datos guardados: volver a descargarlo es gratis.
    Usa el cliente global `supabaseClient` y las bibliotecas de assets/js/contracts/. */
@@ -314,25 +314,19 @@
 
   /* ───────── Vista general ───────── */
   const money = (n) => Number(n).toLocaleString('es-BO');
-  // ¿Puede generar contratos? El administrador siempre; los demás con un plan vigente que incluya las herramientas de agente.
+  // ¿Puede generar contratos? El administrador y las cuentas de agente o de empresa (no las de propietario). La base de datos decide igual.
   function canGenerate() {
-    const sub = state.sub;
-    if (!sub) return true;            // sin el SQL de suscripciones no se bloquea nada desde aquí (la base de datos decide)
-    if (sub.exempt) return true;
-    return (sub.status === 'active' || sub.status === 'canceling') && !!(sub.plan && sub.plan.agent_tools);
+    const acc = state.sub;
+    if (!acc) return true;            // sin el SQL de cuentas no se bloquea nada desde aquí
+    return acc.exempt === true || !!(acc.account && acc.account.agent_tools);
   }
   function planMessage() {
-    const sub = state.sub;
-    if (!sub || sub.exempt) return '';
-    if (sub.status === 'none') return 'Necesitas un plan Agente o Empresa para generar contratos.';
-    if (sub.status === 'expired') return 'Tu plan venció. Renueva tu suscripción para generar contratos.';
-    if (!(sub.plan && sub.plan.agent_tools)) return 'Tu plan ' + sub.plan.name + ' no incluye el contrato de exclusividad (plan Agente o Empresa).';
-    return '';
+    return canGenerate() ? '' : 'El contrato de exclusividad es para cuentas de agente o de empresa.';
   }
   function balanceChip() {
-    const sub = state.sub;
-    const label = !sub ? '' : sub.exempt ? 'Administrador' : (sub.plan ? 'Plan ' + sub.plan.name : 'Sin plan');
-    return '<div class="ct-balance" title="Tu plan"><i></i><span>' + esc(label) + '</span>' + (canGenerate() ? '<b>Incluido</b>' : '<button type="button" class="btn btn-ghost btn-sm" data-ct="buy">Ver planes</button>') + '</div>';
+    const acc = state.sub;
+    const label = !acc ? '' : acc.exempt ? 'Administrador' : (acc.account ? 'Cuenta ' + acc.account.name : '');
+    return '<div class="ct-balance" title="Tu cuenta"><i></i><span>' + esc(label) + '</span>' + (canGenerate() ? '<b>Sin costo</b>' : '') + '</div>';
   }
 
   function render() {
@@ -363,8 +357,8 @@
         ? '<button type="button" class="btn btn-accent" data-ct="next">Siguiente →</button>'
         : '<button type="button" class="btn btn-accent ct-generate" data-ct="generate">Generar contrato</button>') + '</div>' +
       (s === STEPS.length - 1 ? '<p class="ct-balance-note' + (blocked ? ' is-low' : '') + '">' + (blocked
-        ? esc(planMessage()) + ' <button type="button" class="ct-link" data-ct="buy">Ver planes</button>'
-        : 'Incluido en tu plan.') + '</p>' : '');
+        ? esc(planMessage())
+        : 'Sin costo adicional.') + '</p>' : '');
     return draft +
       '<div class="ct-mobile-toggle" role="tablist"><button type="button" class="ct-seg-btn' + (state.previewOpen ? '' : ' is-on') + '" data-ct="show-form">Formulario</button><button type="button" class="ct-seg-btn' + (state.previewOpen ? ' is-on' : '') + '" data-ct="show-preview">Vista previa</button></div>' +
       '<div class="ct-layout' + (state.previewOpen ? ' show-preview' : '') + '">' +
@@ -379,7 +373,7 @@
     const canShare = !!(navigator.canShare && s.blob && navigator.canShare({ files: [new File([s.blob], s.fileName, { type: 'application/pdf' })] }));
     return '<div class="ct-success"><div class="ct-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l8 8 15-17"/></svg></div>' +
       '<h2>¡Contrato listo para firmar!</h2><p class="ct-success-num">' + esc(s.number) + '</p>' +
-      '<p class="credits-muted">Incluido en tu plan. Volver a descargarlo desde “Mis contratos” es gratis.</p>' +
+      '<p class="credits-muted">Sin costo. Volver a descargarlo desde “Mis contratos” es gratis.</p>' +
       (s.downloadFailed ? '<p class="form-error">La descarga automática no funcionó, pero tu contrato quedó guardado. Descárgalo aquí abajo (gratis).</p>' : '') +
       '<div class="ct-success-actions"><button type="button" class="btn btn-accent" data-ct="download-success">Descargar PDF</button>' +
       (canShare ? '<button type="button" class="btn btn-primary" data-ct="share-success">Compartir por WhatsApp</button>' : '') +
@@ -544,7 +538,7 @@
       const [prof, legal, subRes, list, tpl] = await Promise.all([
         supabaseClient.from('profiles').select('display_name,email,role').eq('id', state.uid).maybeSingle(),
         supabaseClient.from('agent_legal_profiles').select('ci,phone,registration').eq('user_id', state.uid).maybeSingle(),
-        supabaseClient.rpc('my_subscription'),
+        supabaseClient.rpc('my_account'),
         contractsQuery(true, 300),
         Promise.all(TEMPLATE_VERSIONS.map((v) => (state.templates[v] ? Promise.resolve(null) : fetch(asset('contracts/' + v + '.md')).then((r) => { if (!r.ok) throw new Error('No se pudo cargar la plantilla del contrato'); return r.text(); })))),
       ]);
@@ -648,7 +642,7 @@
     writeIdem(state.idem);
     if (!canGenerate()) { noPlanModal(); return; }
     const o = openOverlay('<h2>Generar contrato</h2>' +
-      '<p>El contrato está <b>incluido en tu plan</b>: no se descuenta nada.</p>' +
+      '<p>Generar el contrato <b>no tiene costo</b>.</p>' +
       '<p class="credits-muted">Descargarás el PDF listo para firmar, con el membrete de Bastet. Volver a descargarlo después es gratis.</p>' +
       '<p id="ct-modal-error" class="form-error hidden"></p>' +
       '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Revisar</button><button type="button" class="btn btn-accent" id="ct-confirm" data-ct="confirm-generate">Generar y descargar</button></div>');
@@ -656,9 +650,8 @@
   }
 
   function noPlanModal() {
-    openOverlay('<h2>Necesitas un plan</h2><p>' + esc(planMessage()) + '</p>' +
-      '<p class="credits-muted">Tu borrador se conserva: elige un plan y vuelve para generar el contrato.</p>' +
-      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button><button type="button" class="btn btn-accent" data-ct="buy">Ver planes</button></div>');
+    openOverlay('<h2>No disponible para tu cuenta</h2><p>' + esc(planMessage()) + '</p>' +
+      '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" data-ct="close-overlay">Cerrar</button></div>');
   }
 
   async function prepareDoc(data, number, code, voided, version, issuedAt) {
@@ -684,12 +677,12 @@
       const version = templateVersionFor(data.operacion);
       const dry = await prepareDoc(data, 'BST-CE-0000-0000', 'XXXXXXXX', false, version);
       await P.getBlob(dry);
-      // 2) Numeración + guardado, todo en el servidor y en una sola transacción (el plan lo cubre; no hay cobro)
+      // 2) Numeración + guardado, todo en el servidor y en una sola transacción (sin cobro)
       setBtn('Guardando…', true);
       const { data: res, error } = await supabaseClient.rpc('create_exclusivity_contract', { p_data: data, p_idempotency_key: state.idem.key, p_template_version: version });
       if (error) {
         const msg = String(error.message || '');
-        if (/suscripci[oó]n|plan .* no incluye/i.test(msg)) { closeOverlay(); noPlanModal(); return; }
+        if (/agente o de empresa/i.test(msg)) { closeOverlay(); noPlanModal(); return; }
         throw new Error(/No autorizado/i.test(msg) ? 'Tu sesión no tiene permiso para generar contratos.' : msg || 'No se pudo generar el contrato.');
       }
       // 3) PDF definitivo con el número y el código reales
@@ -811,7 +804,6 @@
       case 'generate': generate(); break;
       case 'confirm-generate': confirmGenerate(); break;
       case 'close-overlay': closeOverlay(); break;
-      case 'buy': closeOverlay(); { const tab = document.querySelector('.admin-tab[data-tab="subscription"]'); if (tab) tab.click(); } break;
       case 'show-preview': state.previewOpen = true; document.querySelector('.ct-layout').classList.add('show-preview'); document.querySelectorAll('.ct-mobile-toggle .ct-seg-btn').forEach((x, i) => x.classList.toggle('is-on', i === 1)); renderPreview(); break;
       case 'show-form': state.previewOpen = false; document.querySelector('.ct-layout').classList.remove('show-preview'); document.querySelectorAll('.ct-mobile-toggle .ct-seg-btn').forEach((x, i) => x.classList.toggle('is-on', i === 0)); break;
       case 'edit-agent': state.editAgent = true; render(); break;

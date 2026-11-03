@@ -1,4 +1,5 @@
-"""Pruebas del SQL de registro de usuarios y prueba gratuita de 7 días (registration.sql).
+"""Pruebas del registro de usuarios (registration.sql) y del retiro del modelo de suscripción (retire-subscriptions.sql):
+registro por tipo de cuenta, publicar libre y sin vencimiento, destacar solo admin, contrato por tipo de cuenta, historial conservado.
 Requiere:  pip install pgserver psycopg2-binary   y se ejecuta con:  python tests/registration_sql_test.py
 Levanta un Postgres local desechable: NO toca Supabase ni producción."""
 import pgserver, psycopg2, sys, json, tempfile, pathlib, datetime
@@ -63,91 +64,70 @@ def one(sql, a=None):
 def row(sql, a=None):
     su(sql, a); return cur.fetchone()
 
-def sub(u): return as_(u, "select my_subscription()")[1][0][0]
+def acct(u): return as_(u, "select my_account()")[1][0][0]
 su("update public.profiles set role='admin' where id=%s", (adm,))
-S = sub(own); eq("nuevo: no registrado", S['registered'], False); eq("nuevo: puede probar", S['trial_eligible'], True); eq("nuevo: sin plan", S['status'], 'none')
+S = acct(own); eq("nuevo: no registrado, sin tipo de cuenta", (S['registered'], S['interest']), (False, None))
+eq("sin planes ni pruebas: la cuenta ya trae todo (cuenta agente por defecto)", (S['account']['type'], S['account']['agent_tools']), ('agente', True))
 chk("nombre muy corto", as_(own, "select complete_registration('Al','77123456',null,null,null,true,false,true)"), True)
 chk("whatsapp inválido", as_(own, "select complete_registration('Ana Pérez','abc',null,null,null,true,false,true)"), True)
 chk("sin confirmar la mayoría de edad", as_(own, "select complete_registration('Ana Pérez','77123456','La Paz',null,'propietario',true,false,false)"), True)
 chk("sin consentimiento", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,null,false,false,true)"), True)
 chk("interés inválido", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,'otro',true,false,true)"), True)
-chk("interés obligatorio", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,null,true,true,true)"), True)
-chk("anónimo no puede", as_(None, "select complete_registration('Ana Pérez','77123456',null,null,null,true,false,true)"), True)
-chk("admin no necesita registro", as_(adm, "select complete_registration('Admin Uno','77123456',null,null,null,true,false,true)"), True)
-chk("trial antes de registrarse", as_(own, "select start_free_trial()"), True)
-# registro con prueba
-r = as_(own, "select complete_registration('Ana Pérez','+591 77123456','La Paz','Casa Uno','propietario',true,true,true)"); chk("registro + prueba", r, False)
-S = sub(own); eq("registrado", S['registered'], True); eq("plan de prueba", (S['status'], S['source'], S['plan']['code']), ('active', 'trial', 'propietario'))
-days = one("select extract(day from (current_period_end - now()))::int + case when extract(hour from (current_period_end - now())) >= 23 then 1 else 0 end from subscriptions where user_id=%s", (own,)); eq("dura 7 días", days, 7)
-eq("trial_eligible falso tras usarla", (S['trial_eligible'], S['trial_used']), (False, True))
+chk("interés obligatorio", as_(own, "select complete_registration('Ana Pérez','77123456',null,null,null,true,false,true)"), True)
+chk("anónimo no puede", as_(None, "select complete_registration('Ana Pérez','77123456',null,null,'agente',true,false,true)"), True)
+chk("admin no necesita registro", as_(adm, "select complete_registration('Admin Uno','77123456',null,null,'agente',true,false,true)"), True)
+chk("la prueba gratuita ya no existe", as_(own, "select start_free_trial()"), True)
+chk("el modelo de planes ya no existe", as_(own, "select request_subscription('propietario','qr','T1')"), True)
+chk("my_subscription ya no existe", as_(own, "select my_subscription()"), True)
+r = as_(own, "select complete_registration('Ana Pérez','+591 77123456','La Paz','Casa Uno','propietario',true,false,true)"); chk("registro de propietario", r, False)
+S = r[1][0][0]
+eq("registrado como propietario", (S['registered'], S['interest'], S['account']['type'], S['account']['agent_tools']), (True, 'propietario', 'propietario', False))
 eq("edad confirmada", row("select age_confirmed_at is not null from profiles where id=%s", (own,)), (True,))
 eq("datos guardados", row("select full_name, whatsapp, city, company, interest from profiles where id=%s", (own,)), ('Ana Pérez', '+591 77123456', 'La Paz', 'Casa Uno', 'propietario'))
-chk("no puede repetir la prueba", as_(own, "select start_free_trial()"), True)
+eq("p_start_trial se ignora: no hay suscripción ni prueba", one("select count(*) from subscriptions where user_id=%s", (own,)), 0)
 # no puede falsificar sus datos privilegiados
-as_(own, "update profiles set registered_at=null, trial_used_at=null, role='admin', is_active=true where id=%s", (own,))
-eq("campos protegidos intactos", row("select registered_at is not null, trial_used_at is not null, role from profiles where id=%s", (own,)), (True, True, 'agent'))
-# registro eligiendo plan primero (sin prueba)
-chk("registro sin prueba", as_(own2, "select complete_registration('Beto Rojas','77111222',null,null,'propietario',true,false,true)"), False)
-chk("empresa: la prueba no está disponible", as_(emp, "select complete_registration('Eva Mar','77000111',null,'Casa Mar','empresa',true,true,true)"), True)
-chk("agente: la prueba no está disponible", as_(emp, "select complete_registration('Eva Mar','77000111',null,'Casa Mar','agente',true,true,true)"), True)
-chk("empresa: registro sin prueba", as_(emp, "select complete_registration('Eva Mar','77000111',null,'Casa Mar','empresa',true,false,true)"), False)
-chk("empresa registrada: start_free_trial falla", as_(emp, "select start_free_trial()"), True)
-eq("empresa: interés guardado", sub(emp)['interest'], 'empresa')
-S = sub(own2); eq("sin prueba: sin plan", (S['registered'], S['status'], S['trial_eligible']), (True, 'none', True))
-chk("pide plan", as_(own2, "select request_subscription('propietario','qr','T1')"), False)
-S = sub(own2); eq("tras pedir plan ya no hay prueba", S['trial_eligible'], False)
-chk("start_free_trial con solicitud pedida falla", as_(own2, "select start_free_trial()"), True)
-# prueba más tarde (registrado sin pedir plan)
-as_(ag1, "select complete_registration('Carla Ríos','77333444',null,null,'propietario',true,false,true)")
-chk("prueba posterior", as_(ag1, "select start_free_trial()"), False)
-eq("prueba posterior activa con el plan elegido", (sub(ag1)['source'], sub(ag1)['plan']['code']), ('trial', 'propietario'))
-# usuario con plan de cortesía ya existente: no tiene prueba
-su("select admin_grant_subscription(%s,'empresa',30)" if False else "select 1")
-as_(adm, "select admin_grant_subscription(%s,'agente',30)", (ag2,))
-as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,true,true)") if False else None
-S = sub(ag2); eq("con plan: sin prueba", S['trial_eligible'], False)
-chk("con plan: registro sin prueba", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,false,true)"), False)
-chk("con plan: registro con prueba falla", as_(ag2, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,true,true)"), True)
-# prueba vencida -> estado expirado y no se puede repetir
-su("update subscriptions set current_period_end = now() - interval '1 day' where user_id=%s", (own,))
-S = sub(own); eq("prueba vencida", (S['status'], S['source'], S['trial_eligible']), ('expired', 'trial', False))
-# la prueba respeta el límite del plan Agente (15) y el admin no entra al flujo
-S = sub(adm); eq("admin: exento y registrado", (S['exempt'], S['registered']), (True, True))
+as_(own, "update profiles set registered_at=null, role='admin', is_active=true where id=%s", (own,))
+eq("campos protegidos intactos", row("select registered_at is not null, role from profiles where id=%s", (own,)), (True, 'agent'))
+chk("agente: registro", as_(ag1, "select complete_registration('Dario Paz','77555666',null,null,'agente',true,false,true)"), False)
+eq("agente con herramientas de agente", (acct(ag1)['account']['type'], acct(ag1)['account']['agent_tools']), ('agente', True))
+chk("empresa: registro (incluso pidiendo prueba, que se ignora)", as_(emp, "select complete_registration('Eva Mar','77000111',null,'Casa Mar','empresa',true,true,true)"), False)
+eq("empresa guardada", (acct(emp)['interest'], acct(emp)['account']['name']), ('empresa', 'Empresa'))
+S = acct(adm); eq("admin: exento y con todas las herramientas", (S['exempt'], S['registered'], S['account']['agent_tools']), (True, True, True))
+chk("anónimo no ve my_account", as_(None, "select my_account()"), True)
 
-# antiabuso: borrar la cuenta y volver a crearla con el mismo correo (o un alias de Gmail) NO da otra prueba
-su("insert into auth.users(email,invited_at) values ('ana.perez+x@gmail.com','2026-01-01') returning id"); g1 = cur.fetchone()[0]
-chk("gmail: registro + prueba", as_(g1, "select complete_registration('Gina Gil','77888999',null,null,'propietario',true,true,true)"), False)
-su("delete from public.profiles where id=%s", (g1,)); su("delete from auth.users where id=%s", (g1,))
-su("insert into auth.users(email,invited_at) values ('anaperez@gmail.com','2026-01-01') returning id"); g2 = cur.fetchone()[0]
-S = sub(g2); eq("alias de gmail: sin prueba", S['trial_eligible'], False)
-as_(g2, "select complete_registration('Gina Gil','77888999',null,null,'propietario',true,false,true)")
-chk("alias de gmail: no puede iniciar prueba", as_(g2, "select start_free_trial()"), True)
-chk("alias de gmail: no puede en el registro", as_(g2, "select complete_registration('Gina Gil','77888999',null,null,'propietario',true,true,true)"), True)
-eq("otro correo distinto sí puede", sub(plain)['trial_eligible'], True)
-chk("nadie lee trial_claims", as_(own, "select * from public.trial_claims"), True)
+# ── publicar es libre: sin tope ni vencimiento
+INS = "insert into properties(id,title,location,price,area,rooms,baths,owner_id) values (gen_random_uuid(),%s,'La Paz','100000','100','3','2',%s) returning id"
+n_ok = sum(as_(own, INS, ('P%d' % k, own))[0] == 'ok' for k in range(20))
+eq("un propietario sin plan publica 20 propiedades (sin tope)", n_ok, 20)
+eq("ninguna vence", one("select count(*) from properties where owner_id=%s and expires_at is not null", (own,)), 0)
+eq("las 20 están disponibles", one("select count(*) from properties where owner_id=%s and status='available'", (own,)), 20)
+pid = one("select id from properties where owner_id=%s limit 1", (own,))
+su("update properties set status='sold' where id=%s", (pid,))
+chk("reactivar una vendida no exige plan ni cupo", as_(own, "update properties set status='available' where id=%s", (pid,)), False)
+eq("sigue sin vencimiento tras reactivar", one("select expires_at is null from properties where id=%s", (pid,)), True)
+chk("renovar ya no existe", as_(own, "select renew_property(%s)", (pid,)), True)
+chk("el usuario no puede ponerse un vencimiento", as_(own, "update properties set expires_at = now() - interval '1 day' where id=%s", (pid,)), False)
+eq("…y no se aplica", one("select expires_at is null from properties where id=%s", (pid,)), True)
 
-# comprobantes de pago (payment-proofs.sql)
-chk("pide plan para adjuntar", as_(plain, "select complete_registration('Pia Paz','77000222',null,null,'agente',true,false,true)"), False)
-chk("crea solicitud", as_(plain, "select request_subscription('agente','qr','R1')"), False)
-rid = one("select id from subscription_requests where user_id=%s and status='pending'", (plain,))
-chk("adjunta su comprobante", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/1700-comprobante.png')), False)
-eq("ruta guardada", one("select proof_path from subscription_requests where id=%s", (rid,)), str(plain) + '/1700-comprobante.png')
-chk("no adjunta en carpeta ajena", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(own) + '/x.png')), True)
-chk("no acepta ..", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/../x.png')), True)
-chk("otra persona no puede adjuntar a mi solicitud", as_(own2, "select attach_payment_proof(%s, %s)", (rid, str(own2) + '/x.png')), True)
-chk("anónimo no puede", as_(None, "select attach_payment_proof(%s, %s)", (rid, 'x/x.png')), True)
-as_(adm, "select admin_resolve_subscription_request(%s, true, null)", (rid,))
-chk("ya resuelta: no se adjunta", as_(plain, "select attach_payment_proof(%s, %s)", (rid, str(plain) + '/2.png')), True)
-eq("admin ve la ruta", as_(adm, "select proof_path from subscription_requests where id=%s", (rid,))[1][0][0], str(plain) + '/1700-comprobante.png')
+# ── destacar: solo administración
+chk("un usuario no destaca", as_(own, "select feature_property(%s::text, null)", (pid,)), True)
+chk("el admin destaca", as_(adm, "select feature_property(%s::text, null)", (pid,)), False)
+eq("quedó destacada", one("select featured_until > now() from properties where id=%s", (pid,)), True)
+chk("no se destaca dos veces", as_(adm, "select feature_property(%s::text, null)", (pid,)), True)
+chk("anónimo no destaca", as_(None, "select feature_property(%s::text, null)", (pid,)), True)
 
-# WhatsApp de contacto del agente (agent-whatsapp.sql)
-chk("anónimo lee contact_whatsapp (columna pública)", as_(None, "select contact_whatsapp from profiles limit 1"), False)
-chk("el agente guarda su WhatsApp", as_(own, "update profiles set contact_whatsapp='+591 77123456' where id=%s", (own,)), False)
-eq("quedó guardado", one("select contact_whatsapp from profiles where id=%s", (own,)), '+591 77123456')
-chk("WhatsApp inválido rechazado", as_(own, "update profiles set contact_whatsapp='no-es-un-numero' where id=%s", (own,)), True)
-eq("registro con interés agente copia su WhatsApp", one("select contact_whatsapp from profiles where id=%s", (emp,)), None)
-# idempotencia del SQL
+# ── contrato de exclusividad: agentes y empresas sí, propietarios no
+DATA = '{}'
+chk("un propietario no genera contratos", as_(own, "select create_exclusivity_contract(%s::jsonb,'key-prop-0001')", (DATA,)), True)
+r = as_(own, "select create_exclusivity_contract(%s::jsonb,'key-prop-0002')", (DATA,))
+eq("el mensaje explica por qué", 'agente o de empresa' in r[1], True)
+
+# ── historial: las tablas de suscripción se conservan, sin funciones que las usen
+eq("tablas históricas conservadas", one("select count(*) from information_schema.tables where table_schema='public' and table_name in ('subscriptions','subscription_plans','subscription_requests','subscription_events','featured_activations','trial_claims')"), 6)
+eq("sin funciones de planes", one("select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('my_subscription','request_subscription','admin_grant_subscription','_activate_subscription','start_free_trial','renew_property','enforce_plan_on_reactivate')"), 0)
+
 su("select 1")
-for _ in range(2): cur.execute(tail)
-print("registration.sql re-corrido sin error")
+rs = open(R_ + "retire-subscriptions.sql", encoding="utf-8").read()
+for _ in range(2): cur.execute(rs)
+print("retire-subscriptions.sql re-corrido sin error (idempotente)")
 print("FALLAS:", fails); sys.exit(1 if fails else 0)

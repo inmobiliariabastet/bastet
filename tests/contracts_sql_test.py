@@ -29,7 +29,8 @@ adm, a1, a2 = [r[0] for r in cur.fetchall()]
 cur.execute("alter table public.profiles disable trigger protect_profile_privileged")
 cur.execute("update public.profiles set role='admin' where id=%s", (adm,))
 cur.execute("update public.profiles set display_name='Ana Agente' where id=%s", (a1,))
-cur.execute("select public._activate_subscription(%s,'agente','admin',null,null)", (a1,))
+cur.execute("update public.profiles set interest='agente', registered_at=now() where id=%s", (a1,))
+cur.execute("update public.profiles set interest='propietario', registered_at=now() where id=%s", (a2,))   # a2 es propietario: no genera contratos
 fails = 0
 
 def as_(uid, sql, args=None):
@@ -77,12 +78,12 @@ DATA = {
 D = lambda **kw: json.dumps({**DATA, **kw})
 create = "select create_exclusivity_contract(%s::jsonb, %s)"
 
-# ── sin suscripción
+# ── cuenta de propietario (sin herramientas de agente)
 r = as_(a2, create, (D(), 'key-0000-aaaa'))
-chk("sin suscripción: error", r, True)
-eq("sin suscripción: mensaje", 'suscripción' in r[1], True)
-eq("sin suscripción: no hay contrato", count("select count(*) from exclusivity_contracts"), 0)
-eq("sin suscripción: contador sin usar", count("select count(*) from exclusivity_contract_counters"), 0)
+chk("cuenta de propietario: error", r, True)
+eq("cuenta de propietario: mensaje", 'agente o de empresa' in r[1], True)
+eq("cuenta de propietario: no hay contrato", count("select count(*) from exclusivity_contracts"), 0)
+eq("cuenta de propietario: contador sin usar", count("select count(*) from exclusivity_contract_counters"), 0)
 
 # ── genera con el plan (sin cobrar créditos)
 r = as_(a1, create, (D(), 'key-0001-aaaa')); chk("crea con el plan Agente", r, False)
@@ -95,7 +96,7 @@ eq("credits_charged = 0", count("select credits_charged from exclusivity_contrac
 r2 = as_(a1, create, (D(propietario_nombre='Otro Propietario'), 'key-0002-aaaa')); res2 = r2[1][0][0]
 eq("segundo contrato correlativo 0002", res2['contract_number'], 'BST-CE-%d-0002' % yr)
 cur.execute("reset role"); cur.execute("select set_config('request.jwt.claim.sub','',false)")
-cur.execute("select public._activate_subscription(%s,'agente','admin',null,null)", (a2,))
+cur.execute("update public.profiles set interest='agente', registered_at=now() where id=%s", (a2,))
 
 # ── idempotencia
 r3 = as_(a1, create, (D(), 'key-0001-aaaa')); chk("misma llave: no falla", r3, False); res3 = r3[1][0][0]

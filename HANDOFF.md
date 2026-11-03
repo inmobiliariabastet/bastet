@@ -13,7 +13,7 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 | Fase | Contenido | Estado |
 |---|---|---|
 | 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped: gratis 4 h tras verificar el pago, después 20 %; anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
-| 2 | Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
+| 2 | **Paso A ✅ (suscripción retirada)**; paso B pendiente. Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
 | 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | pendiente |
 | 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | pendiente |
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | pendiente |
@@ -141,6 +141,13 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+### 2026-11-03 · Fase 2 · paso A: se retira el modelo de suscripción
+Decisiones de la dueña: **publicar libre, sin tope y sin vencimiento**; **solo administración destaca** propiedades; **contrato de exclusividad para cualquier cuenta de agente o empresa** (no propietario); los servicios de propietario («Mi gestión», ofertas, asesoría legal) siguen por tipo de cuenta (`profiles.interest`: propietario/agente/empresa).
+- **SQL:** `supabase/retire-subscriptions.sql` (al final de `schema.sql`; idempotente; **correr después de todo lo demás**). Reemplaza el trigger de publicar (sin tope, `expires_at` null), quita el trigger de reactivar, `renew_property` y todas las funciones de planes/prueba (`my_subscription`, `request_subscription`, `admin_grant_subscription`, `_activate_subscription`, `start_free_trial`…); `feature_property` solo admin; nuevo **`my_account()`** (tipo de cuenta, registrado, propiedades activas); `complete_registration` sin prueba (firma igual, `p_start_trial` se ignora); contrato/ofertas/servicios legales/directorio por `interest`. **No borra datos:** `subscriptions`, `subscription_plans`, `subscription_requests`, `subscription_events`, `featured_activations`, `trial_claims` quedan como historial (se pueden eliminar luego). Pone `expires_at = null` a todas las propiedades.
+- **Pantalla:** fuera la pestaña Suscripción, la tarjeta del plan, la pestaña Pagos (de planes) y `subscription.js`/`payments.js`; `publications.js` y `onboarding.js` reescritos (evento `uno:account`, sin prueba ni planes); `owner-services.js`, `contracts-ui.js`, lista de Usuarios y `app.html` por tipo de cuenta. `subscription.css` queda solo por los estilos `.ob-*` del formulario de registro. El bucket `payment-proofs` se conserva para reutilizarlo en el pago de tarifas por conexión (paso B).
+- **Pruebas:** `subscriptions_sql_test.py` retirada; `registration_sql_test.py` reescrita; `contracts*`, `owner_services` adaptadas. Todas las suites SQL en 0 fallas.
+- **Falta (paso B):** tarifas por conexión (matriz editable), solicitud de contacto, aceptación del agente, pago de la tarifa con comprobante, revelado del contacto, constancia por conexión y contrato marco (texto requiere revisión jurídica).
 
 ### 2026-11-03 · Verificación pública de reservas y etiqueta «EN USO»
 - **Verificar** (`verificar.html`) acepta también el código de RESERVA (10 caracteres): muestra «✓ Reserva verificada» (pago del 10 % verificado), historial, ubicación (con enlace al mapa), fotos, WhatsApp del anfitrión (solo con pago verificado y no cancelada), calendario de noches apartadas y resumen del pago. Nunca teléfono/correo del huésped ni comprobantes. Código en `assets/js/verify-stay.js`; RPC `verify_stay_booking` (anon).

@@ -18,10 +18,10 @@ const plans = [{code:'propietario',name:'Propietario',price_bs:150,max_active_pr
 const photo = (i) => ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600','https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600','https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600'][i % 3];
 const props = [0,1,2,3].map((i) => ({id:'p'+i,title:['Casa en Achumani','Departamento Sopocachi','Casa minimalista','Terreno en Calacoto'][i],location:['La Paz, Achumani','La Paz, Sopocachi','Cochabamba','La Paz, Calacoto'][i],address:'Calle 31',price:['600000','185000','100000','95000'][i],currency:['BOB','USD','USD','USD'][i],area:'250',rooms:'4 habitaciones',baths:'3',description:'Excelente propiedad.',photos:[photo(i)],whatsapp:'70012345',owner_id:'u1',featured:i===0,featured_until:i===1?iso(10):null,sort_order:i,status:i===3?'sold':'available',created_at:iso(-20),code_number:1001+i,property_type:['casa','departamento','casa','terreno'][i],operation:['venta','alquiler','venta','venta'][i],expires_at:iso(i===2?3:12),last_renewed_at:null,auto_renew:false}));
 const sub = {
-  agent:{exempt:false,status:'active',source:'payment',plan:plans[1],period_start:iso(-18),period_end:iso(12),cancel_at_period_end:false,usage:{active_properties:3,featured_used:1},pending_request:null},
-  owner:{exempt:false,status:'active',source:'payment',plan:plans[0],period_start:iso(-18),period_end:iso(12),cancel_at_period_end:false,usage:{active_properties:2,featured_used:0},pending_request:null},
-  admin:{exempt:true,status:'admin',plan:null,usage:{active_properties:3,featured_used:0},pending_request:null},
-  none:{exempt:false,status:'none',registered:false,trial_eligible:true,plan:null,usage:{active_properties:0,featured_used:0},pending_request:null},
+  agent:{exempt:false,registered:true,interest:'agente',account:{type:'agente',name:'Agente',agent_tools:true},active_properties:3},
+  owner:{exempt:false,registered:true,interest:'propietario',account:{type:'propietario',name:'Propietario',agent_tools:false},active_properties:2},
+  admin:{exempt:true,registered:true,interest:null,account:{type:'admin',name:'Administrador',agent_tools:true},active_properties:3},
+  none:{exempt:false,registered:false,interest:null,account:{type:'agente',name:'Agente',agent_tools:true},active_properties:0},
 }[ROLE === 'admin' ? 'admin' : ROLE === 'owner' ? 'owner' : ROLE === 'none' ? 'none' : 'agent'];
 const profile = {id:'u1',email:'ana@bastet.uno',role:ROLE==='admin'?'admin':'agent',is_active:true,display_name:'Ana Agente',avatar_url:null,facebook_url:null,instagram_url:null,tiktok_url:null};
 const offer = (id,status) => ({id,doc_number:'BST-CO-2026-000'+id,status,created_at:iso(-2),responded_at:null,response_note:null,property_data:{title:'Casa en Achumani',location:'La Paz, Achumani',price:'600000',currency:'BOB',operation:'venta',code_number:1001},owner_data:{nombre:'María Mondaca',ci:'4764766',telefono:'70012345',email:'m@x.com'},agent_data:{nombre:'Ana Agente'},terms:{comision_porcentaje:3,plazo_dias:90,exclusividad:true,mensaje:'Visitas por la tarde'},agent_id:'u1',owner_id:'u9'});
@@ -44,7 +44,7 @@ function q(t){ let single=false; const o={then(r,j){ let d=rows[t]||[]; if(singl
 const cl = {
   auth:{ getSession:async()=>({data:{session:{user:{id:'u1',email:'ana@bastet.uno'}}}}), getUser:async()=>({data:{user:{id:'u1',email:'ana@bastet.uno'}}}), onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}, signOut:async()=>({error:null}), signInWithOAuth:async()=>({error:null}) },
   from:q,
-  rpc:async(n)=>{ if(n==='complete_registration'){ sub.registered=true; sub.trial_eligible=false; return {data:sub,error:null}; } if(n==='my_subscription') return {data:sub,error:null}; if(n==='list_agent_directory') return {data:[{id:'a1',display_name:'Ana Agente',plan_name:'Agente',active_properties:5},{id:'a2',display_name:'Beto Empresa',plan_name:'Empresa',active_properties:30}],error:null}; return {data:null,error:null}; },
+  rpc:async(n)=>{ if(n==='complete_registration'){ sub.registered=true; return {data:sub,error:null}; } if(n==='my_account') return {data:sub,error:null}; if(n==='list_agent_directory') return {data:[{id:'a1',display_name:'Ana Agente',plan_name:'Agente',active_properties:5},{id:'a2',display_name:'Beto Empresa',plan_name:'Empresa',active_properties:30}],error:null}; return {data:null,error:null}; },
   storage:{from:()=>({remove:async()=>({}),upload:async()=>({error:null}),getPublicUrl:()=>({data:{publicUrl:''}})})},
   functions:{invoke:async()=>({data:{ok:true},error:null})},
 };

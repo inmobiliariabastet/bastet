@@ -1,7 +1,7 @@
-/* Servicios del plan Propietario y bandeja del agente.
- *  · Pestaña "Mi gestión" (plan Propietario): resumen, directorio de agentes registrados, ofertas de colaboración (con su documento en PDF)
+/* Servicios de las cuentas de propietario y bandeja del agente.
+ *  · Pestaña "Mi gestión" (cuentas de propietario): resumen, directorio de agentes registrados, ofertas de colaboración (con su documento en PDF)
  *    y solicitudes a Maat Fima Legal (asesoramiento, trámites, saneamiento, impuestos…).
- *  · Pestaña "Ofertas recibidas" (planes con herramientas de agente, y administradores): aceptar o rechazar las ofertas de propietarios.
+ *  · Pestaña "Ofertas recibidas" (cuentas de agente y empresa, y administradores): aceptar o rechazar las ofertas de propietarios.
  *  · Pestaña "Asesoría legal" (administradores): atender las solicitudes de los propietarios.
  * Todas las reglas las aplica la base de datos (supabase/owner-services.sql); aquí solo se muestran y se envían los datos.
  * Los documentos son BORRADORES sujetos a validación legal (así lo dicen en el PDF). Autónomo: usa el cliente global `supabaseClient`. */
@@ -19,7 +19,8 @@
   const OFFER_STATUS = { pending: 'Pendiente', accepted: 'Aceptada', rejected: 'Rechazada', canceled: 'Cancelada' };
   const OP_TEXT = { venta: 'Venta', alquiler: 'Alquiler', anticretico: 'Anticrético', temporal: 'Temporal' };
   const LEGAL_STATUS = { pending: 'Pendiente', in_review: 'En revisión', in_progress: 'En gestión', completed: 'Completada', cancelled: 'Cancelada' };
-  const hasPlan = (s) => !!s && (s.status === 'active' || s.status === 'canceling');
+  const isOwnerAccount = (s) => !!s && !s.exempt && s.account && s.account.type === 'propietario';
+  const hasAgentTools = (s) => !!s && (s.exempt === true || !!(s.account && s.account.agent_tools));
   const priceText = (p) => {
     const digits = String((p && p.price) || '').replace(/[^0-9]/g, '');
     if (!digits) return '';
@@ -56,7 +57,7 @@
     return state.uid;
   }
   async function loadSub() {
-    const { data, error } = await supabaseClient.rpc('my_subscription');
+    const { data, error } = await supabaseClient.rpc('my_account');
     state.sub = error ? null : data;
     return state.sub;
   }
@@ -86,7 +87,7 @@
     } finally { if (btn) { btn.disabled = false; btn.textContent = label || 'Descargar documento'; } }
   }
 
-  /* ═════════ Pestaña "Mi gestión" (plan Propietario) ═════════ */
+  /* ═════════ Pestaña "Mi gestión" (cuentas de propietario) ═════════ */
   const ownerRoot = () => document.getElementById('owner-root');
 
   async function loadOwner() {
@@ -96,8 +97,8 @@
     try {
       if (!(await currentUser())) { host.innerHTML = '<p class="credits-empty">Inicia sesión para continuar.</p>'; return; }
       const sub = await loadSub();
-      if (!hasPlan(sub) || sub.plan.code !== 'propietario') {
-        host.innerHTML = '<div class="os-lock"><h2>Esta sección es del plan Propietario</h2><p class="credits-muted">Con el plan Propietario puedes ofrecer tus propiedades a agentes registrados, pedir asesoría y trámites a Maat Fima Legal y administrar todo desde aquí.</p><button type="button" class="btn btn-accent" data-os-go="subscription">Ver planes</button></div>';
+      if (!isOwnerAccount(sub)) {
+        host.innerHTML = '<div class="os-lock"><h2>Esta sección es para cuentas de propietario</h2><p class="credits-muted">Las cuentas de propietario pueden ofrecer sus propiedades a agentes registrados, pedir asesoría y trámites a Maat Fima Legal y administrar todo desde aquí.</p></div>';
         return;
       }
       const nowIso = new Date().toISOString();
@@ -117,19 +118,18 @@
   }
 
   function summaryHtml(d) {
-    const s = d.sub, pl = s.plan, u = s.usage;
+    const s = d.sub;
     const pendingOffers = d.offers.filter((o) => o.status === 'pending').length;
     const acceptedOffers = d.offers.filter((o) => o.status === 'accepted').length;
     const openReqs = d.reqs.filter((r) => ['pending', 'in_review', 'in_progress'].includes(r.status)).length;
     const featuredNow = d.props.filter((p) => p.featured_until && new Date(p.featured_until) > new Date());
-    const days = Math.max(Math.ceil((new Date(s.period_end).getTime() - Date.now()) / 86400000), 0);
     const card = (label, big, sub) => '<div class="os-stat"><span>' + label + '</span><b>' + big + '</b><small>' + sub + '</small></div>';
     return '<div class="os-summary">' +
-      card('Propiedades activas', u.active_properties + ' / ' + pl.max_active_properties, u.active_properties >= pl.max_active_properties ? 'Cupo lleno' : (pl.max_active_properties - u.active_properties) + ' ' + plural(pl.max_active_properties - u.active_properties, 'cupo libre', 'cupos libres')) +
-      card('Propiedad destacada', u.featured_used + ' / ' + pl.max_featured_per_period, featuredNow.length ? esc(featuredNow[0].title) + ' (hasta ' + fdate(featuredNow[0].featured_until) + ')' : 'Este periodo') +
+      card('Propiedades activas', String(s.active_properties), 'Publicar es libre, sin tope') +
+      card('Propiedad destacada', String(featuredNow.length), featuredNow.length ? esc(featuredNow[0].title) + ' (hasta ' + fdate(featuredNow[0].featured_until) + ')' : 'Las destaca administración') +
       card('Ofertas a agentes', pendingOffers + ' pend.', acceptedOffers + ' ' + plural(acceptedOffers, 'aceptada', 'aceptadas')) +
       card('Solicitudes legales', openReqs + ' ' + plural(openReqs, 'abierta', 'abiertas'), 'Maat Fima Legal') +
-      card('Tu plan', esc(pl.name), 'Vence en ' + days + ' ' + plural(days, 'día', 'días') + ' · <button type="button" class="ct-link" data-os-go="subscription">Suscripción</button>') +
+      card('Tu cuenta', esc(s.account.name), 'Sin planes ni vencimientos') +
       '</div>';
   }
 
@@ -139,7 +139,7 @@
       .filter((x) => x[1]).map((x) => '<a class="os-soc" href="' + esc(x[1]) + '" target="_blank" rel="noopener" aria-label="' + x[2] + '"><img src="../assets/img/social-' + x[0] + '.svg" alt="' + x[2] + '"></a>').join('');
     return '<article class="os-agent" data-name="' + esc((a.display_name || '').toLowerCase()) + '">' +
       (a.avatar_url ? '<img class="os-avatar" src="' + esc(a.avatar_url) + '" alt="" loading="lazy">' : '<span class="os-avatar os-avatar--initial">' + esc(initial) + '</span>') +
-      '<div class="os-agent-info"><strong>' + esc(a.display_name) + '</strong><span class="credits-muted">Plan ' + esc(a.plan_name) + ' · ' + a.active_properties + ' ' + plural(a.active_properties, 'propiedad activa', 'propiedades activas') + '</span><span class="os-socs">' + soc + '</span></div>' +
+      '<div class="os-agent-info"><strong>' + esc(a.display_name) + '</strong><span class="credits-muted">Cuenta ' + esc(a.plan_name) + ' · ' + a.active_properties + ' ' + plural(a.active_properties, 'propiedad activa', 'propiedades activas') + '</span><span class="os-socs">' + soc + '</span></div>' +
       '<button type="button" class="btn btn-accent btn-sm" data-os-offer="' + esc(a.id) + '">Ofrecer una propiedad</button></article>';
   }
 
@@ -177,9 +177,9 @@
   function renderOwner(d) {
     ownerRoot().innerHTML = '<div id="owner-flash" hidden></div>' + summaryHtml(d) +
       '<h2 class="admin-subheading">Elegir un agente</h2>' +
-      '<p class="credits-muted">Agentes registrados en Bastet con un plan vigente. Ofrece una de tus propiedades con tus condiciones: el agente puede aceptar o rechazar.</p>' +
+      '<p class="credits-muted">Agentes y empresas registrados en Bastet. Ofrece una de tus propiedades con tus condiciones: el agente puede aceptar o rechazar.</p>' +
       (d.agents.length ? '<div class="field os-search"><label for="os-agent-search">Buscar por nombre</label><input type="search" id="os-agent-search" placeholder="Ej. Ana"></div><div class="os-agents" id="os-agents">' + d.agents.map(agentCard).join('') + '</div><p class="credits-empty hidden" id="os-agents-empty">Ningún agente coincide con la búsqueda.</p>'
-        : '<p class="credits-empty">Todavía no hay agentes con plan vigente para mostrar.</p>') +
+        : '<p class="credits-empty">Todavía no hay agentes para mostrar.</p>') +
       offersHtml(d) + legalHtml(d);
     bindOwner(d);
   }
@@ -273,8 +273,7 @@
     try {
       if (!(await currentUser())) { host.innerHTML = '<p class="credits-empty">Inicia sesión para continuar.</p>'; return; }
       const sub = await loadSub();
-      const allowed = sub && (sub.exempt || (hasPlan(sub) && sub.plan.agent_tools));
-      if (!allowed) { host.innerHTML = '<div class="os-lock"><h2>Las ofertas de propietarios llegan a los planes Agente y Empresa</h2><p class="credits-muted">Suscríbete para recibir ofertas de propietarios que buscan un agente.</p><button type="button" class="btn btn-accent" data-os-go="subscription">Ver planes</button></div>'; return; }
+      if (!hasAgentTools(sub)) { host.innerHTML = '<div class="os-lock"><h2>Las ofertas de propietarios llegan a las cuentas de agente y de empresa</h2><p class="credits-muted">Las cuentas de agente y de empresa reciben ofertas de propietarios que buscan un agente.</p></div>'; return; }
       let q = supabaseClient.from('owner_offers').select('*').order('created_at', { ascending: false }).limit(200);
       if (!sub.exempt) q = q.eq('agent_id', state.uid);
       const { data, error } = await q;
@@ -359,7 +358,7 @@
     }));
   }
 
-  /* ═════════ Navegación y visibilidad por plan ═════════ */
+  /* ═════════ Navegación y visibilidad por tipo de cuenta ═════════ */
   document.addEventListener('click', (e) => {
     const go = e.target.closest('[data-os-go]');
     if (go) { const tab = document.querySelector('.admin-tab[data-tab="' + go.dataset.osGo + '"]'); if (tab) tab.click(); return; }
@@ -368,14 +367,16 @@
     setTimeout(() => { ({ owner: loadOwner, offers: loadOffers, legal: loadLegal })[tab.dataset.tab](); }, 0);
   });
 
-  // "Mi gestión" solo para el plan Propietario; "Ofertas recibidas" para los planes con herramientas de agente y para el administrador
-  document.addEventListener('uno:subscription', (e) => {
+  // "Mi gestión" solo para cuentas de propietario; "Ofertas recibidas" para cuentas de agente y empresa y para el administrador
+  document.addEventListener('uno:account', (e) => {
     const s = e.detail;
-    const owner = hasPlan(s) && s.plan && s.plan.code === 'propietario';
-    const agent = !!s && (s.exempt || (hasPlan(s) && s.plan && s.plan.agent_tools));
+    const owner = isOwnerAccount(s);
+    const agent = hasAgentTools(s);
+    // Los contratos y las comisiones son herramientas de agente: la cuenta de propietario no las ve
+    document.querySelectorAll('.admin-tab[data-tab="contracts"], .admin-tab[data-tab="collections"]').forEach((t) => t.classList.toggle('hidden', !!s && !hasAgentTools(s)));
     document.querySelectorAll('.admin-tab[data-tab="owner"]').forEach((t) => t.classList.toggle('hidden', !owner));
     document.querySelectorAll('.admin-tab[data-tab="offers"]').forEach((t) => t.classList.toggle('hidden', !agent));
-    // La barra inferior del celular sigue a las pestañas: "Mi gestión" solo con plan Propietario; "Contratos" solo si la pestaña está visible
+    // La barra inferior del celular sigue a las pestañas: "Mi gestión" solo para propietarios; "Contratos" solo si la pestaña está visible
     const bar = document.getElementById('admin-bottombar');
     if (bar) {
       const side = document.getElementById('admin-side');
