@@ -19,7 +19,7 @@
     pago_verificado: ['Pago verificado', 'ok'], conexion_generada: ['Confirmada', 'ok'], cancelada: ['Cancelada', 'bad'], en_disputa: ['En disputa', 'bad'],
   };
   const DIRECT = { no_recibido: 'No recibió el saldo', recibido_con_comprobante: 'Recibió el saldo (con comprobante)', declarado_sin_comprobante: 'Dice haberlo recibido (sin comprobante)' };
-  let list = [], settings = null, busy = false, filter = 'activas';
+  let list = [], settings = null, hostAg = null, busy = false, filter = 'activas';
 
   function toast(msg, bad) {
     let el = document.getElementById('ct-toast');
@@ -92,10 +92,19 @@
       '<button class="btn btn-primary btn-sm" type="submit">Guardar reglas</button></form></section>';
   }
 
+  function hostAgreementCard() {
+    if (!isAdmin() || !hostAg) return '';
+    return '<section class="bk-settings"><h2>Acuerdo de anfitrión</h2><form id="bk-hostag-form">' +
+      '<label>Texto del acuerdo, versión ' + esc(hostAg.version) + ' <small>(lo aceptan los anfitriones antes de publicar una estadía temporal; <b>debe revisarlo un abogado en Bolivia</b>. Vacío = no se exige. Si cambias el texto, todos deberán aceptar la versión nueva)</small>' +
+      '<textarea id="bk-hostag" rows="8" maxlength="60000">' + esc(hostAg.text) + '</textarea></label>' +
+      '<p class="bk-fine">' + (hostAg.text ? 'Activo: ' + esc(hostAg.accepted_count) + ' anfitrión(es) aceptaron esta versión.' : 'Apagado: todavía no hay texto.') + '</p>' +
+      '<button class="btn btn-primary btn-sm" type="submit">Guardar acuerdo</button></form></section>';
+  }
+
   function draw() {
     const el = root(); if (!el) return;
     const shown = list.filter((b) => filter === 'todas' || isLive(b));
-    el.innerHTML = settingsCard() +
+    el.innerHTML = settingsCard() + hostAgreementCard() +
       '<div class="bk-filter"><button class="btn btn-sm ' + (filter === 'activas' ? 'btn-primary' : 'btn-ghost') + '" data-filter="activas">Activas</button><button class="btn btn-sm ' + (filter === 'todas' ? 'btn-primary' : 'btn-ghost') + '" data-filter="todas">Todas (18 meses)</button></div>' +
       (shown.length ? shown.map(card).join('') : '<p class="bk-empty">' + (list.length ? 'No hay reservas activas.' : 'Todavía no hay solicitudes de reserva.') + '</p>');
   }
@@ -105,7 +114,7 @@
     el.innerHTML = '<p class="bk-empty">Cargando…</p>';
     const { error } = await fetchList();
     if (error) { el.innerHTML = '<p class="form-error">' + (/function|schema cache/i.test(error.message || '') ? 'Las reservas todavía no están activadas en la base de datos (falta correr supabase/stay-bookings.sql).' : esc(error.message)) + '</p>'; return; }
-    if (isAdmin()) { const r = await supabaseClient.rpc('get_stay_settings'); settings = r.error ? null : r.data; }
+    if (isAdmin()) { const r = await supabaseClient.rpc('get_stay_settings'); settings = r.error ? null : r.data; const h = await supabaseClient.rpc('admin_get_host_agreement'); hostAg = h.error ? null : h.data; }
     draw();
   }
 
@@ -205,6 +214,14 @@
       p_pay_window_hours: document.getElementById('bk-pw').value === '' ? null : Number(document.getElementById('bk-pw').value) });
     if (error) { toast(error.message, true); return; }
     toast('Reglas guardadas'); load();
+  });
+
+  document.addEventListener('submit', async (e) => {
+    if (e.target.id !== 'bk-hostag-form') return;
+    e.preventDefault();
+    const { error } = await supabaseClient.rpc('admin_update_host_agreement', { p_text: document.getElementById('bk-hostag').value });
+    if (error) { toast(error.message, true); return; }
+    toast('Acuerdo guardado'); load();
   });
 
   // Mientras el panel está abierto, se actualiza solo (para ver solicitudes nuevas dentro de las 2 horas)

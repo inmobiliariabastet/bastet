@@ -59,7 +59,36 @@
       });
     });
   }
-  async function confirmPublish() { return ensureFramework(); }
+  /* Acuerdo de anfitrión (supabase/host-agreement.sql): quien publica una estadía temporal lo acepta una vez por versión. */
+  async function ensureHostAgreement() {
+    let f = null;
+    try { const { data, error } = await supabaseClient.rpc('my_host_agreement'); if (!error) f = data; } catch (e) { /* sin el SQL no hay acuerdo */ }
+    if (!f || !f.required || f.accepted) return true;
+    return new Promise((resolve) => {
+      const prev = document.getElementById('fw-overlay'); if (prev) prev.remove();
+      const o = document.createElement('div');
+      o.className = 'modal-overlay'; o.id = 'fw-overlay';
+      o.innerHTML = '<div class="modal-panel fw-panel" role="dialog" aria-modal="true" aria-labelledby="fw-title"><h2 id="fw-title">Acuerdo de anfitrión de Bastet</h2>' +
+        '<p class="fw-hint">Para publicar estadías temporales debes leer y aceptar este acuerdo (versión ' + esc(f.version) + '). Lo aceptas una sola vez.</p>' +
+        '<div class="fw-text" tabindex="0">' + esc(f.text) + '</div>' +
+        '<label class="fw-check"><input type="checkbox" id="fw-ok"> He leído y acepto el acuerdo de anfitrión de Bastet.</label>' +
+        '<p id="fw-err" class="form-error hidden"></p>' +
+        '<div class="modal-form-actions"><button type="button" class="btn btn-ghost" id="fw-cancel">Ahora no</button><button type="button" class="btn btn-accent" id="fw-accept" disabled>Aceptar y continuar</button></div></div>';
+      document.body.appendChild(o);
+      const done = (v) => { o.remove(); resolve(v); };
+      const ok = o.querySelector('#fw-ok'), go = o.querySelector('#fw-accept');
+      ok.addEventListener('change', () => { go.disabled = !ok.checked; });
+      o.querySelector('#fw-cancel').addEventListener('click', () => done(false));
+      go.addEventListener('click', async () => {
+        go.disabled = true; go.textContent = 'Guardando…';
+        const { error } = await supabaseClient.rpc('accept_host_agreement', { p_version: f.version });
+        if (error) { const er = o.querySelector('#fw-err'); er.textContent = error.message || 'No se pudo registrar tu aceptación.'; er.classList.remove('hidden'); go.disabled = false; go.textContent = 'Aceptar y continuar'; return; }
+        done(true);
+      });
+    });
+  }
+  // Una estadía temporal acepta el acuerdo de anfitrión; las demás operaciones, el contrato marco de conexiones
+  async function confirmPublish(title, operation) { return operation === 'temporal' ? ensureHostAgreement() : ensureFramework(); }
 
   /* Destacar (solo administración): confirma y llama a feature_property; la base de datos lo exige igual. */
   async function featureProperty(p) {
@@ -84,7 +113,7 @@
   });
 
   window.UnoPublications = {
-    refresh, decorateCard, confirmPublish, featureProperty, ensureFramework,
+    refresh, decorateCard, confirmPublish, featureProperty, ensureFramework, ensureHostAgreement,
     insufficientMessage: () => 'No se pudo publicar. Inténtalo de nuevo.',
     fillLine: () => {}, supportsAutoRenew: false,
     get account() { return state.account; },

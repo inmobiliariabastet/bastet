@@ -660,8 +660,9 @@ propertyForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Propiedad nueva: debe aceptar el contrato marco (la base de datos lo exige igual). Las estadías temporales no lo necesitan: no son venta ni tienen comisión de operación.
-  if (isNewProperty && payload.operation !== 'temporal' && window.UnoPublications && !(await window.UnoPublications.confirmPublish(payload.title))) return;
+  // Propiedad nueva: debe aceptar el contrato marco de conexiones; si es estadía temporal, el acuerdo de anfitrión (la base de datos lo exige igual).
+  const becomesStay = !isNewProperty && payload.operation === 'temporal' && (properties.find((p) => p.id === formState.id) || {}).operation !== 'temporal';
+  if ((isNewProperty || becomesStay) && window.UnoPublications && !(await window.UnoPublications.confirmPublish(payload.title, payload.operation))) return;
 
   const submitBtn = document.getElementById('property-form-submit');
   submitBtn.disabled = true;
