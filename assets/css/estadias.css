@@ -334,7 +334,8 @@
 .sbk-state { border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; font-size: 14.5px; }
 .sbk-state p { margin: 4px 0 0; }
 .sbk-wait { background: #FFF6DB; } .sbk-ok { background: #E7EFE4; } .sbk-bad { background: #F8E4E1; }
-.sbk-wa { display: block; margin-top: 12px; text-align: center; text-decoration: none; }
+.sbk-card a.sbk-wa, .sbk-card a.sbk-wa:visited { display: flex; justify-content: center; width: 100%; box-sizing: border-box; margin-top: 14px; padding: 15px 20px; color: #fff; background: var(--br-green, #3D4C3A); text-align: center; text-decoration: none; font-size: 17px; }
+.sbk-card a.sbk-wa:hover { background: var(--br-green-dark, #2F3B2D); color: #fff; }
 .sbk-pay { border: 1px solid var(--br-line, rgba(30,38,41,.2)); border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; }
 .sbk-pay h3 { margin: 0 0 8px; font-size: 16px; }
 .sbk-pay .srm-btn { margin-top: 12px; }

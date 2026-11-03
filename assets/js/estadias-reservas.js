@@ -128,7 +128,7 @@
           body += '<div class="sbk-state sbk-wait"><b>Estamos verificando tu pago</b><p>Cuando Bastet lo confirme te mostramos aquí el WhatsApp del anfitrión. Esta página se actualiza sola.</p></div>' + moneyBox(b) + cancelBtn; break;
         case 'conexion_generada': case 'pago_verificado':
           body += '<div class="sbk-state sbk-ok"><b>Pago verificado: tu reserva está confirmada</b><p>Coordina ahora con ' + esc(b.host_name || 'tu anfitrión') + ' la llegada y el pago del saldo.</p>' +
-            (b.host_whatsapp ? '<a class="srm-btn sbk-wa" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=' + esc(waPhone(b.host_whatsapp)) + '&text=' + encodeURIComponent('Hola, soy ' + b.guest_name + '. Reservé «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + ' (código ' + b.code + ').') + '">Escribir al anfitrión por WhatsApp</a>' : '') + '</div>' +
+            (b.host_whatsapp ? '<a class="sd-cta sbk-wa" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=' + esc(waPhone(b.host_whatsapp)) + '&text=' + encodeURIComponent('Hola, soy ' + b.guest_name + '. Reservé «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + ' (código ' + b.code + ').') + '">Escribir al anfitrión por WhatsApp</a>' : '') + '</div>' +
             moneyBox(b) + '<p class="sd-fine sbk-policy">El saldo (' + money(b.balance, b.currency) + ') lo pagas <b>directamente al anfitrión</b>: Bastet no lo recibe ni lo garantiza. ' +
             'Cancelación gratuita hasta el ' + ftime(b.free_cancel_until) + '; después se retiene el 20 % del total (10 % para Bastet y 10 % para el anfitrión).</p>' + cancelBtn; break;
         case 'cancelada':
