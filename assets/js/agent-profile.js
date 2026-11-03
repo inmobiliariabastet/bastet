@@ -42,7 +42,9 @@
           (cities.length ? ' · ' + esc(cities.slice(0, 3).join(', ')) : '') + '</p>' +
           (ops.length ? '<p class="ap-tags">' + ops.map((t) => '<span>' + esc(t) + '</span>').join('') + '</p>' : '') +
         '</div>' +
-        '<div class="ap-actions"><a class="ap-wa" id="ap-wa" href="' + esc(h.waUrl(msg, a.contact_whatsapp)) + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>' + (socials ? '<span class="ap-socials">' + socials + '</span>' : '') + '</div>' +
+        '<div class="ap-actions">' + (window.Connections && window.Connections.isOn()
+          ? '<p class="ap-note">Para contactar a este agente, solicita contacto desde una de sus propiedades.</p>'
+          : '<a class="ap-wa" id="ap-wa" href="#" data-wa-agent="' + esc(a.id) + '" data-wa-msg="' + esc(msg) + '">Escribir por WhatsApp</a>') + (socials ? '<span class="ap-socials">' + socials + '</span>' : '') + '</div>' +
         '<p class="ap-note">Bastet publica solo anuncios revisados. Para tu seguridad, coordina visitas y pagos a través de Bastet.</p>' +
         (list.length ? '<h3 class="ap-h">Propiedades de ' + esc((a.display_name || '').split(' ')[0] || 'este agente') + '</h3><ul class="ap-list">' +
           list.map((p, i) => {
@@ -55,7 +57,7 @@
       '</div>';
     document.body.appendChild(root);
     root.querySelector('[data-ap-close]').addEventListener('click', close);
-    root.querySelector('#ap-wa').addEventListener('click', () => { if (o.onContact) o.onContact(); });
+    const apWa = root.querySelector('#ap-wa'); if (apWa) apWa.addEventListener('click', () => { if (o.onContact) o.onContact(); });
     root.addEventListener('click', (e) => {
       const it = e.target.closest('[data-ap-i]'); if (!it) return;
       const p = list[Number(it.dataset.apI)];

@@ -1,0 +1,29 @@
+# Bastet · endurecimiento del sitio (2026-11-03)
+# 1) No se listan carpetas.  2) No se sirven archivos internos (documentación, SQL, pruebas, ocultos).  3) Cabeceras de seguridad.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Carpetas internas del repositorio: se publican con el sitio pero NO deben ser públicas
+RewriteRule ^(docs|tests|supabase|\.git|\.claude)(/|$) - [R=404,L]
+# Documentación interna de la raíz
+RewriteRule ^(HANDOFF|SETUP|PENDIENTES_NEGOCIO)\.md$ - [R=404,L]
+# Otros archivos de trabajo (las plantillas de contrato en /assets/contracts/*.md SÍ se usan y se excluyen)
+RewriteCond %{REQUEST_URI} !^/assets/
+RewriteRule \.(md|sql|py|log|bak|sh)$ - [R=404,L]
+# Archivos ocultos (salvo .well-known, que usan los certificados)
+RewriteRule (^|/)\.(?!well-known) - [R=404,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+# La cámara se usa solo para escanear el QR de verificación
+Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# Política de contenido: solo el propio sitio, Supabase, OpenStreetMap/Overpass y las librerías de jsDelivr/cdnjs.
+# Quedan permitidos los scripts en línea ('unsafe-inline') porque varias páginas los usan; se bloquean los scripts externos no listados,
+# los objetos incrustados, los formularios hacia otros sitios y que otra página incruste Bastet.
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://overpass-api.de https://overpass.kumi.systems https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests"
+</IfModule>

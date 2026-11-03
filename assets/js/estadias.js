@@ -70,8 +70,8 @@
   try { favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch (e) { favs = new Set(); }
   const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch (e) { /* sin almacenamiento: no se recuerdan */ } };
 
-  const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
-  const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp';
+  const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
+  const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url';
 
   async function load() {
     if (window.StayBooking) await window.StayBooking.init();
@@ -128,7 +128,6 @@
   const factsOf = (p) => [unit(p.rooms, 'habitación', 'habitaciones'), unit(p.baths, 'baño', 'baños'), /^\d+([.,]\d+)?$/.test(String(p.area ?? '').trim()) ? p.area + ' m²' : String(p.area ?? '').trim()].filter(Boolean);
 
   const isFeatured = (p) => !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
-  const waPhone = (p) => { const d = String((p.agent && p.agent.contact_whatsapp) || p.whatsapp || '').replace(/[^0-9]/g, ''); return /^[67][0-9]{7}$/.test(d) ? '591' + d : (d || WHATSAPP_GENERAL); };
   const firstName = (p) => (p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '');
   // Ocupación por reservas CONFIRMADAS (pago verificado): «EN USO» con la fecha en que vuelve a estar disponible, o «RESERVADA» si empieza más adelante.
   const addDay = (s, k) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + k); return d.toISOString().slice(0, 10); };
@@ -146,12 +145,12 @@
   const bookingOn = () => !!(window.StayBooking && window.StayBooking.isOn());
   const track = (id, type) => { if (id) supabaseClient.from('property_events').insert({ property_id: id, event_type: type }).then(() => {}, () => {}); };
 
-  function waLink(p) {
+  function waMsg(p) {
     const n = nights();
     const dates = n ? ' del ' + fdate(state.from) + ' al ' + fdate(state.to) + ' (' + n + ' ' + plural(n, 'noche', 'noches') + ')' : '';
     const msg = '[' + (formatPropertyCode(p) || 'Bastet') + '] Hola ' + (firstName(p) || 'Bastet') + ', quisiera reservar «' + p.title + '» en ' + p.location + dates +
       ' para ' + state.guests + ' ' + plural(state.guests, 'huésped', 'huéspedes') + '. ¿Está disponible?';
-    return 'https://api.whatsapp.com/send?phone=' + waPhone(p) + '&text=' + encodeURIComponent(msg);
+    return msg;
   }
 
   /* ───────── URL (se puede compartir una búsqueda) ───────── */
@@ -440,9 +439,9 @@
       '</div>' +
       (conflict ? '<p class="sd-conflict">Estas fechas no están disponibles: el alojamiento está ocupado alguna de esas noches. Elige otras en el calendario.</p>' : n && base !== null ? '<ul class="sd-sum sd-sum--detail"><li><span>Fechas</span><b>' + fdate(state.from) + ' – ' + fdate(state.to) + '</b></li><li><span>Huéspedes</span><b>' + state.guests + '</b></li><li><span>' + money(base, p.currency) + ' × ' + n + ' ' + plural(n, 'noche', 'noches') + '</span><b>' + money(base * n, p.currency) + '</b></li><li class="sd-sum-total"><span>Total estimado</span><b>' + money(base * n, p.currency) + '</b></li></ul><p class="sd-fine">Estimado: el anfitrión confirma el precio final y la disponibilidad.</p>'
         : '<p class="sd-fine">Elige llegada y salida para calcular tu estadía.</p>') +
-      (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">Fechas no disponibles</span>' : bookingOn() ? '<button type="button" class="sd-cta" id="sd-request" data-request>Solicitar reserva</button><p class="sd-fine">Todavía no pagas nada: el anfitrión responde en 2 horas.</p>' : '<a class="sd-cta" id="sd-wa" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '">Consultar disponibilidad por WhatsApp</a>');
+      (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">Fechas no disponibles</span>' : bookingOn() ? '<button type="button" class="sd-cta" id="sd-request" data-request>Solicitar reserva</button><p class="sd-fine">Todavía no pagas nada: el anfitrión responde en 2 horas.</p>' : '<a class="sd-cta" id="sd-wa" href="#" data-wa-prop="' + esc(p.id) + '" data-wa-msg="' + esc(waMsg(p)) + '">Consultar disponibilidad por WhatsApp</a>');
     const mb = $('sd-mobilebar');
-    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div>' + (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">No disponible</span>' : bookingOn() ? '<button type="button" class="sd-cta" data-request>Solicitar</button>' : '<a class="sd-cta" target="_blank" rel="noopener" href="' + esc(waLink(p)) + '" data-wa>Consultar</a>');
+    if (mb) mb.innerHTML = '<div>' + (base !== null ? '<b>' + money(base, p.currency) + '</b> <span>por noche</span>' : '<b>Consultar precio</b>') + (n && base !== null ? '<small>' + n + ' ' + plural(n, 'noche', 'noches') + ': ' + money(base * n, p.currency) + '</small>' : '') + '</div>' + (conflict ? '<span class="sd-cta is-disabled" aria-disabled="true">No disponible</span>' : bookingOn() ? '<button type="button" class="sd-cta" data-request>Solicitar</button>' : '<a class="sd-cta" href="#" data-wa-prop="' + esc(p.id) + '" data-wa-msg="' + esc(waMsg(p)) + '" data-wa>Consultar</a>');
   }
 
   detail.addEventListener('click', (e) => {

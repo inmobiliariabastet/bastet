@@ -602,7 +602,7 @@ function propertyWhatsappMessage(p) {
   const operationLabel = PROPERTY_OPERATION_LABELS[p.operation];
   // Solo se saluda al agente por su nombre si el mensaje le llega a él (la propiedad tiene su
   // WhatsApp); si no, va al número general de Bastet.
-  const agentFirstName = p.whatsapp && p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '';
+  const agentFirstName = p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '';
   return (code ? '[' + code + '] ' : '') +
     'Hola ' + (agentFirstName || 'Bastet') + ', me interesa la propiedad: ' + p.title +
     (operationLabel ? ' (' + operationLabel.toLowerCase() + ')' : '') +
@@ -623,7 +623,7 @@ function buildTileAgentHtml(property) {
       ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
       : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt=""></span>');
   // WhatsApp del agente (su perfil) o, si no lo tiene, el de la propiedad; sin ninguno, el número general de Bastet
-  const waIcon = '<a class="property-modal-social-link" href="' + (contactGated(property) ? '#' : escapeHtml(whatsappUrl(propertyWhatsappMessage(property), (agent && agent.contact_whatsapp) || property.whatsapp))) + '"' + (contactGated(property) ? '' : ' target="_blank" rel="noopener"') + ' data-tile-wa aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const waIcon = '<a class="property-modal-social-link" href="' + '#"' + (contactGated(property) ? '' : waAttrs(propertyWhatsappMessage(property), property.id)) + ' data-tile-wa aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   const socials = waIcon + (agent
     ? socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
       socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
@@ -650,11 +650,12 @@ function socialIconLink(url, kind, label) {
 
 // Columnas públicas explícitas (sin owner_whatsapp: es el teléfono privado del
 // propietario del inmueble, nunca debe llegar al landing público).
-const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,whatsapp,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
+const PUBLIC_PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,latitude,longitude';
 // Columnas públicas del agente (nunca email/role/is_active: ver política RLS "public can read active agent public info").
-const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,contact_whatsapp,facebook_url,instagram_url,tiktok_url';
+const PUBLIC_AGENT_COLUMNS = 'id,display_name,avatar_url,facebook_url,instagram_url,tiktok_url';
 // Con las conexiones activas (supabase/connections.sql) las propiedades de venta, alquiler y anticrético no muestran un WhatsApp directo:
 // el interesado pide contacto con el formulario de la ficha y el agente acepta. Las estadías temporales no entran (tienen su propio flujo).
+const waAttrs = (msg, propId) => ' data-wa-prop="' + escapeHtml(String(propId || '')) + '" data-wa-msg="' + escapeHtml(msg || '') + '"';   // el teléfono se pide al hacer clic (contact-shield.js)
 const contactGated = (p) => !!(window.Connections && window.Connections.isOn() && p && p.operation !== 'temporal');   // sin operación (listados antiguos) cuenta como venta
 
 async function loadProperties() {
@@ -664,8 +665,6 @@ async function loadProperties() {
     .select(columns)
     .eq('status', 'available')
     .order('sort_order', { ascending: true });
-  // Renovaciones automáticas pendientes (la base de datos lo limita a una corrida cada 5 minutos); sin el SQL simplemente no hace nada.
-  try { await Promise.race([supabaseClient.rpc('process_auto_renewals'), new Promise((r) => setTimeout(r, 1500))]); } catch (e) { /* sin el SQL */ }
 
   // Solo propiedades vigentes (30 días desde su publicación; las vencidas se ocultan hasta que se renueven).
   const fetchActive = (columns) => fetchProperties(columns).or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
@@ -1134,7 +1133,7 @@ function buildAgentSectionHtml(agent, property, message) {
     : (hasAgent
       ? '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
       : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
-  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + (contactGated(property) ? '#' : escapeHtml(whatsappUrl(message, (hasAgent && agent.contact_whatsapp) || (property && property.whatsapp)))) + '"' + (contactGated(property) ? '' : ' target="_blank" rel="noopener"') + ' aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(a.display_name || 'Bastet') + '" title="' + (contactGated(property) ? 'Solicitar contacto' : 'Escribir por WhatsApp') + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + '#"' + (contactGated(property) ? '' : waAttrs(message, property && property.id)) + ' aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(a.display_name || 'Bastet') + '" title="' + (contactGated(property) ? 'Solicitar contacto' : 'Escribir por WhatsApp') + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
   agent = a;   // el resto de la función usa `agent`
   const socials = waIcon +
     socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
@@ -1163,7 +1162,6 @@ function renderModal() {
   const message = propertyWhatsappMessage(p);
   const features = propertyFeatureList(p).filter((f) => f.label !== 'Tipo' && f.label !== 'Operación');
   const agent = p.agent;
-  const waHref = whatsappUrl(message, (agent && agent.contact_whatsapp) || p.whatsapp);
   const faved = !!(window.PropFavs && window.PropFavs.has(p.id));
   const HEART_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>';
   const spec = (label, v) => (v ? '<div><p class="property-modal-spec-label">' + label + '</p><p class="property-modal-spec-value">' + escapeHtml(v) + '</p></div>' : '');
@@ -1208,7 +1206,7 @@ function renderModal() {
     '</div>' +
     '<div class="ps-bar">' +
       (window.PropFavs ? '<button type="button" class="ps-save' + (faved ? ' is-on' : '') + '" id="ps-save" aria-pressed="' + faved + '">' + HEART_SVG + '<span>' + (faved ? 'Guardada' : 'Guardar') + '</span></button>' : '') +
-      '<a class="ps-wa" id="ps-wa" href="' + (contactGated(p) ? '#' : escapeHtml(waHref)) + '"' + (contactGated(p) ? '' : ' target="_blank" rel="noopener"') + '>' + (contactGated(p) ? 'Solicitar contacto' : 'Consultar por WhatsApp') + '</a>' +
+      '<a class="ps-wa" id="ps-wa" href="' + '#"' + (contactGated(p) ? '' : waAttrs(message, p.id)) + '>' + (contactGated(p) ? 'Solicitar contacto' : 'Consultar por WhatsApp') + '</a>' +
     '</div>';
 
   // El formulario vive fuera del innerHTML para no perder lo escrito al cambiar de foto.

@@ -7,7 +7,7 @@ srv = pgserver.get_server(tempfile.mkdtemp(prefix='uno-pg-'), cleanup_mode='dele
 uri = srv.get_uri()
 R_ = str(ROOT / "supabase") + "/"
 sch = open(R_ + "schema.sql", encoding='utf-8').read()
-core = sch[:sch.index("-- ── Tabla property_events")]
+core = sch   # esquema COMPLETO (con políticas de seguridad y permisos), igual que la base real
 stub = """
 create role anon nologin; create role authenticated nologin;
 create schema auth; create schema storage; create function storage.foldername(name text) returns text[] language sql immutable as $fn$ select (string_to_array(name,'/'))[1:greatest(array_length(string_to_array(name,'/'),1)-1,0)] $fn$;

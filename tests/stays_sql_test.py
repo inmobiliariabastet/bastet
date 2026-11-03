@@ -7,7 +7,7 @@ srv = pgserver.get_server(tempfile.mkdtemp(prefix='uno-pg-'), cleanup_mode='dele
 uri = srv.get_uri()
 R_ = str(ROOT / "supabase") + "/"
 sch = open(R_ + "schema.sql", encoding='utf-8').read()
-core = sch[:sch.index("-- ── Tabla property_events")]
+core = sch   # esquema COMPLETO (con políticas de seguridad y permisos), igual que la base real
 i = sch.index("-- UNO · Créditos para agentes")
 tail = sch[sch.rindex("\n", 0, i - 5) + 1:]
 mk = tail.index("-- =====================================================================" + chr(10) + "-- UNO · Registro de nuevos usuarios")
@@ -91,7 +91,8 @@ chk("anónimo lee columnas públicas", as_(None, "select id, title, price, photo
 chk("anónimo NO lee owner_whatsapp", as_(None, "select owner_whatsapp from properties"), True)
 chk("anónimo NO lee select *", as_(None, "select * from properties"), True)
 chk("anónimo NO lee auto_renew", as_(None, "select auto_renew from properties"), True)
-chk("el dueño autenticado sí lee owner_whatsapp", as_(own, "select owner_whatsapp from properties where id=%s", (pT,)), False)
+chk("ni el dueño autenticado lee owner_whatsapp directo (B2: lo pide con my_property_contacts)", as_(own, "select owner_whatsapp from properties where id=%s", (pT,)), True)
+chk("el dueño lee su teléfono privado con my_property_contacts()", as_(own, "select owner_whatsapp from my_property_contacts() where property_id=%s", (pT,)), False)
 
 # --- tablas de reseñas: nadie las toca directo
 chk("anónimo no lee reseñas directo", as_(None, "select * from stay_reviews"), True)

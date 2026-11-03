@@ -166,9 +166,19 @@ function applyRoleUI() {
 let properties = [];
 const propertyListEl = document.getElementById('property-list');
 
+// Columnas que puede leer una cuenta con sesión; los teléfonos (WhatsApp de la propiedad y del propietario) se piden con my_property_contacts()
+const PROPERTY_COLUMNS = 'id,title,location,address,price,currency,exchange_rate,area,rooms,baths,description,photos,owner_id,featured,featured_until,sort_order,status,created_at,code_number,property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,latitude,longitude';
+async function attachContacts(rows) {
+  if (!rows || !rows.length) return rows;
+  const { data } = await supabaseClient.rpc('my_property_contacts');
+  const by = {}; (data || []).forEach((c) => { by[c.property_id] = c; });
+  rows.forEach((p) => { const c = by[p.id]; p.whatsapp = c ? c.whatsapp : null; p.owner_whatsapp = c ? c.owner_whatsapp : null; });
+  return rows;
+}
+
 async function loadProperties() {
   propertyListEl.innerHTML = '<p class="property-empty">Cargando propiedades…</p>';
-  let query = supabaseClient.from('properties').select('*').order('sort_order', { ascending: true });
+  let query = supabaseClient.from('properties').select(PROPERTY_COLUMNS).order('sort_order', { ascending: true });
   if (!currentProfile || currentProfile.role !== 'admin') {
     query = query.eq('owner_id', currentSession.user.id);
   }
@@ -178,7 +188,7 @@ async function loadProperties() {
     propertyListEl.innerHTML = '<p class="property-empty">Error al cargar propiedades: ' + escapeHtml(error.message) + '</p>';
     return;
   }
-  properties = data || [];
+  properties = await attachContacts(data || []);
   renderPropertyList();
   // Calendario de no disponibilidad de las temporales (sin el SQL simplemente no aparece el aviso)
   if (window.StayAvailability && properties.some((p) => p.operation === 'temporal')) window.StayAvailability.refresh().then((ok) => { if (ok) renderPropertyList(); });
@@ -1311,7 +1321,7 @@ async function openUserProperties(user) {
 
   const { data, error } = await supabaseClient
     .from('properties')
-    .select('*')
+    .select(PROPERTY_COLUMNS)
     .eq('owner_id', user.id)
     .order('sort_order', { ascending: true });
 

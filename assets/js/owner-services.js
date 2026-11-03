@@ -105,12 +105,13 @@
       const [dirRes, offersRes, propsRes, typesRes, reqsRes] = await Promise.all([
         supabaseClient.rpc('list_agent_directory'),
         supabaseClient.from('owner_offers').select('*').eq('owner_id', state.uid).order('created_at', { ascending: false }).limit(100),
-        supabaseClient.from('properties').select('id,title,code_number,status,expires_at,featured_until,owner_whatsapp').eq('owner_id', state.uid).eq('status', 'available').or('expires_at.is.null,expires_at.gt.' + nowIso).order('code_number'),
+        supabaseClient.from('properties').select('id,title,code_number,status,expires_at,featured_until').eq('owner_id', state.uid).eq('status', 'available').or('expires_at.is.null,expires_at.gt.' + nowIso).order('code_number'),
         supabaseClient.from('legal_service_types').select('*').eq('active', true).order('sort_order'),
         supabaseClient.from('legal_requests').select('*').eq('user_id', state.uid).order('created_at', { ascending: false }).limit(50),
       ]);
       const failed = [dirRes, offersRes, propsRes, typesRes, reqsRes].find((r) => r.error);
       if (failed) throw failed.error;
+      { const pc = await supabaseClient.rpc('my_property_contacts'); const by = {}; ((pc && pc.data) || []).forEach((c) => { by[c.property_id] = c; }); (propsRes.data || []).forEach((p) => { p.owner_whatsapp = by[p.id] ? by[p.id].owner_whatsapp : null; }); }
       renderOwner({ sub, agents: dirRes.data || [], offers: offersRes.data || [], props: propsRes.data || [], types: typesRes.data || [], reqs: reqsRes.data || [] });
     } catch (e) {
       host.innerHTML = '<p class="form-error">No se pudo cargar esta sección. ' + esc(errText(e)) + ' (¿ya se corrió supabase/owner-services.sql?)</p>';

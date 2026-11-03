@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 srv = pgserver.get_server(tempfile.mkdtemp(prefix='uno-pg-'), cleanup_mode='delete')
 R_ = str(ROOT / "supabase") + "/"
 sch = open(R_ + "schema.sql", encoding='utf-8').read()
-core = sch[:sch.index("-- ── Tabla property_events")]
+core = sch   # esquema COMPLETO (con políticas de seguridad y permisos), igual que la base real
 i = sch.index("-- UNO · Créditos para agentes")
 tail = sch[sch.rindex(chr(10), 0, i - 5) + 1:]
 stub = """
