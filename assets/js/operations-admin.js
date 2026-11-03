@@ -82,6 +82,7 @@
     if (adm) {
       if (['en_revision', 'pendiente_interesado'].includes(o.status)) acts.push('<button class="btn btn-primary btn-sm" data-act="resolve-confirm">Confirmar con comisión</button><button class="btn btn-ghost btn-sm" data-act="resolve-free">Cerrar sin comisión</button><button class="btn btn-ghost btn-sm" data-act="resolve-reject">Rechazar</button>');
       if (o.commission_status === 'comprobante_enviado') acts.push('<button class="btn btn-ghost btn-sm" data-act="proof">Ver comprobante</button><button class="btn btn-primary btn-sm" data-act="verify">Verificar pago</button><button class="btn btn-ghost btn-sm" data-act="deny">Rechazar comprobante</button>');
+      if (o.status === 'confirmada' && o.kind !== 'desistimiento') acts.push('<button class="btn btn-ghost btn-sm" data-act="investigate">Abrir investigación</button>');
       acts.push('<button class="btn btn-ghost btn-sm" data-act="events">Historial</button>');
     }
     return h + (acts.length ? '<div class="bk-actions">' + acts.join('') + '</div>' : '') + '</article>';
@@ -242,6 +243,7 @@
       case 'resolve-reject': return decide('rechazar', 'Explica por qué se rechaza (queda en el historial):');
       case 'events': return showEvents(o);
       case 'acta': return openActa(o);
+      case 'investigate': { const s = window.prompt('Describe los hechos que se investigan (mínimo 10 caracteres):'); if (s) run(() => supabaseClient.rpc('admin_open_investigation', { p_kind: 'ocultamiento_operacion', p_subject: null, p_operation: o.id, p_connection: null, p_booking: null, p_property: null, p_summary: s }), 'Investigación abierta: revísala en la pestaña Investigaciones'); return; }
       default: return;
     }
   });
