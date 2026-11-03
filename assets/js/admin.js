@@ -201,6 +201,7 @@ const CHECK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" 
 const MINUS_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>';
 
 function propertyStatusLabel(property) {
+  if (property.status === 'withdrawn') return 'Retirada';
   if (property.status !== 'sold') return 'Disponible';
   return { alquiler: 'Alquilada', anticretico: 'En anticrético', temporal: 'Ocupado' }[property.operation] || 'Vendida';
 }
@@ -217,7 +218,9 @@ function featureRowHtml(property) {
   const availBtn = isStay ? (st && st.now ? '<div class="prop-feature is-off"><span>' + escapeHtml(st.text) + '</span></div>' : '') +
     '<button type="button" class="prop-feature-btn prop-avail-btn" data-action="avail"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>' + (st ? 'Disponibilidad · ' + escapeHtml(st.text) : 'Disponibilidad (calendario)') + '</span></button>' : '';
   const reviewsBtn = property.operation === 'temporal' && window.StayReviewsAdmin ? '<button type="button" class="prop-feature-btn prop-reviews-btn" data-action="reviews"><span>★ Reseñas de huéspedes</span></button>' : '';
-  return availBtn + reviewsBtn + featureBtnHtml(property);
+  const closeBtn = property.status === 'available' && property.operation !== 'temporal' && window.OperationsAdmin && window.OperationsAdmin.isOn()
+    ? '<button type="button" class="prop-feature-btn prop-close-btn" data-action="close-op"><span>Cerrar operación (vendida · alquilada · retirar)</span></button>' : '';
+  return availBtn + reviewsBtn + closeBtn + featureBtnHtml(property);
 }
 function featureBtnHtml(property) {
   if (property.status !== 'available' || !window.UnoPublications) return '';
@@ -279,6 +282,8 @@ function renderPropertyList() {
     if (avBtn) avBtn.addEventListener('click', (e) => { e.stopPropagation(); window.StayAvailability.open(property, renderPropertyList); });
     const revBtn = card.querySelector('[data-action="reviews"]');
     if (revBtn) revBtn.addEventListener('click', (e) => { e.stopPropagation(); window.StayReviewsAdmin.open(property); });
+    const closeOpBtn = card.querySelector('[data-action="close-op"]');
+    if (closeOpBtn) closeOpBtn.addEventListener('click', (e) => { e.stopPropagation(); window.OperationsAdmin.openClosure(property); });
     const featBtn = card.querySelector('[data-action="feature"]');
     if (featBtn) featBtn.addEventListener('click', (e) => { e.stopPropagation(); if (window.UnoPublications) window.UnoPublications.featureProperty(property); });
     card.querySelector('[data-action="view"]').addEventListener('click', (e) => { e.stopPropagation(); openPropertyDetail(property); });
@@ -331,6 +336,7 @@ async function deleteProperty(property) {
     await Promise.all(property.photos.map((url) => removePhotoFromStorage(url)));
   }
   const { error } = await supabaseClient.from('properties').delete().eq('id', property.id);
+  if (error && /Cerrar operación/.test(error.message || '') && window.OperationsAdmin) { window.OperationsAdmin.openClosure(property); return; }   // tiene conexiones de Bastet
   if (error) { alert('Error al eliminar: ' + error.message); return; }
   loadProperties();
 }
@@ -689,8 +695,13 @@ propertyForm.addEventListener('submit', async (e) => {
 
   submitBtn.disabled = false;
 
+  if (error && /Cerrar operación/.test(error.message || '') && window.OperationsAdmin) {   // marcar vendida una propiedad con conexiones de Bastet exige registrar la operación
+    const prop = properties.find((p) => p.id === formState.id);
+    closePropertyForm();
+    if (prop) window.OperationsAdmin.openClosure(prop);
+    return;
+  }
   if (error) {
-    // Los límites del plan los aplica la base de datos: si no hay plan o el cupo está lleno, la propiedad no se crea
     formError.textContent = 'Error al guardar: ' + error.message;
     formError.classList.remove('hidden');
     if (window.UnoPublications) window.UnoPublications.refresh();

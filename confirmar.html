@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Confirmar operación — Bastet</title>
+<link rel="icon" href="assets/img/bastet-isotipo-cabeza.png">
+<link rel="stylesheet" href="assets/css/fonts.css?v=20261014b">
+<link rel="stylesheet" href="assets/css/legal.css?v=20261103a">
+</head>
+<body>
+<header class="legal-header"><div class="legal-header-inner">
+  <a class="legal-logo" href="index.html" aria-label="Bastet — ir al inicio"><img src="assets/img/bastet-logo-horizontal-color.webp" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="295"></a>
+  <a class="legal-back" href="index.html">← Volver al sitio</a>
+</div></header>
+<main class="legal-main">
+  <p class="legal-eyebrow">Confirmación</p>
+  <h1>Confirmar una operación</h1>
+  <div class="verify-card" id="cf-box" role="status" aria-live="polite"><p>Verificando tu enlace…</p></div>
+  <p class="legal-updated">Bastet registra esta operación para garantizar los derechos de todas las partes. No te pedimos datos personales: solo que confirmes si la operación se concretó.</p>
+</main>
+<footer class="legal-footer"><p>© 2026 Bastet Real State S.R.L. Todos los Derechos Reservados. · <a href="privacidad.html">Política de privacidad</a></p></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/supabase-config.js?v=20261014b"></script>
+<script>
+(function () {
+  'use strict';
+  var box = document.getElementById('cf-box');
+  var token = (new URLSearchParams(location.search).get('t') || '').toLowerCase().replace(/[^a-f0-9]/g, '');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var KIND = { venta: 'la venta', alquiler: 'el alquiler', anticretico: 'el anticrético' };
+  function show(cls, html) { box.className = 'verify-card ' + cls; box.innerHTML = html; }
+  async function init() {
+    if (token.length < 16) { show('is-bad', '<h2>Enlace no válido</h2><p>Revisa que el enlace esté completo.</p>'); return; }
+    var res = await supabaseClient.rpc('get_operation_confirmation', { p_token: token });
+    if (res.error) { show('is-bad', '<h2>No se pudo verificar</h2><p>Inténtalo de nuevo en unos minutos.</p>'); return; }
+    var d = res.data || {};
+    if (!d.valid && !d.answered) { show('is-bad', '<h2>Enlace no válido</h2><p>Este enlace no corresponde a ninguna operación.</p>'); return; }
+    if (d.answered) { show('is-ok', '<h2>Ya respondiste</h2><p>Gracias: esta operación ya fue registrada.</p>'); return; }
+    var money = Number(d.amount).toLocaleString('es-BO', { maximumFractionDigits: 2 }) + (d.currency === 'BOB' ? ' Bs' : ' USD');
+    show('', '<h2>¿Se concretó ' + esc(KIND[d.kind] || 'la operación') + '?</h2><p>El titular de <b>' + esc(d.title) + '</b>' + (d.location ? ' (' + esc(d.location) + ')' : '') + ' indica que se concretó ' + esc(KIND[d.kind] || 'la operación') + ' contigo por <b>' + esc(money) + '</b>' + (d.signed_date ? ', firmada el ' + esc(d.signed_date) : '') + '.</p>' +
+      '<div class="verify-row" style="margin-top:16px"><button class="verify-btn" id="cf-yes" type="button">Sí, se concretó</button><button class="verify-btn" id="cf-no" type="button" style="background:#fff;color:#3D4C3A">No</button></div>');
+    document.getElementById('cf-yes').addEventListener('click', function () { send(true); });
+    document.getElementById('cf-no').addEventListener('click', function () { send(false); });
+  }
+  async function send(ok) {
+    box.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+    var res = await supabaseClient.rpc('respond_operation_confirmation', { p_token: token, p_confirm: ok });
+    if (res.error) { show('is-bad', '<h2>No se pudo registrar</h2><p>' + esc(res.error.message || 'Inténtalo de nuevo.') + '</p>'); return; }
+    show(ok ? 'is-ok' : '', ok ? '<h2>✓ Operación confirmada</h2><p>Gracias. Bastet registró la operación.</p>' : '<h2>Respuesta registrada</h2><p>Bastet revisará el caso. Gracias por avisarnos.</p>');
+  }
+  init();
+})();
+</script>
+</body>
+</html>

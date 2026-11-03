@@ -631,3 +631,10 @@ a.btn { text-decoration: none; }
 .fw-hint { margin: 0 0 10px; font-size: 14px; color: rgba(30,38,41,.7); }
 .fw-text { max-height: 45vh; overflow: auto; white-space: pre-wrap; padding: 14px 16px; border: 1px solid rgba(30,38,41,.2); border-radius: 12px; background: #FAF8F5; font-size: 14px; line-height: 1.55; }
 .fw-check { display: flex; gap: 8px; align-items: flex-start; margin: 14px 0 6px; font-size: 14px; }
+
+/* Operaciones (operations-admin.js) */
+.op-panel { max-width: 560px; }
+.op-tabs { display: flex; gap: 8px; margin: 10px 0 12px; flex-wrap: wrap; }
+.op-panel label { display: block; margin: 10px 0; font-size: 14px; }
+.op-panel input[type=text], .op-panel input[type=number], .op-panel input[type=date], .op-panel select, .op-panel textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; background: #fff; }
+.prop-close-btn { margin-top: 6px; }

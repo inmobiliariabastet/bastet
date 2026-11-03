@@ -14,7 +14,7 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 |---|---|---|
 | 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped: gratis 4 h tras verificar el pago, después 20 %; anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
 | 2 | **Paso A ✅ (suscripción retirada); paso B ✅ (código + SQL + pruebas; falta correr el SQL y activar; B2 = blindaje de contacto pendiente).** Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
-| 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | pendiente |
+| 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | ✅ código + SQL + pruebas (falta correr `operations.sql`) |
 | 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | pendiente |
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | pendiente |
 | — | Historias/estados temporales: **NO se hacen** | decidido |
@@ -141,6 +141,15 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 - **Backend:** Supabase (proyecto `rtkcfmtwxkykjgkmyikg`, URL en `assets/js/supabase-config.js`).
 
 ## Historial de cambios (lo más reciente arriba)
+
+### 2026-11-03 · Fase 3: comisiones y cierre de operaciones (apagado con el interruptor de conexiones)
+Implementa 1.3 y 1.5 de `docs/ESPECIFICACION_MAESTRA.md`.
+- **SQL:** `supabase/operations.sql` (al final de `schema.sql`; idempotente; después de `connections.sql` y `security-hardening.sql`). Tablas `operations`, `operation_events`, `operation_counters`; ajustes en `connection_settings` (`sale_percent` 0,75, `anticretico_percent` 2, `rent_months` 1, `desist_text`/`desist_version`); nuevo estado de propiedad `withdrawn` (retirada). Rige solo con `connection_settings.enabled = true`.
+- **Protección:** una propiedad con conexiones aceptadas/en pago/verificadas NO se marca vendida ni se retira ni se borra a mano (trigger; el admin sí puede): hay que usar «Cerrar operación».
+- **Flujo:** el titular registra la operación (a quién, monto, moneda, fecha de firma). Si fue a la persona de una conexión verificada, ella confirma por `confirmar.html?t=TOKEN` (sin cuenta) → operación confirmada, constancia `BST-OP-AAAA-NNNN`, comisión **congelada en Bs con el tipo de cambio interno** (venta 0,75 % del precio; alquiler un mes de canon; anticrético 2 % del monto entregado), propiedad cerrada, comisión «exigible». Si fue a OTRA persona o el interesado no confirma: **sin atribución automática** → «en revisión», la propiedad sigue activa y administración decide (confirmar con comisión / cerrar sin comisión / rechazar, con motivo obligatorio). La comisión se paga con comprobante (bucket `connection-proofs`) y la verifica un admin.
+- **Desistimiento:** retirar una propiedad con conexiones exige aceptar una **declaración jurada digital** (el texto lo fija el admin en Operaciones; **debe redactarlo/revisarlo un abogado**; vacío = no se puede retirar).
+- **Pantalla:** `assets/js/operations-admin.js` (pestaña Operaciones + ventana «Cerrar operación»; botón en cada tarjeta; si el guardado/borrado choca con la protección abre la ventana), `confirmar.html`, estado «Retirada» en el panel. **Pruebas:** `python tests/operations_sql_test.py` (0 fallas).
+- **Límites:** la comisión se registra y se cobra a mano (sin pasarela); falta el ajuste/condonación de comisiones y el cierre de operaciones de Estadías (ya tienen su 10 %); la regla «venta a un familiar/allegado del interesado» la decide administración caso por caso.
 
 ### 2026-11-03 · Fase 2 · paso B2: blindaje de datos y antiabuso (auditoría de seguridad)
 **Auditoría (anónimo contra la API real + réplica local con el esquema COMPLETO):** el visitante no podía leer tablas privadas, pero SÍ `properties.whatsapp` y `profiles.contact_whatsapp`; cualquier cuenta con sesión (basta Google) leía TODAS las columnas de TODAS las propiedades (incluido `owner_whatsapp`, el teléfono privado) y las no disponibles; cualquier usuario activo podía borrar/reemplazar fotos de propiedades y avatares ajenos; el visitante tenía permisos de escritura frenados solo por la seguridad por filas; `HANDOFF.md`, `SETUP.md`, `docs/` y `tests/` se servían públicamente; sin cabeceras de seguridad ni límite de intentos.
