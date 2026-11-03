@@ -642,3 +642,15 @@ a.btn { text-decoration: none; }
 /* Verificación y reseñas (verification-admin.js) */
 .bk-pay input[type=text] { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; }
 .bk-actions select { padding: 9px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font: inherit; max-width: 100%; }
+
+/* Eliminar mi cuenta */
+.ad-card { margin-top: 22px; border: 1px solid rgba(160, 40, 40, .28); }
+.ad-card h2 { margin: 0 0 8px; font-size: 18px; color: #8a2b2b; }
+.ad-danger { color: #8a2b2b; border-color: rgba(160, 40, 40, .45); }
+.ad-danger:hover { background: rgba(160, 40, 40, .08); }
+.ad-danger-fill { background: #8a2b2b; color: #fff; border: 0; }
+.ad-danger-fill:disabled { opacity: .45; cursor: not-allowed; }
+.ad-panel { max-width: 520px; }
+.ad-list { margin: 8px 0 12px 18px; padding: 0; font-size: 14px; line-height: 1.5; }
+.ad-confirm { display: block; margin: 12px 0; font-size: 14px; }
+.ad-confirm input { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; border: 1px solid rgba(30,38,41,.25); border-radius: 10px; font-size: 16px; }
