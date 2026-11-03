@@ -2,7 +2,7 @@
  * estadías estilo carrusel, botón para registrarse como anfitrión y testimonios.
  *  · Buscador: arma el enlace a marketplace.html (op, ciudad, tipo) o a estadias.html (ciudad, llegada, salida, huespedes).
  *  · Filas: main.js carga las propiedades y llama a window.HomeFeed.render(lista); cada tarjeta abre la ficha en marketplace.html?p= o estadias.html?p=.
- *  · Anfitrión: guarda una pista (bastet-signup-hint) y abre el acceso con cuenta; onboarding.js la usa para proponer la cuenta de propietario.
+ *  · Anfitrión: el botón lo maneja assets/js/host-signup.js (todas las páginas públicas).
  *  · Testimonios: tabla testimonials (activos, por orden), uno grande que rota solo y una tira para elegir. */
 (function () {
   'use strict';
@@ -43,14 +43,6 @@
       location.href = 'marketplace.html?' + q.toString();
     });
   }
-
-  /* ───────── Anfitrión ───────── */
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-host-signup]')) return;
-    try { localStorage.setItem('bastet-signup-hint', 'anfitrion'); } catch (err) { /* sin almacenamiento: se elige el tipo de cuenta a mano */ }
-    const opener = document.querySelector('[data-agent-access]');
-    if (opener) opener.click(); else location.href = 'admin/';
-  });
 
   /* ───────── Filas de inmuebles y estadías ───────── */
   const TYPE = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };
