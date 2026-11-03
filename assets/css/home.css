@@ -10,7 +10,7 @@ body.home2 .hm-hero h1, body.home2 .hm-feed h2, body.home2 .hm-host h2, body.hom
 /* ───── Portada con buscador ───── */
 .hm-hero { position: relative; isolation: isolate; padding: clamp(112px, 15vw, 150px) var(--hm-gutter) clamp(44px, 6vw, 72px); color: #fff; overflow: hidden; }
 .hm-hero-media { position: absolute; inset: 0; z-index: -1; }
-.hm-hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 55%; display: block; }
+.hm-hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
 .hm-hero-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(31, 40, 29, .72) 0%, rgba(31, 40, 29, .56) 45%, rgba(31, 40, 29, .86) 100%); }
 .hm-hero-inner { max-width: var(--hm-wrap); margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; }
 body.home2 .hm-title { margin: 0; color: #fff; font-family: var(--font-serif); font-weight: 400; font-size: clamp(36px, 6.4vw, 68px); letter-spacing: -.01em; max-width: 19ch; text-wrap: balance; }
