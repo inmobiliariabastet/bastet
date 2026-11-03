@@ -1347,7 +1347,11 @@ async function loadPartners() {
     return;
   }
 
-  const logosHtml = data.map((p) => {
+  // Los espacios de relleno «Anuncie aquí» se reemplazan por una sola tarjeta «Hospeda a tu gente con nosotros» que invita a registrarse como anfitrión
+  const isPlaceholder = (p) => /anuncie-aqui/i.test(p.logo_url || '');
+  const shown = data.filter((p) => !isPlaceholder(p)).concat(data.some(isPlaceholder) ? [{ host: true, logo_url: 'assets/img/hospeda-a-tu-gente.webp' }] : []);
+  const logosHtml = shown.map((p) => {
+    if (p.host) return '<button type="button" class="partner-host" data-host-signup aria-label="Hospeda a tu gente con nosotros: regístrate como anfitrión"><img src="' + p.logo_url + '" alt="Hospeda a tu gente con nosotros" data-logo="' + p.logo_url + '"></button>';
     const img = '<img src="' + escapeHtml(p.logo_url) + '" alt="' + escapeHtml(p.name || 'Empresa aliada') + '" data-logo="' + escapeHtml(p.logo_url) + '">';
     return p.url
       ? '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(p.name || 'Empresa aliada') + '">' + img + '</a>'

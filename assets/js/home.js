@@ -45,11 +45,12 @@
   }
 
   /* ───────── Anfitrión ───────── */
-  document.querySelectorAll('[data-host-signup]').forEach((b) => b.addEventListener('click', () => {
-    try { localStorage.setItem('bastet-signup-hint', 'anfitrion'); } catch (e) { /* sin almacenamiento: se elige el tipo de cuenta a mano */ }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-host-signup]')) return;
+    try { localStorage.setItem('bastet-signup-hint', 'anfitrion'); } catch (err) { /* sin almacenamiento: se elige el tipo de cuenta a mano */ }
     const opener = document.querySelector('[data-agent-access]');
     if (opener) opener.click(); else location.href = 'admin/';
-  }));
+  });
 
   /* ───────── Filas de inmuebles y estadías ───────── */
   const TYPE = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };

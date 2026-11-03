@@ -176,3 +176,6 @@ body.home2 .hm-sell h2 { margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 40px); 
   .hm-card-photo img, .hm-btn, .hm-arrow, .hm-tab { transition: none; }
   .hm-card-link:hover .hm-card-photo img { transform: none; }
 }
+
+body.home2 .hm-partners .partner-host { border: 0; background: none; padding: 0; cursor: pointer; display: flex; align-items: center; flex-shrink: 0; }
+body.home2 .hm-partners .partner-host img { filter: none; opacity: 1; }
