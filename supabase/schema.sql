@@ -3539,7 +3539,7 @@ create table if not exists public.stay_settings (
   enabled             boolean  not null default false,
   fee_percent         numeric(5,2) not null default 10 check (fee_percent between 0 and 50),   -- comisión de Bastet; en cancelación tardía el anfitrión retiene otro tanto
   response_hours      integer  not null default 2  check (response_hours between 1 and 72),
-  free_cancel_hours   integer  not null default 72 check (free_cancel_hours between 0 and 720),
+  free_cancel_hours   integer  not null default 4  check (free_cancel_hours between 0 and 720),   -- horas de cancelación gratuita CONTADAS DESDE que se verifica el pago (2026-11-03)
   pay_window_hours    integer  default 12 check (pay_window_hours is null or pay_window_hours between 1 and 720),   -- horas que tiene el huésped para pagar tras la aceptación (null = sin plazo)
   bob_per_usd         numeric(8,4) not null default 6.96 check (bob_per_usd > 0),               -- tipo de cambio INTERNO de Bastet
   pay_instructions    text not null default '' check (char_length(pay_instructions) <= 1500),
@@ -3547,6 +3547,8 @@ create table if not exists public.stay_settings (
   updated_at          timestamptz not null default now()
 );
 alter table public.stay_settings alter column pay_window_hours set default 12;
+alter table public.stay_settings alter column free_cancel_hours set default 4;
+update public.stay_settings set free_cancel_hours = 4 where id = 1 and free_cancel_hours = 72;   -- la regla anterior (72 h antes de la llegada) se retiró
 insert into public.stay_settings (id) values (1) on conflict (id) do nothing;
 alter table public.stay_settings enable row level security;
 revoke all on public.stay_settings from anon, authenticated;
@@ -3728,7 +3730,7 @@ end $$;
 -- 7) El huésped consulta su reserva con el código. El contacto del anfitrión solo se entrega cuando el pago está verificado.
 create or replace function public.get_stay_booking(p_code text)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare b public.stay_bookings; s public.stay_settings; prop record; contact text; pay boolean; reveal boolean; arrival timestamp; host_name text;
+declare b public.stay_bookings; s public.stay_settings; prop record; contact text; pay boolean; reveal boolean; free_until timestamptz; host_name text;
 begin
   perform public.stay_expire_pending();
   select * into b from public.stay_bookings where code = upper(btrim(coalesce(p_code, '')));
@@ -3738,15 +3740,15 @@ begin
   select display_name, contact_whatsapp into host_name, contact from public.profiles where id = b.host_id;
   reveal := b.status = 'conexion_generada';
   pay := b.status in ('aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision');
-  arrival := b.check_in::timestamp;
+  free_until := b.verified_at + make_interval(hours => s.free_cancel_hours);
   return jsonb_build_object('found', true, 'code', b.code, 'status', b.status, 'title', prop.title, 'location', prop.location, 'photo', prop.photo,
     'guest_name', b.guest_name, 'guests', b.guests, 'check_in', b.check_in, 'check_out', b.check_out, 'nights', b.nights, 'currency', b.currency,
     'total', b.total, 'fee_amount', b.fee_amount, 'fee_bs', b.fee_bs, 'balance', b.total - b.fee_amount, 'fee_percent', s.fee_percent,
     'respond_by', b.respond_by, 'pay_by', case when b.status = 'aceptada_pendiente_pago' and s.pay_window_hours is not null then b.accepted_at + make_interval(hours => s.pay_window_hours) end, 'proof_sent', b.proof_path is not null, 'review_note', b.review_note,
     'pay_instructions', case when pay then s.pay_instructions end, 'pay_qr_url', case when pay then s.pay_qr_url end,
     'host_name', case when reveal then host_name end, 'host_whatsapp', case when reveal then coalesce(contact, prop.whatsapp) end,
-    'free_cancel_until', arrival - make_interval(hours => s.free_cancel_hours),
-    'is_late_cancel', ((now() at time zone 'UTC') - interval '4 hours') > arrival - make_interval(hours => s.free_cancel_hours),
+    'free_cancel_until', case when reveal then free_until end, 'free_cancel_hours', s.free_cancel_hours,
+    'is_late_cancel', reveal and now() > free_until,
     'can_cancel', b.status in ('pendiente_respuesta_anfitrion', 'aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'conexion_generada'),
     'cancelled_by', b.cancelled_by, 'late_cancel', b.late_cancel, 'bastet_refund_bs', b.bastet_refund_bs, 'host_retention', b.host_retention, 'host_refund_due', b.host_refund_due);
 end $$;
@@ -3805,10 +3807,10 @@ begin
   end if;
 end $$;
 
--- 11) Cancelación por el huésped (con su código). Gratis hasta 72 h antes del día de llegada; después se retiene el 20 % (10 % Bastet + 10 % anfitrión).
+-- 11) Cancelación por el huésped (con su código). Gratis durante las primeras 4 h desde que se verifica el pago (sirve también para reservas del día siguiente); después se retiene el 20 % (10 % Bastet + 10 % anfitrión).
 create or replace function public.cancel_stay_booking(p_code text, p_reason text default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare b public.stay_bookings; s public.stay_settings; arrival timestamp; late boolean := false; paid boolean; refund numeric := 0; hostret numeric := null; due numeric := null;
+declare b public.stay_bookings; s public.stay_settings; late boolean := false; paid boolean; refund numeric := 0; hostret numeric := null; due numeric := null;
         rs text := nullif(btrim(coalesce(p_reason, '')), '');
 begin
   perform public.stay_expire_pending();
@@ -3818,8 +3820,7 @@ begin
   select * into s from public.stay_settings where id = 1;
   paid := b.status = 'conexion_generada';
   if paid then
-    arrival := b.check_in::timestamp;
-    late := ((now() at time zone 'UTC') - interval '4 hours') > arrival - make_interval(hours => s.free_cancel_hours);
+    late := now() > coalesce(b.verified_at, now()) + make_interval(hours => s.free_cancel_hours);
     if late then hostret := b.fee_amount; refund := 0; due := b.total - b.fee_amount - hostret;       -- se queda 10 % Bastet + 10 % anfitrión
     else refund := b.fee_bs; due := b.total - b.fee_amount; end if;                                       -- el anfitrión devuelve el 90 % si lo recibió
   elsif b.status in ('comprobante_enviado', 'pago_en_revision') then

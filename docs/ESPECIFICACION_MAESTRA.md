@@ -210,8 +210,8 @@ suspender su cuenta e impedir nuevas publicaciones.
 
 ## 3.4 Cancelación por huésped
 
--   Cancelación gratuita hasta 72 horas antes del día de llegada.
--   Dentro de las últimas 72 horas se retiene el 20 % del valor total:
+-   Cancelación gratuita durante las 4 horas siguientes a la verificación del pago (cambio del 2026-11-03: reemplaza la regla de 72 horas antes de la llegada, que impedía cancelar reservas para el día siguiente).
+-   Pasadas esas 4 horas se retiene el 20 % del valor total:
     10 % para BASTET y 10 % para el anfitrión.
 
 Como el anfitrión puede haber recibido directamente el 90 %, el sistema
@@ -246,11 +246,12 @@ Esta sección consolida las reglas transversales de Estadías.
   -----------------------------------------------------------------------
   Escenario                           Regla
   ----------------------------------- -----------------------------------
-  Huésped cancela con al menos 72 h   Cancelación gratuita
-  antes del día de llegada            
+  Huésped cancela dentro de las 4 h   Cancelación gratuita
+  siguientes a la verificación del   
+  pago                                
 
-  Huésped cancela dentro de las       Retención del 20 % del total: 10 %
-  últimas 72 h                        BASTET y 10 % anfitrión
+  Huésped cancela pasadas esas 4 h    Retención del 20 % del total: 10 %
+                                      BASTET y 10 % anfitrión
 
   Anfitrión cancela reserva           BASTET devuelve el 100 % del 10 %
   confirmada                          recibido; anfitrión devuelve
@@ -468,8 +469,8 @@ cuando aplique.
 -   [ ] Solo tras verificar el 10 % se genera conexión y se revela
     contacto.
 -   [ ] El 90 % directo no aparece como dinero recibido por BASTET.
--   [ ] Cancelación gratuita hasta 72 h antes del día de llegada.
--   [ ] Cancelación dentro de 72 h: retención total del 20 %, reparto 10
+-   [ ] Cancelación gratuita dentro de las 4 h siguientes a la verificación del pago.
+-   [ ] Cancelación pasadas esas 4 h: retención total del 20 %, reparto 10
     % BASTET / 10 % anfitrión.
 -   [ ] El anfitrión declara si recibió el 90 % y adjunta comprobante
     cuando corresponda.

@@ -87,7 +87,7 @@
       '<label>Instrucciones de pago (cuenta bancaria, titular, referencia)<textarea id="bk-instr" rows="4" maxlength="1500">' + esc(settings.pay_instructions) + '</textarea></label>' +
       '<label>Horas que tiene el huésped para pagar tras la aceptación <small>(vacío = sin plazo)</small><input id="bk-pw" type="number" min="1" max="720" step="1" value="' + esc(settings.pay_window_hours ?? '') + '"></label>' +
       '<label>Enlace de la imagen del QR de pago <small>(opcional)</small><input id="bk-qr" type="url" maxlength="400" value="' + esc(settings.pay_qr_url || '') + '"></label>' +
-      '<p class="bk-fine">Fijos por la especificación: comisión ' + esc(String(settings.fee_percent).replace('.', ',')) + ' %, respuesta del anfitrión ' + esc(settings.response_hours) + ' h, cancelación gratuita hasta ' + esc(settings.free_cancel_hours) + ' h antes. ' +
+      '<p class="bk-fine">Fijos por la especificación: comisión ' + esc(String(settings.fee_percent).replace('.', ',')) + ' %, respuesta del anfitrión ' + esc(settings.response_hours) + ' h, cancelación gratuita durante ' + esc(settings.free_cancel_hours) + ' h desde que se verifica el pago. ' +
       '</p>' +
       '<button class="btn btn-primary btn-sm" type="submit">Guardar reglas</button></form></section>';
   }

@@ -12,7 +12,7 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped 72 h / 20 %, anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
+| 1 | **Estadías con pago del 10 %**: solicitud → anfitrión 2 h → pago 10 % QR/transferencia + comprobante → verificación admin → contacto revelado; cancelaciones (huésped: gratis 4 h tras verificar el pago, después 20 %; anfitrión) y declaración del 90 % directo; auditoría | ✅ código + SQL + pruebas hechos (2026-11-02). **Falta que la dueña corra `supabase/stay-bookings.sql` y active el interruptor** |
 | 2 | Conexiones y tarifas: matriz editable (alquiler Bs 10–50, venta 51–200, anticrético por matriz), tipo de cambio interno, contacto oculto hasta verificar pago, constancia por conexión, contrato marco (texto requiere revisión jurídica) | pendiente |
 | 3 | Comisiones (0,75 % venta, 1 mes alquiler, 2 % anticrético) y cierre de operaciones (confirmar antes de «vendida»/retirar) | pendiente |
 | 4 | Verificación: 3 distintivos independientes, propiedad «pendiente de verificación», reseñas ligadas a operaciones, actas + certificado público | pendiente |

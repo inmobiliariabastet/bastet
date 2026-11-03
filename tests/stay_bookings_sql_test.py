@@ -166,11 +166,19 @@ chk("se vuelve a dejar en 12 h", as_(adm, "select admin_update_stay_settings(tru
 # --- cancelación del huésped
 c4 = verified(pU, D(100), D(103), '+591 70000010')
 res = as_(None, "select cancel_stay_booking(%s, 'No puedo viajar')", (c4,))[1][0][0]
-eq("a más de 72 h: gratis; Bastet devuelve el 10 % y el anfitrión el 90 %", (res['late_cancel'], res['bastet_refund_bs'], res['host_retention'], res['host_refund_due']), (False, 210, None, 270))
+eq("dentro de las 4 h de la verificación: gratis; Bastet devuelve el 10 % y el anfitrión el 90 %", (res['late_cancel'], res['bastet_refund_bs'], res['host_retention'], res['host_refund_due']), (False, 210, None, 270))
 chk("no se cancela dos veces", as_(None, "select cancel_stay_booking(%s)", (c4,)), True)
+# reserva para el día siguiente: cancelar de inmediato es gratis (antes la regla de 72 h lo impedía)
+cn = verified(pU, D(1), D(2), '+591 70000015')
+g = as_(None, "select get_stay_booking(%s)", (cn,))[1][0][0]
+eq("el huésped ve hasta cuándo es gratis (4 h)", (g['free_cancel_hours'], g['is_late_cancel']), (4, False))
+res = as_(None, "select cancel_stay_booking(%s)", (cn,))[1][0][0]
+eq("reserva para mañana cancelada a los pocos minutos: sin sanción", (res['late_cancel'], res['bastet_refund_bs'], res['host_retention']), (False, 70, None))
 c5 = verified(pU, D(1), D(3), '+591 70000011')
+su("update stay_bookings set verified_at = now() - interval '5 hours' where code=%s", (c5,))
+eq("pasadas 4 h el huésped ya ve la cancelación como tardía", as_(None, "select get_stay_booking(%s)->>'is_late_cancel'", (c5,))[1][0][0], 'true')
 res = as_(None, "select cancel_stay_booking(%s)", (c5,))[1][0][0]
-eq("dentro de 72 h: retiene 20 % (10 Bastet + 10 anfitrión); Bastet no devuelve", (res['late_cancel'], res['bastet_refund_bs'], res['host_retention']), (True, 0, 20))
+eq("pasadas 4 h: retiene 20 % (10 Bastet + 10 anfitrión); Bastet no devuelve", (res['late_cancel'], res['bastet_refund_bs'], res['host_retention']), (True, 0, 20))
 eq("el anfitrión debe devolver el 80 % al huésped si recibió el 90 %", res['host_refund_due'], 160)
 b5 = bid(c5)
 eq("el anfitrión debe declarar el 90 %", [x for x in as_(host, "select my_stay_bookings()")[1][0][0] if x['code'] == c5][0]['needs_direct_declaration'], True)
