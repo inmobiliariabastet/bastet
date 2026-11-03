@@ -1,4 +1,4 @@
-/* "Vender mi inmueble": formulario del landing para propietarios (datos, inmueble, ubicación en mapa y documentos).
+/* "Publicar mi inmueble" (venta, alquiler, anticrético o estadía temporal): formulario del landing para propietarios (datos, inmueble, ubicación en mapa y documentos).
    Autónomo: usa el cliente global `supabaseClient` y BOLIVIA_CITIES. El envío pasa por la función submit_sell_request()
    (supabase/sell-requests.sql); los documentos van a la carpeta privada `sell-documents` de Storage (solo un administrador los ve).
    El mapa es Leaflet con mosaicos de OpenStreetMap (sin clave) oscurecidos por CSS para que no salga verde y se carga solo al abrir el formulario. */
@@ -57,7 +57,7 @@
   // index.html?op=temporal#vender (enlace de «Estadías») abre el formulario con la operación Temporal ya elegida
   if (window.location.hash === '#vender') {
     const pre = new URLSearchParams(window.location.search).get('op');
-    if (pre === 'temporal') { $('sell-operation').value = 'temporal'; syncOperation(); }
+    if (pre === 'temporal') { $('sell-operation').value = 'temporal'; syncOperation(true); }
     history.replaceState(null, '', window.location.pathname);
     open();
   }
@@ -69,8 +69,17 @@
 
   /* ───────── Tipo de inmueble: terreno no tiene habitaciones ni construcción ───────── */
   // Temporal: el precio es por noche
-  function syncOperation() { const t = $('sell-operation').value === 'temporal'; $('sell-price-label').textContent = t ? 'Precio por noche' : 'Precio esperado'; }
-  $('sell-operation').addEventListener('change', syncOperation);
+  const TITLES = { venta: 'Venta de inmueble', alquiler: 'Alquiler de inmueble', anticretico: 'Publicar inmueble en anticrético', temporal: 'Publicación de inmueble temporal' };
+  let chosenOp = false;   // hasta que la persona elige la operación, el título es neutro
+  function syncOperation(fromUser) {
+    if (fromUser === true) chosenOp = true;
+    const op = $('sell-operation').value, t = op === 'temporal';
+    $('sell-price-label').textContent = t ? 'Precio por noche' : 'Precio esperado';
+    $('sell-modal-title').textContent = chosenOp ? (TITLES[op] || 'Publicar mi inmueble') : 'Publicar mi inmueble';
+    // Una estadía temporal no es venta, alquiler ni anticrético: no se piden documentos de propiedad
+    $('sell-docs-group').classList.toggle('hidden', t);
+  }
+  $('sell-operation').addEventListener('change', () => syncOperation(true));
 
   function syncType() {
     const land = $('sell-type').value === 'terreno';
@@ -284,7 +293,8 @@
     const phone = v('sell-phone').replace(/[\s().-]/g, '');
     if (!/^\+?[0-9]{7,15}$/.test(phone)) return fail('Escribe un número de WhatsApp válido (solo números; con + si incluye código de país).', $('sell-phone'));
     if (!state.point) { $('sell-map-wrap').classList.add('has-error'); return fail('Marca la ubicación del inmueble en el mapa: busca la dirección, usa tu ubicación o toca el punto exacto.', $('sell-map-wrap')); }
-    const ds = docStatus();
+    const temporal = $('sell-operation').value === 'temporal';   // las estadías temporales no piden documentos de propiedad
+    const ds = temporal ? 'no_aplica' : docStatus();
     if (!ds) return fail('Cuéntanos si tienes documentos que respalden tu propiedad.', $('sell-docs-group'));
     if (ds !== 'sin_documentos' && ds === 'en_regla' && !state.files.length && !confirm('Indicaste que tienes los documentos en regla pero no adjuntaste ninguno. ¿Enviar de todas formas? (Podrás enviarlos después por WhatsApp.)')) return;
     if (!$('sell-consent').checked) return fail('Debes aceptar que usemos tus datos para contactarte.', $('sell-consent'));
@@ -294,7 +304,7 @@
     const label = btn.querySelector('span'); const old = label.textContent;
     try {
       const docs = [];
-      const todo = ds === 'sin_documentos' ? [] : state.files;
+      const todo = (ds === 'sin_documentos' || temporal) ? [] : state.files;
       let n = 0;
       for (const f of todo) {
         n++; label.textContent = 'Subiendo documentos (' + n + '/' + todo.length + ')…';
@@ -327,7 +337,7 @@
         zone: v('sell-zone') || null, address: v('sell-address'), latitude: state.point.lat, longitude: state.point.lng,
         price: num('sell-price'), currency: $('sell-currency').value, land_area: num('sell-land'), built_area: land ? null : num('sell-built'),
         rooms: land ? null : num('sell-rooms'), baths: land ? null : num('sell-baths'), description: v('sell-desc') || null,
-        doc_status: ds, needs_legal_support: $('sell-legal').checked || ds === 'sin_documentos', documents: docs, consent: true,
+        doc_status: ds, needs_legal_support: !temporal && ($('sell-legal').checked || ds === 'sin_documentos'), documents: docs, consent: true,
       };
       const { error } = await supabaseClient.rpc('submit_sell_request', { p: payload });
       if (error) throw new Error(error.message || 'No se pudo enviar.');
@@ -342,14 +352,14 @@
 
   function showSuccess(p) {
     const lines = [
-      'Hola Bastet, acabo de enviar mi solicitud para vender mi inmueble desde la web.',
+      'Hola Bastet, acabo de enviar mi solicitud ' + ({ venta: 'de venta de inmueble', alquiler: 'de alquiler de inmueble', anticretico: 'para publicar mi inmueble en anticrético', temporal: 'de publicación de inmueble temporal' }[p.operation] || 'para publicar mi inmueble') + ' desde la web.',
       'Propietario: ' + p.owner_name,
       'Inmueble: ' + ({ casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno', otro: 'Otro' }[p.property_type]) + ' en ' + p.city + (p.zone ? ' (' + p.zone + ')' : ''),
       'Operación: ' + ({ venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' }[p.operation] || p.operation),
       'Ubicación: https://www.google.com/maps?q=' + p.latitude + ',' + p.longitude,
       p.documents.some((d) => d.type === 'foto') ? 'Fotos: ' + p.documents.filter((d) => d.type === 'foto').length + ' enviadas' : 'Fotos: las enviaré por aquí',
-      p.needs_legal_support ? 'Necesito apoyo legal para sanear mis documentos.' : 'Documentos: ' + (p.documents.filter((d) => d.type !== 'foto').length ? p.documents.filter((d) => d.type !== 'foto').length + ' adjuntos' : 'los enviaré por aquí'),
-    ];
+      p.doc_status === 'no_aplica' ? null : p.needs_legal_support ? 'Necesito apoyo legal para sanear mis documentos.' : 'Documentos: ' + (p.documents.filter((d) => d.type !== 'foto').length ? p.documents.filter((d) => d.type !== 'foto').length + ' adjuntos' : 'los enviaré por aquí'),
+    ].filter(Boolean);
     $('sell-wa').href = 'https://api.whatsapp.com/send?phone=' + WHATSAPP_PHONE + '&text=' + encodeURIComponent(lines.join('\n'));
     $('sell-success-legal').classList.toggle('hidden', !p.needs_legal_support);
     form.classList.add('hidden'); $('sell-success').classList.remove('hidden');
@@ -357,5 +367,5 @@
   }
   $('sell-done').addEventListener('click', close);
 
-  syncOperation(); syncType(); syncDocs(); renderFiles(); renderPhotos();
+  syncOperation(false); syncType(); syncDocs(); renderFiles(); renderPhotos();
 })();

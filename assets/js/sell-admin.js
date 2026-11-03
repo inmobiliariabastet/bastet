@@ -14,7 +14,7 @@
   const TYPES = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno', otro: 'Otro' };
   const OPS = { venta: 'Venta', anticretico: 'Anticrético', alquiler: 'Alquiler', temporal: 'Temporal (por noche)' };
   const ROLES = { propietario: 'Propietario', copropietario: 'Copropietario', apoderado: 'Apoderado', heredero: 'Heredero' };
-  const DOCS = { en_regla: 'Documentos en regla', por_regularizar: 'Falta regularizar', sin_documentos: 'Sin documentos' };
+  const DOCS = { en_regla: 'Documentos en regla', por_regularizar: 'Falta regularizar', sin_documentos: 'Sin documentos', no_aplica: 'No aplica (estadía temporal)' };
   const DOC_TYPES = { folio_real: 'Folio Real', testimonio: 'Testimonio / escritura', impuestos: 'Impuestos', plano: 'Plano / catastral', ci: 'Cédula de identidad', otros: 'Otros', foto: 'Foto' };
 
   const board = () => document.getElementById('sell-board');
@@ -66,7 +66,7 @@
           '<button type="button" class="lead-card" data-sell-req="' + r.id + '">' +
             '<b>' + esc(r.owner_name) + '</b>' +
             '<small>' + esc(TYPES[r.property_type] || '') + ' · ' + esc(OPS[r.operation] || '') + ' · ' + esc(r.city) + (r.zone ? ' (' + esc(r.zone) + ')' : '') + '</small>' +
-            '<span class="sell-tags"><span class="badge ' + (r.doc_status === 'en_regla' ? 'b-ok' : 'b-warn') + '">' + esc(DOCS[r.doc_status]) + '</span>' +
+            '<span class="sell-tags"><span class="badge ' + (r.doc_status === 'en_regla' || r.doc_status === 'no_aplica' ? 'b-ok' : 'b-warn') + '">' + esc(DOCS[r.doc_status]) + '</span>' +
             (r.needs_legal_support ? '<span class="badge b-gold">Apoyo legal</span>' : '') + '</span>' +
             '<small class="lead-card-date">' + fdate(r.created_at) + '</small>' +
           '</button>').join('') || '<p class="lead-col-empty">—</p>') +

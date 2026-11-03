@@ -19,23 +19,23 @@
   const select = $('sell-operation');
 
   const OPS = [
-    { v: 'venta', t: 'Venta', d: 'Quiero vender mi propiedad' },
-    { v: 'alquiler', t: 'Alquiler', d: 'Quiero alquilar mi propiedad' },
-    { v: 'anticretico', t: 'Anticrético', d: 'Quiero entregarla en anticrético' },
-    { v: 'temporal', t: 'Estadías temporales', d: 'Quiero alquilarla por noches o días' },
+    { v: 'venta', t: 'Venta de inmueble', d: 'Quiero vender mi propiedad' },
+    { v: 'alquiler', t: 'Alquiler de inmueble', d: 'Quiero alquilar mi propiedad' },
+    { v: 'anticretico', t: 'Inmueble en anticrético', d: 'Quiero entregarla en anticrético' },
+    { v: 'temporal', t: 'Inmueble temporal', d: 'Quiero ofrecerlo por noches (estadía temporal)' },
   ];
 
   /* Paso 1: tarjetas de operación (el select original queda sincronizado y oculto) */
   const opStep = document.createElement('section');
   opStep.className = 'sw-step-card';
-  opStep.innerHTML = '<h3>¿Qué quieres hacer con tu propiedad?</h3><p class="sw-sub">Elige una opción; un asesor te acompaña en el resto.</p><div class="sw-ops" role="radiogroup" aria-label="Tipo de operación">' +
+  opStep.innerHTML = '<h3>¿Qué quieres publicar?</h3><p class="sw-sub">Elige una opción; un asesor te acompaña en el resto.</p><div class="sw-ops" role="radiogroup" aria-label="Tipo de operación">' +
     OPS.map((o) => '<button type="button" class="sw-op" role="radio" data-op="' + o.v + '" aria-checked="false"><span class="sw-op-text"><b>' + o.t + '</b><small>' + o.d + '</small></span><span class="sw-radio" aria-hidden="true"></span></button>').join('') + '</div>';
   const opField = select.closest('.agent-field');
   if (opField) opField.classList.add('sw-hidden');
   function syncOps() { opStep.querySelectorAll('.sw-op').forEach((b) => { const on = b.dataset.op === select.value; b.classList.toggle('is-on', on); b.setAttribute('aria-checked', String(on)); }); }
   opStep.addEventListener('click', (e) => {
     const b = e.target.closest('.sw-op'); if (!b) return;
-    select.value = b.dataset.op; select.dispatchEvent(new Event('change', { bubbles: true })); syncOps();
+    select.value = b.dataset.op; select.dispatchEvent(new Event('change', { bubbles: true })); syncOps(); show(cur);   // actualiza «Paso x de N» (temporal salta Documentos)
   });
 
   /* Paso 6: revisar + consentimiento + envío */
@@ -51,6 +51,10 @@
   ];
   const DOCS = steps.findIndex((x) => x.el === sections[3]);
   steps.forEach((s) => { s.el.classList.add('sw-step'); });
+  // Una estadía temporal no pide documentos de propiedad: se salta el paso «Documentos»
+  steps[DOCS].skip = () => select.value === 'temporal';
+  const visible = () => steps.map((s, k) => k).filter((k) => !(steps[k].skip && steps[k].skip()));
+  const stepTo = (dir) => { const v = visible(); const p = v.indexOf(cur); return v[Math.max(0, Math.min(v.length - 1, (p < 0 ? 0 : p) + dir))]; };
   const hint = form.querySelector('.agent-form-hint');
   form.insertBefore(opStep, sections[0]);
   form.appendChild(review);
@@ -103,15 +107,16 @@
         (land ? '' : row('Construida', val('sell-built') ? val('sell-built') + ' m²' : '') + row('Habitaciones / baños', [val('sell-rooms'), val('sell-baths')].filter(Boolean).join(' / ')))) +
       block('Ubicación', 3, row('Mapa', pt)) +
       (photosSec ? block('Fotos', DOCS - 1, row('Fotos', $('sell-photo-count').textContent || 'Sin fotos por ahora')) : '') +
-      block('Documentos', DOCS, row('Estado', docTxt) + row('Adjuntos', ($('sell-doc-count').textContent || 'Ninguno')));
+      (select.value === 'temporal' ? '' : block('Documentos', DOCS, row('Estado', docTxt) + row('Adjuntos', ($('sell-doc-count').textContent || 'Ninguno'))));
   }
   function show(i) {
     cur = Math.max(0, Math.min(steps.length - 1, i));
     steps.forEach((s, k) => s.el.classList.toggle('sw-hidden', k !== cur));
     if (hint) hint.classList.toggle('sw-hidden', cur !== 0);
     $('sw-prog-name').textContent = steps[cur].name;
-    $('sw-prog-n').textContent = 'Paso ' + (cur + 1) + ' de ' + steps.length;
-    $('sw-bar-fill').style.width = (((cur + 1) / steps.length) * 100) + '%';
+    const vis = visible(), pos = Math.max(0, vis.indexOf(cur));
+    $('sw-prog-n').textContent = 'Paso ' + (pos + 1) + ' de ' + vis.length;
+    $('sw-bar-fill').style.width = (((pos + 1) / vis.length) * 100) + '%';
     prev.classList.toggle('sw-invisible', cur === 0);
     next.classList.toggle('sw-hidden', cur === steps.length - 1);
     swErr.classList.add('hidden');
@@ -121,13 +126,13 @@
     if (cur === 3) { [60, 350, 900].forEach((t) => setTimeout(() => window.dispatchEvent(new Event('resize')), t)); }
     const panelEl = backdrop.querySelector('.property-modal'); if (panelEl) panelEl.scrollTop = 0;
   }
-  next.addEventListener('click', () => { if (validate(cur)) show(cur + 1); });
-  prev.addEventListener('click', () => show(cur - 1));
+  next.addEventListener('click', () => { if (validate(cur)) show(stepTo(1)); });
+  prev.addEventListener('click', () => show(stepTo(-1)));
   form.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) show(Number(g.dataset.go)); });
   // Enter en un campo avanza de paso en vez de enviar el formulario antes de tiempo
   form.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.id === 'sell-search') return;
-    if (cur < steps.length - 1) { e.preventDefault(); if (validate(cur)) show(cur + 1); }
+    if (cur < steps.length - 1) { e.preventDefault(); if (validate(cur)) show(stepTo(1)); }
   });
 
   // «Ver mis publicaciones» en la pantalla de confirmación (requiere cuenta; el panel ya existe)
