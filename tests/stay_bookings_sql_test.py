@@ -210,6 +210,28 @@ c7 = code_of(book(pU, D(200), D(202), phone='+591 70000014'))
 res = as_(None, "select cancel_stay_booking(%s)", (c7,))[1][0][0]
 eq("solicitud sin pagar: cancelación sin costo", (res['paid'], res['bastet_refund_bs']), (False, 0))
 
+# --- verificación pública por código y fechas ocupadas
+vc = verified(pB, D(500), D(503), '+591 70000030')
+su("update properties set address='Calle Sucre 123', latitude=-17.39, longitude=-66.15, photos=array['http://x/a.jpg','http://x/b.jpg'] where id=%s", (pB,))
+v = as_(None, "select verify_stay_booking(%s)", (vc,))[1][0][0]
+eq("reserva verificada: muestra WhatsApp, ubicación y fotos", (v['verified'], v['host_whatsapp'], v['address'], v['latitude'], len(v['photos'])), (True, '71234567', 'Calle Sucre 123', -17.39, 2))
+eq("el historial público trae los hitos", [e['event'] for e in v['events']], ['solicitada', 'aceptada', 'comprobante_enviado', 'pago_verificado_y_conexion'])
+eq("sin datos privados del huésped", [k for k in v if 'phone' in k or 'email' in k or 'proof' in k], [])
+eq("el huésped aparece como «Nombre I.»", v['guest_name'], 'Gaby H.')
+vp = code_of(book(pB, D(520), D(522), phone='+591 70000031'))
+as_(host, "select host_respond_stay_booking(%s, true)", (bid(vp),))
+v2 = as_(None, "select verify_stay_booking(%s)", (vp,))[1][0][0]
+eq("sin pago verificado no hay WhatsApp ni verificación", (v2['verified'], v2['host_whatsapp']), (False, None))
+vb = as_(None, "select verify_stay_booking(%s)", (vc,))[1][0][0]
+eq("la otra reserva de la propiedad aparece como ocupada en la verificación", [(b['from'], b['to']) for b in vb['busy'] if b['from'] >= str(D(500))], [(str(D(520)), str(D(521)))])
+eq("código inexistente en la verificación", as_(None, "select verify_stay_booking('ZZZZZZZZZZ')->>'found'")[1][0][0], 'false')
+rg = as_(None, "select property_id, from_date, to_date, confirmed from stay_booked_ranges(array[%s::uuid])", (pB,))[1]
+eq("fechas ocupadas públicas: última noche = día anterior a la salida; confirmada vs por pagar", sorted([(r[1], r[2], r[3]) for r in rg if r[1] >= D(500)]), sorted([(D(500), D(502), True), (D(520), D(521), False)]))
+as_(None, "select cancel_stay_booking(%s)", (vc,))
+v3 = as_(None, "select verify_stay_booking(%s)", (vc,))[1][0][0]
+eq("cancelada: ya no está verificada y no entrega el WhatsApp", (v3['verified'], v3['status'], v3['host_whatsapp']), (False, 'cancelada', None))
+eq("cancelada: libera las fechas públicas", len([r for r in as_(None, "select * from stay_booked_ranges(array[%s::uuid])", (pB,))[1] if r[1] == D(500)]), 0)
+
 # --- tope por teléfono
 for k in range(3): book(pU, D(300 + k * 3), D(302 + k * 3), phone='+591 70000099')
 chk("máximo 3 solicitudes esperando por teléfono", book(pU, D(320), D(322), phone='+591 70000099'), True)

@@ -130,7 +130,7 @@
           body += '<div class="sbk-state sbk-ok"><b>Pago verificado: tu reserva está confirmada</b><p>Coordina ahora con ' + esc(b.host_name || 'tu anfitrión') + ' la llegada y el pago del saldo.</p>' +
             (b.host_whatsapp ? '<a class="sd-cta sbk-wa" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=' + esc(waPhone(b.host_whatsapp)) + '&text=' + encodeURIComponent('Hola, soy ' + b.guest_name + '. Reservé «' + b.title + '» del ' + fdate(b.check_in) + ' al ' + fdate(b.check_out) + ' (código ' + b.code + ').') + '">Escribir al anfitrión por WhatsApp</a>' : '') + '</div>' +
             moneyBox(b) + '<p class="sd-fine sbk-policy">El saldo (' + money(b.balance, b.currency) + ') lo pagas <b>directamente al anfitrión</b>: Bastet no lo recibe ni lo garantiza. ' +
-            'Cancelación gratuita durante las ' + b.free_cancel_hours + ' horas siguientes a la confirmación (hasta el ' + ftime(b.free_cancel_until) + '); después se retiene el 20 % del total (10 % para Bastet y 10 % para el anfitrión).</p>' + cancelBtn; break;
+            'Cancelación gratuita durante las ' + b.free_cancel_hours + ' horas siguientes a la confirmación (hasta el ' + ftime(b.free_cancel_until) + '); después se retiene el 20 % del total (10 % para Bastet y 10 % para el anfitrión).</p><p class="sd-fine"><a href="verificar.html?c=' + esc(b.code) + '">Ver la verificación de esta reserva</a></p>' + cancelBtn; break;
         case 'cancelada':
           body += '<div class="sbk-state sbk-bad"><b>Reserva cancelada' + (b.cancelled_by === 'host' ? ' por el anfitrión' : '') + '</b>' + cancelledText(b) + '</div>'; break;
         case 'en_disputa':

@@ -63,8 +63,9 @@
   let stays = [];
   const state = { city: 'Todas', type: '', rooms: '', price: '', sort: 'rec', favsOnly: false, from: '', to: '', guests: 2 };
   let blocks = {};
-  // ¿Hay un bloqueo que choque con las noches de [from, to)? Con `today` solo se mira ese día.
-  const blockedBetween = (p, from, to, today) => (blocks[p.id] || []).some((b) => today ? (b.from_date <= from && (!b.to_date || b.to_date >= from)) : (b.from_date < to && (!b.to_date || b.to_date >= from)));
+  let booked = {};   // noches ocupadas por reservas (stay_booked_ranges): no ocultan la publicación, la marcan «EN USO»
+  // ¿Hay un bloqueo (o una reserva, salvo con `today`) que choque con las noches de [from, to)? Con `today` solo se mira ese día.
+  const blockedBetween = (p, from, to, today) => (today ? (blocks[p.id] || []) : (blocks[p.id] || []).concat(booked[p.id] || [])).some((b) => today ? (b.from_date <= from && (!b.to_date || b.to_date >= from)) : (b.from_date < to && (!b.to_date || b.to_date >= from)));
   let favs = new Set();
   try { favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch (e) { favs = new Set(); }
   const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch (e) { /* sin almacenamiento: no se recuerdan */ } };
@@ -95,6 +96,12 @@
       const { data: bl, error: be } = await supabaseClient.rpc('stay_blocked_ranges', { p_ids: stays.map((p) => p.id) });
       if (!be) (bl || []).forEach((b) => { (blocks[b.property_id] = blocks[b.property_id] || []).push(b); });
     }
+    // Noches ocupadas por reservas de huéspedes (sin el SQL no hay reservas y no se marca nada)
+    booked = {};
+    if (stays.length) {
+      const { data: bk, error: bke } = await supabaseClient.rpc('stay_booked_ranges', { p_ids: stays.map((p) => p.id) });
+      if (!bke) (bk || []).forEach((b) => { (booked[b.property_id] = booked[b.property_id] || []).push(b); });
+    }
     stays = stays.filter((p) => !blockedBetween(p, todayIso(), todayIso(), true));
     fromUrl();
     buildCityOptions();
@@ -123,6 +130,19 @@
   const isFeatured = (p) => !!p.featured || (!!p.featured_until && new Date(p.featured_until) > new Date());
   const waPhone = (p) => { const d = String((p.agent && p.agent.contact_whatsapp) || p.whatsapp || '').replace(/[^0-9]/g, ''); return /^[67][0-9]{7}$/.test(d) ? '591' + d : (d || WHATSAPP_GENERAL); };
   const firstName = (p) => (p.agent && p.agent.display_name ? p.agent.display_name.trim().split(/\s+/)[0] : '');
+  // Ocupación por reservas CONFIRMADAS (pago verificado): «EN USO» con la fecha en que vuelve a estar disponible, o «RESERVADA» si empieza más adelante.
+  const addDay = (s, k) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + k); return d.toISOString().slice(0, 10); };
+  function occupancy(p) {
+    const list = (booked[p.id] || []).filter((b) => b.confirmed).sort((a, b) => (a.from_date < b.from_date ? -1 : 1));
+    if (!list.length) return null;
+    const today = todayIso();
+    const chain = (start) => { let end = addDay(start.to_date, 1); list.forEach((b) => { if (b.from_date <= end && addDay(b.to_date, 1) > end) end = addDay(b.to_date, 1); }); return end; };
+    const now = list.find((b) => b.from_date <= today && b.to_date >= today);
+    if (now) return { use: true, until: chain(now) };
+    const next = list.find((b) => b.from_date > today);
+    return next ? { use: false, from: next.from_date, until: chain(next) } : null;
+  }
+  const occLabel = (o) => (o.use ? 'EN USO · Disponible desde el ' + fdate(o.until) : 'RESERVADA · del ' + fdate(o.from) + ' al ' + fdate(o.until));
   const bookingOn = () => !!(window.StayBooking && window.StayBooking.isOn());
   const track = (id, type) => { if (id) supabaseClient.from('property_events').insert({ property_id: id, event_type: type }).then(() => {}, () => {}); };
 
@@ -249,6 +269,7 @@
   function card(p) {
     const photos = (p.photos && p.photos.length) ? p.photos : [];
     const facts = factsOf(p);
+    const occ = occupancy(p);
     const el = document.createElement('article');
     el.className = 'stay-card'; el.dataset.id = p.id; el.tabIndex = 0;
     el.setAttribute('aria-label', p.title);
@@ -258,6 +279,7 @@
           ? '<div class="stay-slides">' + photos.map((u, i) => '<img src="' + esc(u) + '" alt="' + esc(p.title) + (photos.length > 1 ? ' — foto ' + (i + 1) : '') + '" loading="' + (i ? 'lazy' : 'eager') + '" draggable="false">').join('') + '</div>'
           : '<div class="stay-noimg">' + esc(p.title) + '</div>') +
         (isFeatured(p) ? '<span class="stay-badge">Destacada</span>' : (window.StayExtras && window.StayExtras.isTop(p.id) ? '<span class="stay-badge stay-badge--top">★ Mejor calificado</span>' : '')) +
+        (occ ? '<span class="stay-use' + (occ.use ? '' : ' is-soon') + (isFeatured(p) || (window.StayExtras && window.StayExtras.isTop(p.id)) ? ' is-second' : '') + '">' + esc(occLabel(occ)) + '</span>' : '') +
         '<button type="button" class="stay-fav' + (favs.has(p.id) ? ' is-on' : '') + '" data-fav aria-label="Guardar en favoritos" aria-pressed="' + favs.has(p.id) + '">' + HEART + '</button>' +
         (photos.length > 1 ? '<button type="button" class="stay-arrow stay-arrow--prev" data-slide="-1" aria-label="Foto anterior">' + CHEV_L + '</button><button type="button" class="stay-arrow stay-arrow--next" data-slide="1" aria-label="Foto siguiente">' + CHEV_R + '</button>' +
           '<div class="stay-dots" aria-hidden="true">' + photos.slice(0, 7).map((_, i) => '<i' + (i === 0 ? ' class="is-on"' : '') + '></i>').join('') + '</div>' : '') +
@@ -373,6 +395,7 @@
       '<div class="sd-inner">' +
         '<h1 class="sd-title" id="sd-title">' + esc(p.title) + '</h1>' +
         '<p class="sd-place">' + esc(PROPERTY_TYPE_LABELS[p.property_type] || 'Alojamiento') + ' · ' + esc(p.location || '') + (p.address ? ' · ' + esc(p.address) : '') + (formatPropertyCode(p) ? ' · <span class="sd-code">' + esc(formatPropertyCode(p)) + '</span>' : '') + '</p>' +
+        (occupancy(p) ? '<p class="sd-use' + (occupancy(p).use ? '' : ' is-soon') + '">' + esc(occLabel(occupancy(p))) + '</p>' : '') +
         gallery +
         '<div class="sd-layout">' +
           '<div class="sd-main">' +
@@ -395,7 +418,7 @@
     calApi = null;
     if (window.StayCalendar && detail.querySelector('#sd-cal')) {
       calApi = window.StayCalendar.mount(detail.querySelector('#sd-cal'), {
-        blocks: blocks[p.id] || [],
+        blocks: (blocks[p.id] || []).concat(booked[p.id] || []),
         getRange: () => ({ from: state.from, to: state.to }),
         onChange: (f, t) => { state.from = f; state.to = t; syncControls(); render(); toUrl(); refreshBooking(); calApi.refresh(); },
       });

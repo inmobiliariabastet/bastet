@@ -344,3 +344,10 @@
 .sbk-policy { margin: 0 0 10px; }
 .sbk-cancel { display: block; margin: 4px 0 0; }
 .sbk-saved { background: #E7EFE4; border-radius: 12px; padding: 10px 12px; font-size: 13px; word-break: break-all; margin: 0 0 12px; }
+
+/* Etiqueta «EN USO» / «RESERVADA» (reservas confirmadas) */
+.stay-use { position: absolute; left: 12px; top: 12px; max-width: calc(100% - 70px); background: var(--br-green, #3D4C3A); color: #fff; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; letter-spacing: .02em; box-shadow: 0 6px 16px -8px rgba(30,38,41,.6); }
+.stay-use.is-second { top: 50px; }
+.stay-use.is-soon { background: var(--br-yellow, #F1BF46); color: var(--br-ink, #1E2629); }
+.sd-use { display: inline-block; margin: 0 0 14px; background: var(--br-green, #3D4C3A); color: #fff; border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 600; }
+.sd-use.is-soon { background: var(--br-yellow, #F1BF46); color: var(--br-ink, #1E2629); }

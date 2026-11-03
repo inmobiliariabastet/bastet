@@ -142,6 +142,13 @@ Sitio estático (HTML/CSS/JS puro, sin build) para **Bastet**, inmobiliaria boli
 
 ## Historial de cambios (lo más reciente arriba)
 
+### 2026-11-03 · Verificación pública de reservas y etiqueta «EN USO»
+- **Verificar** (`verificar.html`) acepta también el código de RESERVA (10 caracteres): muestra «✓ Reserva verificada» (pago del 10 % verificado), historial, ubicación (con enlace al mapa), fotos, WhatsApp del anfitrión (solo con pago verificado y no cancelada), calendario de noches apartadas y resumen del pago. Nunca teléfono/correo del huésped ni comprobantes. Código en `assets/js/verify-stay.js`; RPC `verify_stay_booking` (anon).
+- **Estadías**: etiqueta **EN USO · Disponible desde el …** (reserva confirmada que cubre hoy; encadena reservas consecutivas) o **RESERVADA · del … al …** (confirmada que empieza después) en tarjeta y ficha; el calendario público marca como ocupadas las noches reservadas y la búsqueda por fechas oculta lo ocupado. RPC `stay_booked_ranges` (anon, sin datos personales).
+- Menú de escritorio: vuelve «Verificar» (se había perdido en el rediseño) y el botón de acceso ya no se parte a 1080–1279 px.
+- Cancelación gratuita = 4 h desde que se verifica el pago (reemplazó 72 h antes); plazo de pago 12 h; aviso al anfitrión por panel + botón WhatsApp de administración.
+- **SQL a re-correr (idempotente):** `supabase/stay-bookings.sql` (agrega las dos RPC nuevas).
+
 ### 2026-11-02 · Fase 1 de la especificación maestra: reservas de Estadías con pago del 10 %
 Spec guardada en `docs/ESPECIFICACION_MAESTRA.md`. Nuevo: `supabase/stay-bookings.sql` (+ al final de `schema.sql`), `assets/js/estadias-reservas.js`, `assets/js/stay-bookings-admin.js`, pestaña «Reservas» en `/admin`, `tests/stay_bookings_sql_test.py`. Interruptor `stay_settings.enabled` apagado: el sitio público no cambia hasta que se active. Verificado en navegador con respuestas simuladas (flujo huésped y panel) y 0 fallas en las suites SQL de estadías. Ver «PRÓXIMA SESIÓN» para límites y activación.
 

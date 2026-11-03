@@ -450,3 +450,56 @@ grant execute on function public.host_respond_stay_booking(uuid, boolean), publi
   public.my_stay_bookings(), public.stay_booking_events(uuid), public.get_stay_settings(), public.admin_update_stay_settings(boolean, numeric, text, text, integer) to authenticated;
 
 notify pgrst, 'reload schema';
+
+-- 17) Fechas ocupadas por reservas (público, sin datos personales): alimenta el calendario y la etiqueta «EN USO».
+--     to_date es la ÚLTIMA noche ocupada (el día de salida queda libre). confirmed = pago verificado.
+create or replace function public.stay_booked_ranges(p_ids uuid[])
+returns table (property_id uuid, from_date date, to_date date, confirmed boolean)
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(array_length(p_ids, 1), 0) > 300 then raise exception 'Demasiadas propiedades'; end if;
+  perform public.stay_expire_pending();
+  return query
+    select b.property_id, b.check_in, b.check_out - 1, b.status in ('pago_verificado', 'conexion_generada', 'en_disputa')
+      from public.stay_bookings b
+     where b.property_id = any (coalesce(p_ids, '{}'::uuid[]))
+       and b.status in ('aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'pago_verificado', 'conexion_generada', 'en_disputa')
+       and b.check_out - 1 >= public.bo_today()
+     order by b.check_in;
+end $$;
+
+-- 18) Verificación pública de una reserva con su código (pestaña «Verificar»). Es el código que tiene el huésped: quien lo tenga ve el
+--     detalle de la reserva. El WhatsApp del anfitrión solo se entrega si el pago del 10 % está verificado y la reserva no se canceló.
+--     Nunca devuelve teléfono ni correo del huésped, comprobantes, ni lo declarado del 90 % directo.
+create or replace function public.verify_stay_booking(p_code text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare b public.stay_bookings; prop record; host_name text; contact text; ok boolean;
+begin
+  perform public.stay_expire_pending();
+  select * into b from public.stay_bookings where code = upper(btrim(coalesce(p_code, '')));
+  if not found then return jsonb_build_object('found', false); end if;
+  select title, location, address, photos, latitude, longitude, whatsapp into prop from public.properties where id = b.property_id;
+  select display_name, contact_whatsapp into host_name, contact from public.profiles where id = b.host_id;
+  ok := b.verified_at is not null and b.status in ('conexion_generada', 'en_disputa');
+  return jsonb_build_object('found', true, 'code', b.code, 'status', b.status, 'verified', ok, 'verified_at', b.verified_at,
+    'title', prop.title, 'location', prop.location, 'address', prop.address, 'latitude', prop.latitude, 'longitude', prop.longitude,
+    'photos', to_jsonb(coalesce(prop.photos, '{}'::text[])),
+    'check_in', b.check_in, 'check_out', b.check_out, 'nights', b.nights, 'guests', b.guests,
+    'guest_name', split_part(btrim(b.guest_name), ' ', 1) || coalesce(' ' || upper(left(nullif(split_part(btrim(b.guest_name), ' ', 2), ''), 1)) || '.', ''),
+    'currency', b.currency, 'total', b.total, 'fee_bs', b.fee_bs, 'balance', b.total - b.fee_amount,
+    'host_name', case when ok then host_name end, 'host_whatsapp', case when ok then coalesce(contact, prop.whatsapp) end,
+    'cancelled_by', b.cancelled_by, 'created_at', b.created_at,
+    'events', coalesce((select jsonb_agg(jsonb_build_object('event', e.event, 'at', e.created_at) order by e.created_at, e.id)
+                          from public.stay_booking_events e
+                         where e.booking_id = b.id and e.event in ('solicitada', 'aceptada', 'rechazada', 'expirada_sin_respuesta', 'expirada_sin_pago', 'comprobante_enviado',
+                               'comprobante_rechazado', 'pago_verificado_y_conexion', 'cancelada_por_huesped', 'cancelada_por_anfitrion', 'disputa_abierta', 'disputa_cerrada')), '[]'::jsonb),
+    'busy', coalesce((select jsonb_agg(jsonb_build_object('from', k.check_in, 'to', k.check_out - 1))
+                        from public.stay_bookings k
+                       where k.property_id = b.property_id and k.id <> b.id and k.check_out - 1 >= public.bo_today()
+                         and k.status in ('aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'pago_verificado', 'conexion_generada', 'en_disputa')), '[]'::jsonb));
+end $$;
+
+revoke all on function public.stay_booked_ranges(uuid[]), public.verify_stay_booking(text) from public;
+grant execute on function public.stay_booked_ranges(uuid[]), public.verify_stay_booking(text) to anon, authenticated;
+
+notify pgrst, 'reload schema';
