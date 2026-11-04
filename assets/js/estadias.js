@@ -373,7 +373,6 @@
     if (p.has_garage === true) out.push({ icon: OFFER_ICONS.garage, text: p.garage_spots ? 'Garaje para ' + p.garage_spots + (p.garage_spots === 1 ? ' auto' : ' autos') : 'Garaje' });
     if (p.has_storage === true) out.push({ icon: OFFER_ICONS.storage, text: 'Baulera' });
     if (p.pets_allowed === true) out.push({ icon: OFFER_ICONS.pets, text: 'Se aceptan mascotas' });
-    if (p.kids_allowed === true) out.push({ icon: OFFER_ICONS.kids, text: 'Se aceptan niños' });
     return out;
   }
 

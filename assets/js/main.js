@@ -265,10 +265,10 @@ let favOnly = false;      // solo guardadas (corazón)
 let viewMode = 'list';    // 'list' | 'map' (solo en marketplace)
 let operationFilter = ''; // '' (inicio: destacadas) | 'venta' | 'alquiler' | 'anticretico' | 'temporal'
 let typeFilter = ''; // '' | 'casa' | 'departamento' | 'habitacion' | 'terreno'
-let roomsFilter = ''; // '' = cualquiera; '3' = 3 o más habitaciones
+let roomsFilter = ''; // '' = cualquiera; '3' = mínimo 3 habitaciones
 const roomsSelectEl = document.getElementById('rooms-filter-select');
 const ROOMS_MIN_OPTIONS = [1, 2, 3, 4, 5];
-let bathsFilter = ''; // '' = cualquiera; '2' = 2 o más baños
+let bathsFilter = ''; // '' = cualquiera; '2' = mínimo 2 baños
 const bathsSelectEl = document.getElementById('baths-filter-select');
 const BATHS_MIN_OPTIONS = [1, 2, 3, 4];
 
@@ -324,7 +324,7 @@ function enhanceSelect(selectEl) {
 
   let active = -1; // índice de la opción resaltada con el teclado
 
-  // "3 o más (11)" -> texto "3 o más" + cantidad en una pastilla
+  // "3 (11)" -> texto "3" + cantidad en una pastilla
   function splitCount(text) {
     const m = text.match(/^(.*?)\s*\((\d+)\)$/);
     return m ? { text: m[1], count: m[2] } : { text, count: null };
@@ -479,7 +479,7 @@ typeSelectEl?.addEventListener('change', () => {
   renderPropertyGrid();
 });
 
-// Selector "N o más habitaciones", con cantidades dentro de la operación y el tipo elegidos.
+// Selector de habitaciones (mínimo N), con cantidades dentro de la operación y el tipo elegidos.
 function buildRoomsFilter() {
   const base = propertiesForOperationAndType();
   roomsSelectEl.innerHTML = '';
@@ -491,7 +491,7 @@ function buildRoomsFilter() {
     const count = base.filter((p) => (propertyRoomsNumber(p) || 0) >= min).length;
     const opt = document.createElement('option');
     opt.value = String(min);
-    opt.textContent = min + ' o más (' + count + ')';
+    opt.textContent = min + ' (' + count + ')';
     opt.disabled = count === 0;
     roomsSelectEl.appendChild(opt);
   });
@@ -507,7 +507,7 @@ roomsSelectEl?.addEventListener('change', () => {
   renderPropertyGrid();
 });
 
-// Selector "N o más baños", con cantidades dentro de operación, tipo y habitaciones elegidos.
+// Selector de baños (mínimo N), con cantidades dentro de operación, tipo y habitaciones elegidos.
 function buildBathsFilter() {
   const base = propertiesForOperationTypeAndRooms();
   bathsSelectEl.innerHTML = '';
@@ -519,7 +519,7 @@ function buildBathsFilter() {
     const count = base.filter((p) => (propertyBathsNumber(p) || 0) >= min).length;
     const opt = document.createElement('option');
     opt.value = String(min);
-    opt.textContent = min + ' o más (' + count + ')';
+    opt.textContent = min + ' (' + count + ')';
     opt.disabled = count === 0;
     bathsSelectEl.appendChild(opt);
   });

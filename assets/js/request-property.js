@@ -61,7 +61,7 @@
   /* ───────── Pasos ───────── */
   const chip = (group, value, label, on) => '<button type="button" class="rq-chip' + (on ? ' is-on' : '') + '" data-chip="' + group + '" data-v="' + esc(value) + '" aria-pressed="' + !!on + '">' + esc(label) + '</button>';
   const sel = (id, opts, val) => '<select id="' + id + '" data-f="' + id.slice(3) + '">' + opts.map(([v, t]) => '<option value="' + v + '"' + (String(val) === String(v) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
-  const MIN_OPTS = [['', 'Cualquiera'], ['1', '1 o más'], ['2', '2 o más'], ['3', '3 o más'], ['4', '4 o más'], ['5', '5 o más']];
+  const MIN_OPTS = [['', 'Cualquiera'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']];
 
   function stepHtml(i) {
     if (i === 0) return '<h3>¿Qué tipo de solicitud quieres hacer?</h3><div class="sw-ops" role="radiogroup">' + OPS.map((o) =>
@@ -87,7 +87,7 @@
     return '<h3>Resumen de tu solicitud</h3><div class="sw-summary">' +
       block('Solicitud', 0, row('Operación', (OPS.find((o) => o.v === d.operation) || {}).label)) +
       block('Ubicación', 1, row('Ciudad', d.city) + row('Zona', d.zone)) +
-      block('Características', 2, row('Tipo', TYPE_LABEL[d.property_type]) + row('Habitaciones', d.rooms_min ? d.rooms_min + ' o más' : '') + row('Baños', d.baths_min ? d.baths_min + ' o más' : '') + row('Superficie', [d.area_min ? 'desde ' + d.area_min : '', d.area_max ? 'hasta ' + d.area_max : ''].filter(Boolean).join(' ') + (d.area_min || d.area_max ? ' m²' : ''))) +
+      block('Características', 2, row('Tipo', TYPE_LABEL[d.property_type]) + row('Habitaciones', d.rooms_min ? 'mín. ' + d.rooms_min : '') + row('Baños', d.baths_min ? 'mín. ' + d.baths_min : '') + row('Superficie', [d.area_min ? 'desde ' + d.area_min : '', d.area_max ? 'hasta ' + d.area_max : ''].filter(Boolean).join(' ') + (d.area_min || d.area_max ? ' m²' : ''))) +
       block('Preferencias', 3, row('Elegidas', d.features.join(', '))) +
       block('Presupuesto', 4, row('Rango', budget)) +
       block('Contacto', 5, row('Nombre', d.contact_name) + row('WhatsApp', d.contact_phone) + row('Correo', d.contact_email) + row('Descripción', d.description)) +

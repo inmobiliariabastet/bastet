@@ -32,7 +32,7 @@ function propertyFeatureList(p) {
     }
     add('Baulera', yesNoLabel(p.has_storage));
     add('Mascotas', p.pets_allowed === true ? 'Se aceptan' : p.pets_allowed === false ? 'No se aceptan' : '');
-    add('Niños', p.kids_allowed === true ? 'Se aceptan' : p.kids_allowed === false ? 'No se aceptan' : '');
+    if (p.operation === 'alquiler') add('Niños', p.kids_allowed === true ? 'Se aceptan' : p.kids_allowed === false ? 'No se aceptan' : '');
   }
   return items;
 }

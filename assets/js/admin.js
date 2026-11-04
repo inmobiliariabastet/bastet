@@ -593,10 +593,14 @@ function selectToBool(value) { return value === 'true' ? true : value === 'false
 function updatePropertyTypeFields() {
   const isLand = document.getElementById('field-type').value === 'terreno';
   document.querySelectorAll('#property-form .not-terreno').forEach((el) => el.classList.toggle('hidden', isLand));
+  // «¿Se aceptan niños?» solo se pregunta en alquiler; en venta, anticrético y estadías temporales se aceptan (está implícito)
+  const kidsWrap = document.getElementById('field-kids-wrap');
+  if (kidsWrap) kidsWrap.classList.toggle('hidden', isLand || document.getElementById('field-operation').value !== 'alquiler');
   const hasGarage = document.getElementById('field-garage').value === 'true';
   document.getElementById('field-garage-spots-wrap').classList.toggle('invisible', !hasGarage);
 }
 document.getElementById('field-type').addEventListener('change', updatePropertyTypeFields);
+document.getElementById('field-operation').addEventListener('change', updatePropertyTypeFields);
 document.getElementById('field-garage').addEventListener('change', updatePropertyTypeFields);
 
 // Moneda del precio: en bolivianos no hay tipo de cambio que indicar y el símbolo es Bs.-
@@ -648,7 +652,7 @@ propertyForm.addEventListener('submit', async (e) => {
     garage_spots: hasGarage ? (parseInt(document.getElementById('field-garage-spots').value, 10) || null) : null,
     has_storage: isLand ? null : selectToBool(document.getElementById('field-storage').value),
     pets_allowed: isLand ? null : selectToBool(document.getElementById('field-pets').value),
-    kids_allowed: isLand ? null : selectToBool(document.getElementById('field-kids').value),
+    kids_allowed: (isLand || document.getElementById('field-operation').value !== 'alquiler') ? null : selectToBool(document.getElementById('field-kids').value),
   });
   // Ubicación exacta del pin (para el mapa de Estadías); si nunca se fijó, no se toca lo que ya hubiera
   if (pinCoords && Number.isFinite(pinCoords.lat) && Number.isFinite(pinCoords.lng)) { payload.latitude = +pinCoords.lat.toFixed(6); payload.longitude = +pinCoords.lng.toFixed(6); }
