@@ -135,3 +135,8 @@
 .prop-tile-cta:hover, .property-modal-cta:hover { background: #2F3B2D; }
 .prop-tile-cta:focus-visible, .property-modal-cta:focus-visible { outline: 3px solid #F1BF46; outline-offset: 2px; }
 .ap-wa { border: 0; cursor: pointer; }
+
+/* Barra fija de la ficha (Guardar / Solicitar contacto): flota con aire alrededor, sin pegarse al borde de la pantalla */
+.ps-bar { left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); padding: 10px 12px; border: 1px solid var(--br-line, rgba(30,38,41,.12)); border-radius: 26px; box-shadow: 0 10px 30px -8px rgba(30,38,41,.38); }
+@media (min-width: 720px) { .ps-bar { left: 50%; right: auto; transform: translateX(-50%); width: min(940px, calc(100% - 24px)); } }
+#property-modal.prop-screen .ps-body { padding-bottom: 120px; }
