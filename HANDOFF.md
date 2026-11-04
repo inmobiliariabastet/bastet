@@ -710,3 +710,5 @@ Después de cada commit + push a `main`:
 - 2026-11-04: supabase/partners-host.sql (reemplaza las 7 filas «anuncie aquí» de Marcas por una sola «Hospeda a tu gente con nosotros»; main.js ya la muestra como tarjeta de anfitrión). PDF para el abogado regenerado. SQL pendiente de correr por la dueña.
 
 - 2026-11-04: EMPRESAS ALIADAS. supabase/corporate.sql (apagado por defecto; se enciende en /admin → Empresas), empresas.html (página premium), panel «Mi empresa» (company-dashboard.js, cuentas tipo empresa: afiliación → trabajadores → solicitudes de alojamiento) y «Empresas» para administración (company-admin.js: activar, descuento, cotizar). La tarjeta «Hospeda a tu gente» de Marcas lleva a empresas.html. La cotización es MANUAL (no cambia el cobro de reservas). Decisiones abiertas de la dueña: descuento por defecto (10 % provisional), quién paga, convenio por empresa. SQL pendiente de correr. Test: tests/corporate_sql_test.py.
+
+- 2026-11-04: «Google» con su identidad: logo de 4 colores en los botones «Continuar con Google» (5 páginas) y la palabra Google coloreada en todo texto visible (assets/js/google-brand.js, cargado en 8 páginas).
