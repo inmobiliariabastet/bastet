@@ -548,4 +548,11 @@ asesoramiento legal.
 
 ------------------------------------------------------------------------
 
+## Adenda 2026-11-04 · Empresas aliadas (posterior a esta especificación)
+
+-   Servicio para empresas con trabajadores que viajan dentro de Bolivia: atención preferencial y tarifa corporativa. Cuenta de tipo «empresa» → afiliación (razón social, NIT, contacto) revisada y activada por administración con un descuento corporativo → registro de trabajadores y solicitudes de alojamiento → cotización manual de Bastet.
+-   No cambia el cobro de las reservas normales de Estadías (10 % al huésped, 90 % directo). Aplicar el descuento automáticamente en reservas queda como decisión abierta (cuánto baja el anfitrión y cuánto Bastet).
+-   Todo apagado por defecto (`corporate_settings.enabled`). Descuento por defecto 10 % provisional. Detalle técnico en HANDOFF («Empresas aliadas»). No definido y a revisar por el abogado: convenio por empresa, condiciones de la tarifa corporativa, tratamiento de datos de trabajadores.
+
+
 **Fin de la especificación maestra.**
