@@ -13,7 +13,7 @@
 <link rel="preload" href="../assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/css/fonts.css?v=20261014b">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="../assets/css/admin.css?v=20261104a">
+<link rel="stylesheet" href="../assets/css/admin.css?v=20261104b">
 <link rel="stylesheet" href="../assets/css/credits.css?v=20261018e">
 <link rel="stylesheet" href="../assets/css/subscription.css?v=20261027a">   <!-- hoy solo aporta los estilos del formulario de registro (.ob-*) -->
 <link rel="stylesheet" href="../assets/css/owner-services.css?v=20261022a">
@@ -46,6 +46,7 @@
     </div>
     <nav class="admin-nav" aria-label="Secciones">
       <button type="button" class="admin-tab hidden" data-tab="client"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg>Mi espacio</button>
+      <button type="button" class="admin-tab hidden" data-tab="company"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.500"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/></svg>Mi empresa</button>
       <div class="admin-nav-group">Ventas</div>
       <button type="button" class="admin-tab is-active" data-tab="properties"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg>Propiedades</button>
       <button type="button" class="admin-tab hidden" data-tab="owner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Mi gestión</button>
@@ -69,6 +70,7 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="admins"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.6c2 .6 3.2 2.4 3.5 5.4"/></svg>Usuarios</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Propietarios <span class="tab-count hidden" id="sell-count"></span></button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="legal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-2 6a3 3 0 0 0 4 0zM19 7l-2 6a3 3 0 0 0 4 0zM8 21h8"/></svg>Asesoría legal</button>
+      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="companies"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.500"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/></svg>Empresas <span class="tab-count hidden" id="companies-count"></span></button>
     </nav>
     <div class="admin-side-foot">
       <a href="../index.html" target="_blank" rel="noopener" class="admin-landing-link">Volver al Inicio ↗</a>
@@ -174,6 +176,18 @@
       <div class="admin-toolbar"><div><h1>Investigaciones</h1>
         <p class="admin-toolbar-hint">Ocultar una operación originada por una conexión de Bastet es una falta grave. Aquí se investiga con garantías: descargos, revisión jurídica y decisión escrita. Nada irreversible se ejecuta por sí solo.</p></div></div>
       <div id="investigations-root"></div>
+    </div>
+
+    <div id="tab-panel-company" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>Mi empresa</h1>
+        <p class="admin-toolbar-hint">Alojamiento para los trabajadores de tu empresa con atención preferencial y tarifa corporativa dentro de Bolivia.</p></div></div>
+      <div id="company-root"></div>
+    </div>
+
+    <div id="tab-panel-companies" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>Empresas</h1>
+        <p class="admin-toolbar-hint">Afiliación corporativa: activa empresas, fija su descuento y atiende primero sus solicitudes de alojamiento (cotización manual).</p></div></div>
+      <div id="companies-root"></div>
     </div>
 
     <div id="tab-panel-verification" class="tab-panel hidden">
@@ -599,7 +613,7 @@
 <script src="../assets/js/property-fields.js?v=20261103f"></script>
 <script src="../assets/js/image-optimize.js?v=20261026a"></script>
 <script src="../assets/js/publications.js?v=20261104a"></script>
-<script src="../assets/js/onboarding.js?v=20261104a"></script>
+<script src="../assets/js/onboarding.js?v=20261104b"></script>
 <script src="../assets/js/leads.js?v=20261018a"></script>
 <script src="../assets/js/sell-admin.js?v=20261104b"></script>
 <script src="../assets/js/collections.js?v=20261014a"></script>
@@ -615,6 +629,8 @@
 <script src="../assets/js/stay-bookings-admin.js?v=20261103g"></script>
 <script src="../assets/js/connections-admin.js?v=20261103a"></script>
 <script src="../assets/js/operations-admin.js?v=20261103e"></script>
+<script src="../assets/js/company-dashboard.js?v=20261104a"></script>
+<script src="../assets/js/company-admin.js?v=20261104a"></script>
 <script src="../assets/js/verification-admin.js?v=20261103f"></script>
 <script src="../assets/js/account-type.js?v=20261104a"></script>
   <script src="../assets/js/account-delete.js?v=20261103h"></script>

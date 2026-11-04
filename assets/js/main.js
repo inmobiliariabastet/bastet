@@ -1347,13 +1347,13 @@ async function loadPartners() {
     return;
   }
 
-  // Los espacios de relleno «Anuncie aquí» se reemplazan por una sola tarjeta «Hospeda a tu gente con nosotros» que invita a registrarse como anfitrión
+  // Los espacios de relleno «Anuncie aquí» se reemplazan por una sola tarjeta «Hospeda a tu gente con nosotros» que lleva a crear la cuenta de empresa
   const isPlaceholder = (p) => /anuncie-aqui/i.test(p.logo_url || '');
   const isHost = (p) => /hospeda-a-tu-gente/i.test(p.logo_url || '');
   const shown = data.filter((p) => !isPlaceholder(p)).map((p) => (isHost(p) ? { host: true, logo_url: 'assets/img/hospeda-a-tu-gente.webp' } : p))
     .concat(data.some(isPlaceholder) && !data.some(isHost) ? [{ host: true, logo_url: 'assets/img/hospeda-a-tu-gente.webp' }] : []);
   const logosHtml = shown.map((p) => {
-    if (p.host) return '<button type="button" class="partner-host" data-host-signup aria-label="Hospeda a tu gente con nosotros: regístrate como anfitrión"><img src="' + p.logo_url + '" alt="Hospeda a tu gente con nosotros" data-logo="' + p.logo_url + '"></button>';
+    if (p.host) return '<button type="button" class="partner-host" data-company-signup aria-label="Hospeda a tu gente con nosotros: crea la cuenta de tu empresa"><img src="' + p.logo_url + '" alt="Hospeda a tu gente con nosotros" data-logo="' + p.logo_url + '"></button>';
     const img = '<img src="' + escapeHtml(p.logo_url) + '" alt="' + escapeHtml(p.name || 'Empresa aliada') + '" data-logo="' + escapeHtml(p.logo_url) + '">';
     return p.url
       ? '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(p.name || 'Empresa aliada') + '">' + img + '</a>'

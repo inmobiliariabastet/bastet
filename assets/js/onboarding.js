@@ -56,6 +56,12 @@
     });
     // Llegó desde «Regístrate como anfitrión» en el Inicio: se propone la cuenta de propietario (publica estadías temporales)
     let hostHint = false; try { hostHint = localStorage.getItem('bastet-signup-hint') === 'anfitrion'; } catch (e) { /* sin almacenamiento */ }
+    let coHint = false; try { coHint = localStorage.getItem('bastet-signup-hint') === 'empresa'; } catch (e) { /* sin almacenamiento */ }
+    if (coHint) {
+      form.querySelector('#ob-interest').value = 'empresa';
+      const note = document.createElement('p'); note.className = 'ob-lead'; note.textContent = 'Para el alojamiento de tus trabajadores elige una cuenta de empresa: después solicitas la afiliación corporativa desde «Mi empresa».';
+      form.insertBefore(note, form.firstChild);
+    }
     if (hostHint) {
       form.querySelector('#ob-interest').value = 'propietario';
       const note = document.createElement('p'); note.className = 'ob-lead'; note.textContent = 'Para ser anfitrión elige una cuenta de propietario: después publicas tu casa, departamento o habitación como estadía temporal.';

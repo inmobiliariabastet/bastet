@@ -33,3 +33,4 @@ Estas carpetas se publican con el sitio (es un sitio estático) pero no son enla
 - `python tests/verify_connection_sql_test.py` — verificar una solicitud de contacto por su código o constancia: sin nombres/teléfonos/correos/mensajes, código inexistente no falla, límite por IP.
 - `python tests/account_deletion_sql_test.py` — eliminar cuenta: cada pendiente (conexión por pagar, inmueble con conexiones, comisión, investigación, penalización, reserva en disputa, cobranza) bloquea y deja de bloquear al resolverse; elimina, anonimiza y bloquea el acceso; conserva los registros.
 - host_contact_sql_test.py: WhatsApp del dueño visible al huésped tras verificar el pago.
+- corporate_sql_test.py: empresas aliadas (afiliación, trabajadores, solicitudes, cotización, permisos).
