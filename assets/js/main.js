@@ -623,12 +623,8 @@ function buildTileAgentHtml(property) {
       ? '<span class="prop-tile-avatar prop-tile-avatar--initial">' + escapeHtml(initial) + '</span>'
       : '<span class="prop-tile-avatar prop-tile-avatar--brand"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt=""></span>');
   // WhatsApp del agente (su perfil) o, si no lo tiene, el de la propiedad; sin ninguno, el número general de Bastet
-  const waIcon = '<a class="property-modal-social-link" href="' + '#"' + (contactGated(property) ? '' : waAttrs(propertyWhatsappMessage(property), property.id)) + ' data-tile-wa aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(name) + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
-  const socials = waIcon + (agent
-    ? socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
-      socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
-      socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok')
-    : '');
+  const waIcon = '<a class="prop-tile-cta" href="#" data-tile-wa aria-label="Solicitar contacto con ' + escapeHtml(name) + '">Solicitar contacto</a>';
+  const socials = waIcon;
   return (
     '<div class="prop-tile-agent">' +
       '<div class="prop-tile-agent-row">' +
@@ -980,7 +976,7 @@ propGridEl.addEventListener('click', (e) => {
     return;
   }
   if (e.target.closest('[data-tile-wa]')) {
-    if (contactGated(property)) { e.preventDefault(); openProperty(property); return; }   // con conexiones: abre la ficha para pedir contacto
+    e.preventDefault(); openProperty(property); return;   // el contacto se pide desde la ficha (formulario «Solicitar contacto»)
     trackEvent(property.id, 'whatsapp_click');        // el enlace del ícono abre WhatsApp por sí solo
     return;
   }
@@ -1136,12 +1132,9 @@ function buildAgentSectionHtml(agent, property, message) {
     : (hasAgent
       ? '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder">' + escapeHtml(initial) + '</span>'
       : '<span class="property-modal-agent-avatar property-modal-agent-avatar-placeholder"><img src="assets/img/bastet-isotipo-cabeza-dorado.webp" alt="" style="width:70%;height:70%;object-fit:contain"></span>');
-  const waIcon = '<a class="property-modal-social-link" id="modal-whatsapp-cta" href="' + '#"' + (contactGated(property) ? '' : waAttrs(message, property && property.id)) + ' aria-label="' + (contactGated(property) ? 'Solicitar contacto con ' : 'Escribir por WhatsApp a ') + escapeHtml(a.display_name || 'Bastet') + '" title="' + (contactGated(property) ? 'Solicitar contacto' : 'Escribir por WhatsApp') + '"><img src="assets/img/social-whatsapp.svg" alt="WhatsApp"></a>';
+  const waIcon = '<a class="property-modal-cta" id="modal-whatsapp-cta" href="#" aria-label="Solicitar contacto con ' + escapeHtml(a.display_name || 'Bastet') + '">Solicitar contacto</a>';
   agent = a;   // el resto de la función usa `agent`
-  const socials = waIcon +
-    socialIconLink(agent.facebook_url, 'facebook', 'Facebook') +
-    socialIconLink(agent.instagram_url, 'instagram', 'Instagram') +
-    socialIconLink(agent.tiktok_url, 'tiktok', 'TikTok');
+  const socials = waIcon;
   return (
     '<div class="property-modal-agent' + (hasAgent ? ' is-link' : '') + '"' + (hasAgent ? ' data-agent-open role="button" tabindex="0" aria-label="Ver perfil de ' + escapeHtml(agent.display_name || '') + '"' : '') + '>' +
       avatar +
@@ -1211,7 +1204,7 @@ function renderModal() {
     '</div>' +
     '<div class="ps-bar">' +
       (window.PropFavs ? '<button type="button" class="ps-save' + (faved ? ' is-on' : '') + '" id="ps-save" aria-pressed="' + faved + '">' + HEART_SVG + '<span>' + (faved ? 'Guardada' : 'Guardar') + '</span></button>' : '') +
-      '<a class="ps-wa" id="ps-wa" href="' + '#"' + (contactGated(p) ? '' : waAttrs(message, p.id)) + '>' + (contactGated(p) ? 'Solicitar contacto' : 'Consultar por WhatsApp') + '</a>' +
+      '<a class="ps-wa" id="ps-wa" href="#">Solicitar contacto</a>' +
     '</div>';
 
   // El formulario vive fuera del innerHTML para no perder lo escrito al cambiar de foto.
@@ -1238,7 +1231,7 @@ function renderModal() {
     if (slot) { slot.scrollIntoView({ behavior: 'smooth', block: 'center' }); const f = slot.querySelector('input'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 350); }
   };
   ['modal-whatsapp-cta', 'ps-wa'].forEach((id) => document.getElementById(id).addEventListener('click', (e) => {
-    if (contactGated(p)) goLeadForm(e); else trackEvent(p.id, 'whatsapp_click');
+    goLeadForm(e);
   }));
   document.getElementById('modal-share').addEventListener('click', async () => {
     const url = location.origin + location.pathname + '?p=' + encodeURIComponent(code || p.id);

@@ -26,8 +26,7 @@
       ? '<img class="ap-avatar" src="' + esc(a.avatar_url) + '" alt="">'
       : '<span class="ap-avatar ap-avatar--ph">' + esc(initial) + '</span>';
     const msg = 'Hola ' + (a.display_name || '') + ', vi tu perfil en Bastet (bastet.uno) y quisiera consultarte por una propiedad.';
-    const socials = SOCIAL.map(([k, kind, label]) => a[k]
-      ? '<a class="ap-social" href="' + esc(a[k]) + '" target="_blank" rel="noopener" aria-label="' + label + '"><img src="assets/img/social-' + kind + '.svg" alt="' + label + '"></a>' : '').join('');
+    const socials = '';
 
     root = document.createElement('div');
     root.className = 'ap-screen';
@@ -44,9 +43,7 @@
           '<div id="ap-rep" class="ap-rep"></div>' +
           (ops.length ? '<p class="ap-tags">' + ops.map((t) => '<span>' + esc(t) + '</span>').join('') + '</p>' : '') +
         '</div>' +
-        '<div class="ap-actions">' + (window.Connections && window.Connections.isOn()
-          ? '<p class="ap-note">Para contactar a este agente, solicita contacto desde una de sus propiedades.</p>'
-          : '<a class="ap-wa" id="ap-wa" href="#" data-wa-agent="' + esc(a.id) + '" data-wa-msg="' + esc(msg) + '">Escribir por WhatsApp</a>') + (socials ? '<span class="ap-socials">' + socials + '</span>' : '') + '</div>' +
+        (list.length ? '<div class="ap-actions"><button type="button" class="ap-wa" data-ap-i="' + Math.max(0, list.findIndex((p) => o.current && p.id === o.current.id)) + '">Solicitar contacto</button></div>' : '') +
         '<p class="ap-note">Bastet publica solo anuncios revisados. Para tu seguridad, coordina visitas y pagos a través de Bastet.</p>' +
         (list.length ? '<h3 class="ap-h">Propiedades de ' + esc((a.display_name || '').split(' ')[0] || 'este agente') + '</h3><ul class="ap-list">' +
           list.map((p, i) => {

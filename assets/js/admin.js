@@ -1381,9 +1381,6 @@ function populateProfileForm() {
   if (!currentProfile) return;
   document.getElementById('profile-name-input').value = currentProfile.display_name || '';
   document.getElementById('profile-whatsapp-input').value = currentProfile.contact_whatsapp || '';
-  document.getElementById('profile-facebook-input').value = currentProfile.facebook_url || '';
-  document.getElementById('profile-instagram-input').value = currentProfile.instagram_url || '';
-  document.getElementById('profile-tiktok-input').value = currentProfile.tiktok_url || '';
   profileAvatarUrl = currentProfile.avatar_url || null;
   renderProfileAvatarPreview();
 }
@@ -1447,9 +1444,6 @@ profileForm.addEventListener('submit', async (e) => {
     display_name: document.getElementById('profile-name-input').value.trim() || null,
     contact_whatsapp: whatsapp || null,
     avatar_url: profileAvatarUrl,
-    facebook_url: document.getElementById('profile-facebook-input').value.trim() || null,
-    instagram_url: document.getElementById('profile-instagram-input').value.trim() || null,
-    tiktok_url: document.getElementById('profile-tiktok-input').value.trim() || null,
   };
 
   const btn = document.getElementById('profile-form-submit');

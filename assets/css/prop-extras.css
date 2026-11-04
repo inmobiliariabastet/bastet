@@ -127,3 +127,11 @@
 .ap-reviews li { background: #F6F3EE; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
 .ap-reviews li p { margin: 4px 0 0; }
 .ap-reply { color: rgba(30,38,41,.7); font-style: italic; }
+
+/* Un solo botón de contacto (sin WhatsApp ni redes): «Solicitar contacto» en la tarjeta y en la ficha */
+.prop-tile-cta, .property-modal-cta { display: inline-flex; align-items: center; justify-content: center; flex: none; white-space: nowrap; border-radius: 999px; background: var(--br-green, #3D4C3A); color: #fff !important; text-decoration: none; font-family: var(--font-sans, 'Cabinet Grotesk', system-ui, sans-serif); font-weight: 600; cursor: pointer; transition: background .2s; }
+.prop-tile-cta { min-height: 36px; padding: 0 14px; font-size: 13px; }
+.property-modal-cta { min-height: 40px; padding: 0 18px; font-size: 14px; }
+.prop-tile-cta:hover, .property-modal-cta:hover { background: #2F3B2D; }
+.prop-tile-cta:focus-visible, .property-modal-cta:focus-visible { outline: 3px solid #F1BF46; outline-offset: 2px; }
+.ap-wa { border: 0; cursor: pointer; }
