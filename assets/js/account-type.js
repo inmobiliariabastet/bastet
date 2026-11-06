@@ -7,7 +7,7 @@
     cliente: ['Cliente', 'Buscas inmuebles, pides contactos y reservas estadías.'],
     propietario: ['Propietario', 'Publicas tus propios inmuebles y estadías.'],
     agente: ['Agente', 'Publicas inmuebles de terceros y usas las herramientas de agente, como los contratos.'],
-    empresa: ['Empresa', 'Publicas y gestionas inmuebles a nombre de tu empresa.'],
+    empresa: ['Empresa', 'Cuenta corporativa: gestionas estadías de tu equipo y buscas espacios o inmuebles para tu empresa.'],
     admin: ['Administrador', 'Acceso completo al panel de Bastet.'],
   };
   document.addEventListener('uno:account', (e) => {

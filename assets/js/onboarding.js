@@ -31,12 +31,12 @@
           '<div class="field"><label for="ob-wa">WhatsApp</label><input type="tel" id="ob-wa" maxlength="30" autocomplete="tel" placeholder="Ej: 77123456 o +591 77123456" required></div>' +
           '<div class="ob-row">' +
             '<div class="field"><label for="ob-city">Ciudad</label><select id="ob-city" required><option value="">Selecciona…</option>' + cityOptions() + '</select></div>' +
-            '<div class="field" id="ob-company-field"><label for="ob-company">Inmobiliaria o empresa (opcional)</label><input type="text" id="ob-company" maxlength="120"></div>' +
+            '<div class="field" id="ob-company-field"><label for="ob-company">Empresa o inmobiliaria (opcional)</label><input type="text" id="ob-company" maxlength="120"></div>' +
           '</div>' +
           '<div class="field"><label for="ob-interest">¿Cómo usarás Bastet? Define el tipo de cuenta que recibirás</label><select id="ob-interest" required><option value="">Selecciona…</option>' +
             '<option value="cliente">Cliente: busco comprar, alquilar o reservar una estadía</option>' +'<option value="propietario">Propietario: quiero publicar mis inmuebles</option>' +
             '<option value="agente">Agente inmobiliario</option>' +
-            '<option value="empresa">Empresa o inmobiliaria</option></select></div>' +
+            '<option value="empresa">Empresa: alojamiento para mi equipo o espacios para mi operación</option></select></div>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-adult"> <span>Confirmo que tengo <b>18 años o más</b>. Bastet no está dirigido a menores de edad.</span></label>' +
           '<label class="ob-consent"><input type="checkbox" id="ob-consent"> <span>Acepto que Bastet use estos datos para gestionar mi cuenta y contactarme. <a href="../privacidad.html" target="_blank" rel="noopener">Política de privacidad</a> y <a href="../terminos.html" target="_blank" rel="noopener">Términos de uso</a></span></label>' +
           '<p id="ob-error" class="form-error" role="alert" hidden></p>' +
@@ -59,7 +59,7 @@
     let coHint = false; try { coHint = localStorage.getItem('bastet-signup-hint') === 'empresa'; } catch (e) { /* sin almacenamiento */ }
     if (coHint) {
       form.querySelector('#ob-interest').value = 'empresa';
-      const note = document.createElement('p'); note.className = 'ob-lead'; note.textContent = 'Para el alojamiento de tus trabajadores elige una cuenta de empresa: después solicitas la afiliación corporativa desde «Mi empresa».';
+      const note = document.createElement('p'); note.className = 'ob-lead'; note.textContent = 'Para el alojamiento de tus trabajadores o los espacios de tu operación elige una cuenta de empresa: después solicitas la afiliación corporativa desde «Mi empresa».';
       form.insertBefore(note, form.firstChild);
     }
     if (hostHint) {

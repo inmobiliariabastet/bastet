@@ -36,7 +36,7 @@
   const ACTIVE_REQ = new Set(['solicitada', 'aceptada_pendiente_pago', 'comprobante_enviado', 'conexion_generada']);
   const ACTIVE_BK = new Set(['pendiente_respuesta_anfitrion', 'aceptada_pendiente_pago', 'comprobante_enviado', 'pago_en_revision', 'pago_verificado', 'conexion_generada']);
   const hiddenByClient = new Set();
-  let inClient = false, loading = false, firstShow = true;
+  let inClient = false, inCompany = false, loading = false, firstShow = true;
 
   const money = (p) => {
     const digits = String((p && p.price) || '').replace(/[^0-9]/g, '');
@@ -55,31 +55,33 @@
     if (!inClient) return;
     document.body.classList.add('is-client');
     document.querySelectorAll('.admin-side .admin-tab').forEach((b) => {
-      const keep = b.dataset.tab === 'client' || b.dataset.tab === 'account';
+      const keep = b.dataset.tab === (inCompany ? 'company' : 'client') || b.dataset.tab === 'account';
       if (keep) { b.classList.remove('hidden'); return; }
       if (!b.classList.contains('hidden')) hiddenByClient.add(b);
       b.classList.add('hidden');
     });
     document.querySelectorAll('.admin-side .admin-nav-group').forEach((g) => { if (!g.classList.contains('hidden')) { hiddenByClient.add(g); g.classList.add('hidden'); } });
     const bar = document.getElementById('admin-bottombar');
-    if (bar) bar.querySelectorAll('.abb-item[data-go]').forEach((b) => { if (b.dataset.go === 'client') b.classList.remove('hidden'); else { if (!b.classList.contains('hidden')) hiddenByClient.add(b); b.classList.add('hidden'); } });
-    const badge = document.getElementById('admin-role-badge'); if (badge) badge.textContent = 'Cliente';
-    const hint = document.querySelector('#tab-panel-account .admin-toolbar-hint'); if (hint) hint.textContent = 'Tu nombre y tu acceso. Para publicar inmuebles puedes cambiar el tipo de cuenta desde «Mi espacio».';
+    if (bar) bar.querySelectorAll('.abb-item[data-go]').forEach((b) => { if (b.dataset.go === (inCompany ? 'company' : 'client')) b.classList.remove('hidden'); else { if (!b.classList.contains('hidden')) hiddenByClient.add(b); b.classList.add('hidden'); } });
+    const badge = document.getElementById('admin-role-badge'); if (badge) badge.textContent = inCompany ? 'Empresa' : 'Cliente';
+    const hint = document.querySelector('#tab-panel-account .admin-toolbar-hint'); if (hint) hint.textContent = (inCompany ? 'Tu nombre y tu acceso. Los datos de la empresa están en «Mi empresa».' : 'Tu nombre y tu acceso. Para publicar inmuebles puedes cambiar el tipo de cuenta desde «Mi espacio».');
     ['profile-avatar-input', 'profile-whatsapp-input', 'profile-facebook-input', 'profile-instagram-input', 'profile-tiktok-input'].forEach((id) => { const f = document.getElementById(id); const w = f && f.closest('.field'); if (w) w.classList.add('hidden'); });
   }
   function leaveClientMode() {
     if (!document.body.classList.contains('is-client')) return;
     document.body.classList.remove('is-client');
     hiddenByClient.forEach((el) => el.classList.remove('hidden')); hiddenByClient.clear();
-    document.querySelectorAll('.admin-tab[data-tab="client"], .abb-item[data-go="client"]').forEach((b) => b.classList.add('hidden'));
+    document.querySelectorAll('.admin-tab[data-tab="client"], .abb-item[data-go="client"], .abb-item[data-go="company"]').forEach((b) => b.classList.add('hidden'));
     document.querySelectorAll('#tab-panel-account .field.hidden').forEach((f) => f.classList.remove('hidden'));
   }
 
   document.addEventListener('uno:account', (e) => {
     const a = e.detail;
     inClient = !!(a && a.account && a.account.client === true && a.registered !== false);
+    inCompany = inClient && a.account.company === true;
     if (!inClient) { leaveClientMode(); firstShow = true; return; }
     applyClientMode(); setTimeout(applyClientMode, 250); setTimeout(applyClientMode, 900);
+    if (inCompany) { if (firstShow) { firstShow = false; const t = document.querySelector('.admin-tab[data-tab="company"]'); if (t) t.click(); } return; }
     if (firstShow) { firstShow = false; const t = document.querySelector('.admin-tab[data-tab="client"]'); if (t) t.click(); }
     else if (!document.getElementById('tab-panel-client').classList.contains('hidden')) render();
   });
@@ -180,7 +182,7 @@
         (rec.length ? '<div class="cl-grid">' + rec.map((p) => card(p, p.featured ? 'Destacada' : '')).join('') + '</div>' : '<p class="cl-empty">Todavía no hay más propiedades disponibles. Vuelve pronto.</p>') + '</section>' +
       (favs.length ? '<section class="cl-block"><h2>Tus favoritos</h2><div class="cl-grid">' + favs.map((p) => card(p, 'Guardada')).join('') + '</div></section>' : '') +
       '<section class="cl-block cl-publish"><h2>¿Quieres publicar tus inmuebles?</h2><p class="cl-muted">Cambia tu cuenta y empieza a publicar. Es gratis y no vence.</p>' +
-        '<div class="cl-actions"><button type="button" class="btn btn-ghost btn-sm" data-switch="propietario">Soy propietario</button><button type="button" class="btn btn-ghost btn-sm" data-switch="agente">Soy agente</button><button type="button" class="btn btn-ghost btn-sm" data-switch="empresa">Soy una empresa</button></div></section>';
+        '<div class="cl-actions"><button type="button" class="btn btn-ghost btn-sm" data-switch="propietario">Soy propietario</button><button type="button" class="btn btn-ghost btn-sm" data-switch="agente">Soy agente</button></div></section>';
   }
 
   /* ───────── Acciones ───────── */

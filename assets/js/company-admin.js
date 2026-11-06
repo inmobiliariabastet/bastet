@@ -1,6 +1,7 @@
 /* Panel «Empresas» (administración): enciende el servicio, fija el descuento corporativo por defecto, activa/suspende empresas y atiende las solicitudes
  * de alojamiento (primero las nuevas): cambia el estado, escribe la cotización y avisa por WhatsApp. SQL: supabase/corporate.sql. */
 (function () {
+  const KINDS = { estadia: 'Alojamiento del equipo', espacio: 'Espacio para operar', compra: 'Compra de inmueble' };
   'use strict';
   const root = () => document.getElementById('companies-root');
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -37,14 +38,14 @@
       '<div class="cp-grid"><label>Descuento corporativo por defecto (%)<input name="discount" type="number" min="0" max="100" step="0.5" value="' + esc(s.discount_default) + '"></label></div>' +
       '<label>Beneficios que ve la empresa en su panel (opcional)<textarea name="perks" rows="2" maxlength="600">' + esc(s.perks_text) + '</textarea></label>' +
       '<button type="submit" class="btn btn-accent">Guardar</button></form>' +
-      '<div class="cp-card"><h2>Solicitudes de alojamiento (' + rq.length + ')</h2>' + (rq.length ? '<div class="cp-list">' + rq.map((q) =>
-        '<article class="cp-item"><div class="cp-item-top"><b>' + esc(q.company_name) + '</b> · ' + esc(q.city) + ' · ' + esc(fdate(q.from_date)) + ' – ' + esc(fdate(q.to_date)) + ' · ' + esc(q.workers_count) + ' trabajador(es)' +
+      '<div class="cp-card"><h2>Solicitudes de empresas (' + rq.length + ')</h2>' + (rq.length ? '<div class="cp-list">' + rq.map((q) =>
+        '<article class="cp-item"><div class="cp-item-top"><b>' + esc(q.company_name) + '</b> · <i>' + esc(KINDS[q.kind] || 'Alojamiento del equipo') + '</i> · ' + esc(q.city) + ' · ' + (q.kind === 'espacio' || q.kind === 'compra' ? esc([q.operation, q.space_type, q.size_text].filter(Boolean).join(' · ')) + (q.from_date ? ' · desde ' + esc(fdate(q.from_date)) : '') : esc(fdate(q.from_date)) + ' – ' + esc(fdate(q.to_date)) + ' · ' + esc(q.workers_count) + ' trabajador(es)') +
         (q.budget_text ? ' · ' + esc(q.budget_text) : '') + ' <small>' + esc(q.code) + ' · tarifa ' + esc(Number(q.discount_percent)) + ' %</small></div>' +
         (q.notes ? '<p class="cp-hint">' + esc(q.notes) + '</p>' : '') +
         '<div class="cp-row" data-rq="' + esc(q.id) + '"><select data-f="status">' + opts(RST, q.status) + '</select>' +
         '<textarea data-f="quote" rows="2" maxlength="3000" placeholder="Cotización a tarifa corporativa">' + esc(q.admin_quote) + '</textarea>' +
         '<button type="button" class="btn btn-sm btn-accent" data-act="save-rq">Guardar</button>' +
-        '<a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" href="' + esc(wa(q.whatsapp, 'Hola, te escribe Bastet sobre tu solicitud de alojamiento ' + q.code + ' en ' + q.city + ' (' + fdate(q.from_date) + ' – ' + fdate(q.to_date) + '). ' + (q.admin_quote ? 'Cotización: ' + q.admin_quote : ''))) + '">WhatsApp</a></div></article>').join('') + '</div>' : '<p class="cp-hint">Sin solicitudes todavía.</p>') + '</div>' +
+        '<a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" href="' + esc(wa(q.whatsapp, 'Hola, te escribe Bastet sobre tu solicitud ' + q.code + ' (' + (KINDS[q.kind] || 'alojamiento') + ') en ' + q.city + (q.kind === 'estadia' || !q.kind ? ' (' + fdate(q.from_date) + ' – ' + fdate(q.to_date) + ')' : '') + '. ' + (q.admin_quote ? 'Cotización: ' + q.admin_quote : ''))) + '">WhatsApp</a></div></article>').join('') + '</div>' : '<p class="cp-hint">Sin solicitudes todavía.</p>') + '</div>' +
       '<div class="cp-card"><h2>Empresas (' + cs.length + ')</h2>' + (cs.length ? '<div class="cp-list">' + cs.map((c) =>
         '<article class="cp-item"><div class="cp-item-top"><b>' + esc(c.company_name) + '</b> · NIT ' + esc(c.nit) + ' · ' + esc(c.contact_name) + (c.contact_role ? ' (' + esc(c.contact_role) + ')' : '') + ' · ' + esc(c.workers) + ' trabajador(es) registrados' +
         ' <small>' + esc(c.owner_email || '') + (c.city ? ' · ' + esc(c.city) : '') + (c.workers_estimate ? ' · ~' + esc(c.workers_estimate) + ' viajan al año' : '') + '</small></div>' +

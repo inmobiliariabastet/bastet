@@ -103,7 +103,7 @@ a = acct(cli)
 eq("cliente: tipo, sin herramientas de agente", (a['account']['type'], a['account']['agent_tools'], a['account']['client'], a['account']['name']), ('cliente', False, True, 'Cliente'))
 eq("propietario: sin herramientas de agente", acct(own2)['account']['agent_tools'], False)
 eq("agente: con herramientas de agente", acct(ag)['account']['agent_tools'], True)
-eq("empresa: con herramientas de agente", acct(em)['account']['agent_tools'], True)
+eq("empresa: cliente corporativo, sin herramientas de agente", (acct(em)['account']['agent_tools'], acct(em)['account']['client']), (False, True))
 eq("administrador: con herramientas de agente", acct(adm)['account']['agent_tools'], True)
 
 # ── nadie edita su tipo a mano
@@ -128,7 +128,7 @@ eq("…y queda como propietario", one("select interest from profiles where id=%s
 chk("ya como propietario puede publicar", ins(cli, 'Ahora sí'), False)
 chk("y no puede volver a cliente solo", as_(cli, "select public.change_account_type('agente')"), True)
 
-# ── contratos solo para agente / empresa / admin (el disparador usa la sesión simulada)
+# ── contratos solo para agente / admin (el disparador usa la sesión simulada)
 def as_claim(uid, table, **ov):
     su("select column_name, data_type from information_schema.columns where table_schema='public' and table_name=%s and is_nullable='NO' and column_default is null and is_generated='NEVER' and is_identity='NO'", (table,))
     cols = cur.fetchall(); names, vals = [], []
@@ -151,10 +151,10 @@ def as_claim(uid, table, **ov):
     except Exception as e: return ('ERR', str(e).splitlines()[0])
 su("set session_replication_role = origin")
 cli2 = newuser('cli2@x'); reg(cli2, 'cliente')
-for who, uid, bad in (('cliente', cli2, True), ('propietario', own2, True), ('agente', ag, False), ('empresa', em, False), ('administrador', adm, False)):
+for who, uid, bad in (('cliente', cli2, True), ('propietario', own2, True), ('agente', ag, False), ('empresa', em, True), ('administrador', adm, False)):
     r = as_claim(uid, 'exclusivity_contracts', agent_id=uid, template_version='exclusividad-v2', data='{}', idempotency_key='k' + _uuid.uuid4().hex[:8])
     msg = str(r[1])
-    ok_block = (r[0] == 'ERR' and 'solo para cuentas de agente o de empresa' in msg)
+    ok_block = (r[0] == 'ERR' and 'solo para cuentas de agente' in msg)
     eq("contrato de exclusividad: " + who + (" bloqueado" if bad else " permitido"), ok_block if bad else ('solo para cuentas' not in msg), True)
 
 # ── solicitudes y reservas quedan ligadas a la cuenta
