@@ -1,6 +1,8 @@
 # Bastet · endurecimiento del sitio (2026-11-03)
 # 1) No se listan carpetas.  2) No se sirven archivos internos (documentación, SQL, pruebas, ocultos).  3) Cabeceras de seguridad.
 Options -Indexes
+# Página 404 de marca (reemplaza la de Hostinger)
+ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
 RewriteEngine On

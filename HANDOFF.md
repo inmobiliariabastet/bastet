@@ -19,6 +19,9 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | ✅ en producción (SQL corrido, solo administración). Falta la revisión jurídica |
 | — | Historias/estados temporales: **NO se hacen** | decidido |
 
+### 🆕 2026-11-14 · Página 404 de marca
+- `404.html` (fondo `assets/img/404-fondo.webp`, rutas absolutas, `noindex`) + `ErrorDocument 404 /404.html` en `.htaccess`: reemplaza la 404 de Hostinger. Botones «Volver al sitio» y WhatsApp. Revisada en escritorio y celular con el servidor local; falta ver en vivo una URL inexistente (p. ej. bastet.uno/xyz) tras el despliegue.
+
 ### 🆕 2026-11-06 · Cuenta EMPRESA = cliente corporativo (commit `5036095`, ✅ `supabase/company-client.sql` corrido por la dueña)
 - La cuenta «empresa» ya **no es agente**: `my_account()` → `client=true`, `company=true`, `agent_tools=false`. No publica inmuebles (trigger `block_client_publishing`) ni crea contratos de exclusividad (solo agente/admin). Un cliente o empresa puede pasar a propietario/agente con `change_account_type`; los agentes inmobiliarios deben elegir «Agente».
 - Panel propio (`assets/js/company-dashboard.js`, reescrito; `client-dashboard.js` solo deja «Mi empresa» + «Mi cuenta»): vistas Resumen, Estadías, Espacios, Actividad, Equipo, Empresa. Tres tipos de solicitud (`company_requests.kind`): **estadia** (fechas + trabajadores del equipo), **espacio** (oficina/depósito/local/terreno…), **compra**. RPC `company_submit_request(p jsonb)`. Cotización manual y 10 % provisional como antes; `company-admin.js` muestra el tipo y arma el WhatsApp según el tipo.
