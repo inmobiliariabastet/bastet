@@ -6,7 +6,8 @@
 <title>Página no encontrada · Bastet</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="La página que buscas no existe o ha sido movida. Vuelve al inicio de Bastet o contáctanos.">
-<meta name="theme-color" content="#1f1a15">
+<meta name="theme-color" content="#1E2629">
+<link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/bastet-favicon-32.png?v=20261026">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/bastet-favicon-192.png?v=20261026">
 <link rel="apple-touch-icon" href="/assets/img/bastet-apple-touch.png?v=20261026">
@@ -14,53 +15,49 @@
 <link rel="preload" href="/assets/img/404-fondo.webp" as="image">
 <link rel="stylesheet" href="/assets/css/fonts.css?v=20261014b">
 <style>
-  :root { --gold: #e6b96e; --gold-2: #f1d08f; --ink: #1c1814; --cream: #fbf4e8; }
+  :root { --green: #3D4C3A; --green-dark: #2F3B2D; --yellow: #F1BF46; --ink: #1E2629; --cream: #FBE6AB; --white: #FFFFFF; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    min-height: 100vh; min-height: 100dvh; background: #2a211a; color: var(--cream);
+    min-height: 100vh; min-height: 100dvh; background: #1E2629; color: var(--white);
     font-family: 'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif;
     display: flex; flex-direction: column; overflow-x: hidden; position: relative;
   }
-  .bg { position: fixed; inset: 0; z-index: 0; background: #2a211a url('/assets/img/404-fondo.webp') center / cover no-repeat; }
+  .bg { position: fixed; inset: 0; z-index: 0; background: #1E2629 url('/assets/img/404-fondo.webp') center / cover no-repeat; }
   /* Velo oscuro: más fuerte en el centro para que el texto se lea, suave en los bordes para que se vea la sala */
   .bg::after { content: ''; position: absolute; inset: 0;
-    background: radial-gradient(ellipse 60% 70% at 50% 52%, rgba(24,18,13,.78) 0%, rgba(24,18,13,.55) 55%, rgba(24,18,13,.18) 100%),
-                linear-gradient(180deg, rgba(24,18,13,.35) 0%, rgba(24,18,13,0) 25%, rgba(24,18,13,.3) 100%); }
+    background: radial-gradient(ellipse 60% 70% at 50% 52%, rgba(30,38,41,.78) 0%, rgba(30,38,41,.55) 55%, rgba(30,38,41,.18) 100%),
+                linear-gradient(180deg, rgba(30,38,41,.35) 0%, rgba(30,38,41,0) 25%, rgba(30,38,41,.3) 100%); }
 
   header { position: relative; z-index: 2; padding: clamp(18px, 4vw, 48px) clamp(20px, 6vw, 100px); }
-  .brand { display: inline-flex; align-items: center; gap: 16px; color: var(--gold); text-decoration: none; }
-  .brand img { height: clamp(40px, 5.2vw, 62px); width: auto; display: block; }
-  .brand .sep { width: 1px; align-self: stretch; background: rgba(230,185,110,.65); }
-  .brand .txt { display: flex; flex-direction: column; gap: 6px; }
-  .brand .name { font-family: 'Conso', Georgia, serif; font-weight: 300; font-size: clamp(30px, 4.2vw, 52px); letter-spacing: .06em; line-height: 1; }
-  .brand .tag { font-size: clamp(7px, .75vw, 10px); letter-spacing: .34em; color: var(--gold-2); opacity: .85; font-weight: 400; }
+  .brand { display: inline-block; line-height: 0; border-radius: 4px; }
+  .brand img { height: clamp(44px, 5.4vw, 66px); width: auto; display: block; }
 
   main { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 8px 20px clamp(32px, 6vw, 72px); }
-  .code { font-family: 'Conso', Georgia, serif; font-weight: 300; font-size: clamp(110px, 24vw, 290px); line-height: .9; letter-spacing: .01em;
-    color: var(--gold); text-shadow: 0 6px 40px rgba(0,0,0,.35); }
+  .code { font-family: 'Conso', Georgia, serif; font-weight: 400; font-size: clamp(110px, 24vw, 290px); line-height: .9; letter-spacing: .01em;
+    color: var(--yellow); text-shadow: 0 6px 40px rgba(0,0,0,.35); }
   .rule { display: flex; align-items: center; gap: 18px; width: min(640px, 86vw); margin: clamp(10px, 2vw, 22px) 0 clamp(8px, 1.6vw, 18px); }
-  .rule::before, .rule::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(230,185,110,.9)); }
-  .rule::after { background: linear-gradient(270deg, transparent, rgba(230,185,110,.9)); }
+  .rule::before, .rule::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(241,191,70,.9)); }
+  .rule::after { background: linear-gradient(270deg, transparent, rgba(241,191,70,.9)); }
   .rule img { height: clamp(26px, 3.2vw, 38px); width: auto; display: block; }
-  h1 { font-family: 'Conso', Georgia, serif; font-weight: 300; font-size: clamp(34px, 6vw, 72px); line-height: 1.1; color: var(--cream); letter-spacing: .005em; }
-  p { margin-top: clamp(14px, 2vw, 22px); font-size: clamp(15px, 1.6vw, 19px); line-height: 1.6; max-width: 34em; color: rgba(251,244,232,.92); font-weight: 400; }
+  h1 { font-family: 'Conso', Georgia, serif; font-weight: 400; font-size: clamp(34px, 6vw, 72px); line-height: 1.1; color: var(--white); letter-spacing: .005em; }
+  p { margin-top: clamp(14px, 2vw, 22px); font-size: clamp(15px, 1.6vw, 19px); line-height: 1.6; max-width: 34em; color: rgba(255,255,255,.92); font-weight: 400; }
   .actions { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: clamp(26px, 4vw, 44px); }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 0 clamp(26px, 3vw, 40px); border-radius: 999px;
-    font-family: 'Conso', Georgia, serif; font-weight: 500; font-size: 17px; letter-spacing: .01em; text-decoration: none; white-space: nowrap;
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; padding: 0 clamp(26px, 3vw, 40px); border-radius: 999px;
+    font-family: 'Conso', Georgia, serif; font-weight: 500; font-size: 17px; letter-spacing: .01em; line-height: 1; text-decoration: none; white-space: nowrap;
     transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
   .btn svg { width: 24px; height: 24px; flex: none; }
-  .btn-dark { background: rgba(24,20,16,.92); color: var(--cream); border: 1.5px solid var(--gold); }
-  .btn-dark:hover { background: #000; }
-  .btn-gold { background: linear-gradient(135deg, #f1d08f, #dcab5e); color: var(--ink); border: 1.5px solid #f4d9a1; }
-  .btn-gold:hover { box-shadow: 0 8px 28px rgba(230,185,110,.4); }
+  .btn-green { background: var(--green); color: var(--white); border: 1.5px solid var(--green); }
+  .btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); box-shadow: 0 12px 26px -16px rgba(0,0,0,.8); }
+  .btn-yellow { background: var(--yellow); color: var(--ink); border: 1.5px solid var(--yellow); }
+  .btn-yellow:hover { background: #E5B13A; border-color: #E5B13A; box-shadow: 0 12px 26px -16px rgba(0,0,0,.8); }
   .btn:hover { transform: translateY(-2px); }
-  .btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-  .brand:focus-visible { outline: 3px solid #fff; outline-offset: 6px; border-radius: 4px; }
+  .btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+  .brand:focus-visible { outline: 3px solid var(--yellow); outline-offset: 6px; border-radius: 4px; }
   @media (max-width: 560px) {
-    .btn { width: 100%; max-width: 340px; }
-    .brand .sep { display: none; }
+    .btn { width: 100%; max-width: 340px; padding: 0 18px; font-size: 16px; white-space: normal; text-align: center; }
+    .actions { gap: 12px; width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:hover { transform: none; } }
 </style>
@@ -70,9 +67,7 @@
 
   <header>
     <a class="brand" href="/" aria-label="Bastet Propiedades Inmobiliarias, ir al inicio">
-      <img src="/assets/img/bastet-isotipo-cabeza-dorado.webp" alt="" width="46" height="62">
-      <span class="sep" aria-hidden="true"></span>
-      <span class="txt"><span class="name">BASTET</span><span class="tag">PROPIEDADES INMOBILIARIAS</span></span>
+      <img src="/assets/img/bastet-logo-horizontal-blanco.webp" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="295">
     </a>
   </header>
 
@@ -82,11 +77,11 @@
     <h1>Página no encontrada</h1>
     <p>La página que buscas no existe o ha sido movida.<br>Pero no te preocupes, puedes volver al inicio o contactarnos.</p>
     <div class="actions">
-      <a class="btn btn-dark" href="/">
+      <a class="btn btn-green" href="/">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg>
         Volver al sitio
       </a>
-      <a class="btn btn-gold" id="wa" href="https://api.whatsapp.com/send?phone=59170516511&text=Hola%20Bastet%2C%20quiero%20saber%20m%C3%A1s%20de%20los%20servicios%20que%20tienen%20disponibles" target="_blank" rel="noopener">
+      <a class="btn btn-yellow" id="wa" href="https://api.whatsapp.com/send?phone=59170516511&text=Hola%20Bastet%2C%20quiero%20saber%20m%C3%A1s%20de%20los%20servicios%20que%20tienen%20disponibles" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20.5l1.3-4.3A8.5 8.5 0 1 1 8 19.3l-4.5 1.2z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1.2-1.4-2-1-.9.7c-1-.4-2-1.4-2.4-2.4l.7-.9-1-2L9 8.5z" fill="currentColor" stroke="none"/></svg>
         Contactar por WhatsApp
       </a>
