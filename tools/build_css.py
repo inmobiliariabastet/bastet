@@ -13,6 +13,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from critical_css import critical  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 CSS = ROOT / 'assets/css'
 
@@ -23,6 +26,8 @@ BUNDLES = {
     'estadias': ['fonts', 'style', 'brand', 'estadias', 'responsive-guard', 'a11y'],
     'empresas': ['fonts', 'style', 'brand', 'empresas', 'responsive-guard', 'a11y'],
 }
+# Páginas con CSS crítico en línea (el CSS completo se carga sin bloquear el primer dibujo)
+CRITICAL = {'index'}
 
 
 def build(page, sources):
@@ -60,3 +65,31 @@ for page, sources in BUNDLES.items():
     patch_html(page, sources, name, ver)
     size = (CSS / name).stat().st_size
     print(f'{name}: {len(sources)} hojas, {size // 1024} KB, v={ver}')
+
+
+def inject_critical(page, bundle, ver):
+    path = ROOT / f'{page}.html'
+    html = path.read_text(encoding='utf-8')
+    css = critical((CSS / bundle).read_text(encoding='utf-8'), html)
+    href = f'assets/css/{bundle}?v={ver}'
+    q = chr(39)   # comilla simple (para el atributo onload)
+    nl = chr(10)
+    block = ('<!-- critical:start -->' + nl + '<style>' + css + '</style>' + nl
+             + f'<link rel="preload" href="{href}" as="style" onload="this.onload=null;this.rel={q}stylesheet{q}">' + nl
+             + f'<noscript><link rel="stylesheet" href="{href}"></noscript>' + nl + '<!-- critical:end -->')
+    if '<!-- critical:start -->' in html:
+        html = re.sub(r'<!-- critical:start -->.*?<!-- critical:end -->', lambda m: block, html, 1, flags=re.S)
+    else:
+        old = re.search(rf'<link rel="stylesheet" href="assets/css/{re.escape(bundle)}\?v=[^"]+">', html)
+        if not old:
+            sys.exit(f'{page}.html no enlaza {bundle}')
+        html = html[:old.start()] + block + html[old.end():]
+    path.write_text(html, encoding='utf-8', newline='')
+    print(f'  CSS crítico en {page}.html: {len(css) // 1024} KB ({len(css)} bytes)')
+
+
+for page in CRITICAL:
+    bundle = f'bundle-{page}.css'
+    ver = hashlib.sha1((CSS / bundle).read_text(encoding='utf-8').encode('utf-8')).hexdigest()[:8]
+    inject_critical(page, bundle, ver)
+
