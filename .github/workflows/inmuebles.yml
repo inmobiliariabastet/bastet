@@ -1,0 +1,39 @@
+# Regenera cada día las páginas de inmuebles (SEO/AEO) y las sube si hubo cambios.
+# Costo: ~1 minuto por ejecución; entra de sobra en los 2.000 min/mes del plan gratuito.
+name: Páginas de inmuebles
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 09:00 UTC = 05:00 en Bolivia
+  workflow_dispatch:       # también se puede correr a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: inmuebles
+  cancel-in-progress: false
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generar páginas
+        run: python tools/gen_property_pages.py
+      - name: Subir cambios si los hay
+        run: |
+          if [ -n "$(git status --porcelain inmueble sitemap.xml)" ]; then
+            git config user.name "bastet-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add inmueble sitemap.xml
+            git commit -m "Inmuebles: páginas y sitemap actualizados automáticamente"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          else
+            echo "Sin cambios."
+          fi

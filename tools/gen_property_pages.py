@@ -321,13 +321,22 @@ def main():
     for f in OUT.glob('*.html'):
         if f.name not in want:
             f.unlink(); print('borrada', f.name)
-    for p in keep:
-        (OUT / fname(p)).write_text(page(p, keep), encoding='utf-8', newline='\n')
-    (OUT / 'index.html').write_text(index_page(keep), encoding='utf-8', newline='\n')
-    today = date.today().isoformat()
-    block = '<!-- inmuebles:start -->\n' + f'  <url><loc>{SITE}/inmueble/</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n' + ''.join(
-        f'  <url><loc>{SITE}/inmueble/{fname(p)}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n' for p in keep) + '  <!-- inmuebles:end -->'
     sm = (ROOT / 'sitemap.xml').read_text(encoding='utf-8')
+    old_mod = dict(re.findall(r'<loc>([^<]+)</loc><lastmod>([^<]+)</lastmod>', sm))
+    today = date.today().isoformat()
+    mods = {}
+
+    def write(path, text, loc):
+        # El lastmod del sitemap solo cambia si el contenido de la página cambió de verdad (así no hay commits diarios vacíos).
+        same = path.exists() and path.read_text(encoding='utf-8').replace('\r\n', '\n') == text
+        path.write_text(text, encoding='utf-8', newline='\n')
+        mods[loc] = old_mod.get(loc, today) if same else today
+
+    for p in keep:
+        write(OUT / fname(p), page(p, keep), f'{SITE}/inmueble/{fname(p)}')
+    write(OUT / 'index.html', index_page(keep), f'{SITE}/inmueble/')
+    block = '<!-- inmuebles:start -->\n' + f'  <url><loc>{SITE}/inmueble/</loc><lastmod>{mods[SITE + "/inmueble/"]}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n' + ''.join(
+        f'  <url><loc>{SITE}/inmueble/{fname(p)}</loc><lastmod>{mods[SITE + "/inmueble/" + fname(p)]}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n' for p in keep) + '  <!-- inmuebles:end -->'
     nl = '\r\n' if '\r\n' in sm else '\n'
     sm = sm.replace('\r\n', '\n')
     if '<!-- inmuebles:start -->' in sm:
