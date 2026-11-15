@@ -1494,7 +1494,7 @@ loadPartners();
 
 /* ── Instalar Bastet como app (PWA): los botones "Instalar app" llevan a la pantalla app.html (mockups, ventajas y descarga) ── */
 (function setupInstallApp() {
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=20261115b').catch(() => {});
 
   // Si ya está instalada (abierta como app), el botón no se muestra.
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;

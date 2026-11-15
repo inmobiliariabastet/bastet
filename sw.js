@@ -5,6 +5,8 @@
 //  · Nunca se guardan: el panel (/admin/), las páginas con enlace secreto (descargos, confirmar o cualquier dirección con ?t=), peticiones que no sean
 //    GET ni las de otros sitios (Supabase, Google, CDN): esas van siempre directo a la red.
 //  · Para forzar que todos descarguen todo de nuevo, cambiar VERSION.
+//  · IMPORTANTE: la CDN de Hostinger guarda sw.js hasta 7 días. Al cambiar este archivo hay que cambiar también el ?v= con que se registra
+//    (assets/js/main.js y assets/js/app-install.js: register('sw.js?v=...')) y subir el ?v= de esos scripts en las páginas.
 const VERSION = 'bastet-v2';
 const PAGES = VERSION + '-paginas';
 const ASSETS = VERSION + '-archivos';
