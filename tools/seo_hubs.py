@@ -182,7 +182,7 @@ h3{font-family:'Conso',Georgia,serif;font-weight:400;color:var(--green-dark);fon
 .more a:hover{background:var(--green);color:#fff}
 .faq h3{margin-top:18px}.faq p{margin-top:6px;max-width:68ch}
 footer{border-top:1px solid rgba(30,38,41,.12);padding:24px clamp(16px,4vw,48px);font-size:14.5px;color:rgba(30,38,41,.7)}
-footer a{margin-right:14px}
+footer a{display:inline-block;padding:8px 6px;margin-right:8px}
 @media(max-width:600px){.filters{flex-direction:column;align-items:stretch}.btn{width:100%}}
 """
 
@@ -239,7 +239,7 @@ def render(h, hubs, statics, g, SITE, today_mod, SB):
         ph = p['photos'][0]
         thumb = ph.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + ('&' if '?' in ph else '?') + 'width=520&quality=72' if '/storage/v1/object/public/' in ph else ph
         alt = f"{clean_title(p)} · {TYPE_SG[p['property_type']]} {OP_PHRASE[p['operation']]} en {city_name(g.city_of(p))}"
-        cards += (f'<article class="card"><a class="l" href="{esc(link)}"><img src="{esc(thumb)}" alt="{esc(alt)}" width="520" height="390" loading="{"eager" if i < 2 else "lazy"}" decoding="async">'
+        cards += (f'<article class="card"><a class="l" href="{esc(link)}"><img src="{esc(thumb)}" alt="{esc(alt)}" width="520" height="390" loading="{"eager" if i < 2 else "lazy"}"{' fetchpriority="high"' if i == 0 else ''} decoding="async">'
                   f'<div class="t"><h3>{esc(clean_title(p))}</h3><p class="m">{esc(TYPE_SG[p["property_type"]].capitalize())} {OP_PHRASE[p["operation"]]} en {esc(city_name(g.city_of(p)))}</p>'
                   f'<p class="p">{esc(g.price_text(p))}</p></div></a></article>')
 
