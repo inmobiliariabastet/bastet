@@ -184,3 +184,11 @@ body.home2 .hm-partners .partner-host img { filter: none; opacity: 1; }
 body.home2 .rq-cta { margin-top: clamp(24px, 4vw, 48px); margin-bottom: clamp(56px, 8vw, 104px); }
 body.home2 .rq-cta .cta-button { background: var(--br-yellow); border-color: var(--br-yellow); color: var(--br-ink); }
 body.home2 .rq-cta .cta-button:hover { background: #f6cd6a; border-color: #f6cd6a; }
+
+/* Preguntas frecuentes (SEO/AEO): visibles, con la pregunta como encabezado y la respuesta justo debajo */
+.hm-faq { background: #F7F9FB; }
+.hm-faq-inner { max-width: 860px; margin: 0 auto; padding: clamp(40px, 6vw, 88px) var(--hm-gutter); }
+body.home2 .hm-faq h2 { margin: 0 0 clamp(18px, 3vw, 30px); font-size: clamp(26px, 3.2vw, 38px); line-height: 1.15; text-wrap: balance; }
+body.home2 .hm-faq h3 { margin: clamp(20px, 2.6vw, 28px) 0 8px; font-size: clamp(18px, 2vw, 22px); line-height: 1.25; color: #2F3B2D; text-wrap: balance; }
+.hm-faq p { margin: 0; font-size: 16px; line-height: 1.65; color: rgba(30,38,41,.82); max-width: 70ch; }
+@media (max-width: 600px) { .hm-sub { font-size: 14px; line-height: 1.45; } }
