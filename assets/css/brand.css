@@ -472,7 +472,7 @@ body.brand .operation-tab--stay .operation-tab-main { display: inline-flex; flex
 /* ───── Pie de página: verde de la paleta con el imagotipo dorado y el logotipo blanco ───── */
 body.brand .footer { background: var(--br-green); color: var(--br-pale); }
 body.brand .footer-logo-img { height: clamp(128px, 14vw, 168px); width: auto; max-width: 100%; }
-body.brand .footer-contact-label { color: var(--br-yellow); }
+body.brand .footer-contact-label { color: var(--br-yellow); opacity: 1; }
 body.brand .footer-link, body.brand .footer-city { color: var(--br-pale); opacity: .9; }
 body.brand .footer-link:hover { color: #fff; opacity: 1; }
 body.brand .footer-copy { color: rgba(239,248,231,.7); border-top: 1px solid rgba(239,248,231,.18); opacity: 1; padding-top: 18px; }

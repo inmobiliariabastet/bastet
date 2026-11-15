@@ -62,7 +62,7 @@
     const url = (stay ? 'estadias.html' : 'marketplace.html') + '?p=' + encodeURIComponent(codeOf(p));
     const fav = window.PropFavs && window.PropFavs.has(p.id);
     const badge = p.featured ? 'Destacada' : (p.verified ? 'Verificada' : '');
-    return '<article class="hm-card"><a class="hm-card-link" href="' + esc(url) + '" aria-label="' + esc(p.title) + '">' +
+    return '<article class="hm-card"><a class="hm-card-link" href="' + esc(url) + '">' +
       '<div class="hm-card-photo">' + (photo ? '<img ' + window.imgThumbAttrs(photo, 640) + ' alt="" loading="lazy" decoding="async">' : '') +
       (badge ? '<span class="hm-badge">' + esc(badge) + '</span>' : '') + '</div>' +
       '<div class="hm-card-text"><div class="hm-card-row"><h3>' + esc(p.title) + '</h3>' + (r ? '<span class="hm-rate">★ ' + esc(String(r.avg.toFixed(1)).replace('.', ',')) + '</span>' : '') + '</div>' +
