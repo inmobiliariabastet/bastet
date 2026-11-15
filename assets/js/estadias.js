@@ -275,7 +275,7 @@
     el.innerHTML =
       '<div class="stay-media">' +
         (photos.length
-          ? '<div class="stay-slides">' + photos.map((u, i) => '<img src="' + esc(u) + '" alt="' + esc(p.title) + (photos.length > 1 ? ' — foto ' + (i + 1) : '') + '" loading="' + (i ? 'lazy' : 'eager') + '" draggable="false">').join('') + '</div>'
+          ? '<div class="stay-slides">' + photos.map((u, i) => '<img ' + window.imgThumbAttrs(u, 720) + ' alt="' + esc(p.title) + (photos.length > 1 ? ' — foto ' + (i + 1) : '') + '" loading="' + (i ? 'lazy' : 'eager') + '" draggable="false">').join('') + '</div>'
           : '<div class="stay-noimg">' + esc(p.title) + '</div>') +
         (isFeatured(p) ? '<span class="stay-badge">Destacada</span>' : (window.StayExtras && window.StayExtras.isTop(p.id) ? '<span class="stay-badge stay-badge--top">★ Mejor calificado</span>' : '')) +
         (occ ? '<span class="stay-use' + (occ.use ? '' : ' is-soon') + (isFeatured(p) || (window.StayExtras && window.StayExtras.isTop(p.id)) ? ' is-second' : '') + '">' + esc(occLabel(occ)) + '</span>' : '') +

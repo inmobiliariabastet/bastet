@@ -577,7 +577,7 @@ function buildPropertyTile(property) {
   tile.innerHTML =
     '<div class="prop-tile-ph">' +
       (firstPhoto
-        ? '<img class="prop-tile-img" src="' + escapeHtml(firstPhoto) + '" alt="' + escapeHtml(property.title) + '" loading="lazy">'
+        ? '<img class="prop-tile-img" ' + window.imgThumbAttrs(firstPhoto, 640) + ' alt="' + escapeHtml(property.title) + '" loading="lazy">'
         : '<div class="prop-tile-noimg">' + escapeHtml(property.title || 'BASTET') + '</div>') +
       (window.PropFavs ? '<button type="button" class="prop-tile-fav' + (window.PropFavs.has(property.id) ? ' is-on' : '') + '" data-fav aria-pressed="' + window.PropFavs.has(property.id) + '" aria-label="Guardar en favoritos">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.500s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.900a4.300 4.300 0 0 1 7.500 2.600c0 5.400-7.500 10-7.500 10z"/></svg>' + '</button>' : '') +
       '<div class="prop-tile-badges">' +
