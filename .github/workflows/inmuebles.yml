@@ -24,6 +24,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Generar páginas
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
         run: python tools/gen_property_pages.py
       - name: Probar las páginas generadas
         run: python tests/seo_pages_test.py
