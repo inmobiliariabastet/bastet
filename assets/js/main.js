@@ -32,7 +32,7 @@ mobilePanel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () 
 // Al bajar, la barra se vuelve verde de marca con efecto vidrio y el logotipo cambia a su versión clara (blanco oficial)
 const navLogo = navbar.querySelector('.navbar-logo-img');
 const LOGO_DARK = navLogo ? navLogo.getAttribute('src') : '';
-const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal-color.webp', 'bastet-logo-horizontal-blanco.webp');
+const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal-color', 'bastet-logo-horizontal-blanco');
 if (navLogo) { const pre = new Image(); pre.src = LOGO_LIGHT; }
 function updateNavbarScroll() {
   const scrolled = window.scrollY > 40;
@@ -1348,7 +1348,7 @@ async function loadPartners() {
     .concat(data.some(isPlaceholder) && !data.some(isHost) ? [{ host: true, logo_url: 'assets/img/hospeda-a-tu-gente.webp' }] : []);
   const logosHtml = shown.map((p) => {
     if (p.host) return '<a class="partner-host" href="empresas.html" aria-label="Hospeda a tu gente con nosotros: conoce el alojamiento para empresas"><img src="' + p.logo_url + '" alt="Hospeda a tu gente con nosotros" data-logo="' + p.logo_url + '"></a>';
-    const img = '<img src="' + escapeHtml(p.logo_url) + '" alt="' + escapeHtml(p.name || 'Empresa aliada') + '" data-logo="' + escapeHtml(p.logo_url) + '">';
+    const img = '<img ' + window.imgThumbAttrs(p.logo_url, 400) + ' alt="' + escapeHtml(p.name || 'Empresa aliada') + '" data-logo="' + escapeHtml(p.logo_url) + '">';
     return p.url
       ? '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(p.name || 'Empresa aliada') + '">' + img + '</a>'
       : img;
@@ -1369,7 +1369,7 @@ async function loadPartners() {
     const next = () => {
       const it = items.shift();
       if (!it) return;
-      normalizeLogo(it[0], it[1]);
+      normalizeLogo(window.imgThumb(it[0], 400).src, it[1], it[0]);
       (window.requestIdleCallback || setTimeout)(next, { timeout: 400 });
     };
     next();
@@ -1399,9 +1399,10 @@ function applyLogoSize(imgs, aspect) {
   const { w, h } = logoSize(aspect);
   imgs.forEach((img) => { img.style.width = w + 'px'; img.style.height = h + 'px'; });
 }
-function normalizeLogo(url, imgs) {
+function normalizeLogo(url, imgs, fallback) {
   const src = new Image();
   src.crossOrigin = 'anonymous';
+  src.onerror = () => { if (fallback && src.src !== fallback) { const f = fallback; fallback = null; src.src = f; } };
   src.onload = () => {
     const nw = src.naturalWidth, nh = src.naturalHeight;
     if (!nw || !nh) return;

@@ -63,7 +63,7 @@
     const fav = window.PropFavs && window.PropFavs.has(p.id);
     const badge = p.featured ? 'Destacada' : (p.verified ? 'Verificada' : '');
     return '<article class="hm-card"><a class="hm-card-link" href="' + esc(url) + '">' +
-      '<div class="hm-card-photo">' + (photo ? '<img ' + window.imgThumbAttrs(photo, 640) + ' alt="" loading="lazy" decoding="async">' : '') +
+      '<div class="hm-card-photo">' + (photo ? '<img ' + window.imgThumbAttrs(photo, 480, 480) + ' alt="" loading="lazy" decoding="async">' : '') +
       (badge ? '<span class="hm-badge">' + esc(badge) + '</span>' : '') + '</div>' +
       '<div class="hm-card-text"><div class="hm-card-row"><h3>' + esc(p.title) + '</h3>' + (r ? '<span class="hm-rate">★ ' + esc(String(r.avg.toFixed(1)).replace('.', ',')) + '</span>' : '') + '</div>' +
       '<p class="hm-card-meta">' + esc([TYPE[p.property_type], cityOf(p)].filter(Boolean).join(' en ')) + '</p>' +
@@ -125,7 +125,7 @@
     const list = (!error && data) ? data.filter((t) => t.quote) : [];
     if (!list.length) { const sec = stage.closest('.hm-testi'); if (sec) sec.remove(); return; }
     let i = 0, timer = null;
-    const avatar = (t, cls) => t.photo_url ? '<img class="' + cls + '" src="' + esc(t.photo_url) + '" alt="' + esc(t.name) + '" loading="lazy">' : '<span class="' + cls + ' hm-avatar-ph">' + esc((t.name || '?').trim().charAt(0).toUpperCase()) + '</span>';
+    const avatar = (t, cls) => t.photo_url ? '<img class="' + cls + '" ' + window.imgThumbAttrs(t.photo_url, cls === 'hm-person-img' ? 128 : 240, cls === 'hm-person-img' ? 128 : 240) + ' alt="' + esc(t.name) + '" loading="lazy">' : '<span class="' + cls + ' hm-avatar-ph">' + esc((t.name || '?').trim().charAt(0).toUpperCase()) + '</span>';
     stage.innerHTML = '<figure class="hm-quote" aria-live="polite"></figure>' +
       '<div class="hm-testi-nav"><div class="hm-people" role="tablist" aria-label="Elegir testimonio">' +
         list.map((t, k) => '<button type="button" role="tab" class="hm-person" data-k="' + k + '" aria-label="' + esc(t.name) + '">' + avatar(t, 'hm-person-img') + '</button>').join('') + '</div>' +

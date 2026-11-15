@@ -557,7 +557,7 @@ async function uploadPhotos(fileList) {
     const file = opt.file;
     if (opt.small) smallOnes.push(original.name);
     const path = formState.id + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-    const { error: uploadError } = await supabaseClient.storage.from(PROPERTY_PHOTOS_BUCKET).upload(path, file, { contentType: file.type });
+    const { error: uploadError } = await supabaseClient.storage.from(PROPERTY_PHOTOS_BUCKET).upload(path, file, { contentType: file.type, cacheControl: '31536000' });
     if (uploadError) {
       placeholder.remove();
       alert('Error al subir ' + file.name + ': ' + uploadError.message);
@@ -1029,7 +1029,7 @@ async function addPartner(file) {
   placeholder.className = 'photo-thumb is-uploading';
   partnerDropzone.insertAdjacentElement('afterend', placeholder);
 
-  const { error: uploadError } = await supabaseClient.storage.from(PARTNER_LOGOS_BUCKET).upload(path, file, { contentType: file.type });
+  const { error: uploadError } = await supabaseClient.storage.from(PARTNER_LOGOS_BUCKET).upload(path, file, { contentType: file.type, cacheControl: '31536000' });
   placeholder.remove();
   if (uploadError) {
     partnerAddError.textContent = 'Error al subir el logo: ' + uploadError.message;
@@ -1182,7 +1182,7 @@ async function uploadTestimonialPhoto(file) {
 
   file = (await UnoImage.optimize(file, { maxSide: 800, quality: 0.85, kind: 'photo' })).file;
   const path = crypto.randomUUID() + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-  const { error: uploadError } = await supabaseClient.storage.from(TESTIMONIAL_PHOTOS_BUCKET).upload(path, file, { contentType: file.type });
+  const { error: uploadError } = await supabaseClient.storage.from(TESTIMONIAL_PHOTOS_BUCKET).upload(path, file, { contentType: file.type, cacheControl: '31536000' });
   placeholder.remove();
   if (uploadError) {
     testimonialAddError.textContent = 'Error al subir la foto: ' + uploadError.message;
@@ -1407,7 +1407,7 @@ async function uploadProfileAvatar(file) {
 
   file = (await UnoImage.optimize(file, { maxSide: 600, quality: 0.85, kind: 'photo' })).file;
   const path = currentSession.user.id + '/' + Date.now() + '-' + sanitizeFilename(file.name);
-  const { error: uploadError } = await supabaseClient.storage.from(AGENT_AVATARS_BUCKET).upload(path, file, { contentType: file.type });
+  const { error: uploadError } = await supabaseClient.storage.from(AGENT_AVATARS_BUCKET).upload(path, file, { contentType: file.type, cacheControl: '31536000' });
   placeholder.remove();
   if (uploadError) {
     profileFormError.textContent = 'Error al subir la foto: ' + uploadError.message;

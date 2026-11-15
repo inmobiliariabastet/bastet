@@ -31,7 +31,7 @@
 
   const navLogo = navbar.querySelector('.navbar-logo-img');
   const LOGO_DARK = navLogo ? navLogo.getAttribute('src') : '';
-  const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal-color.webp', 'bastet-logo-horizontal-blanco.webp');
+  const LOGO_LIGHT = LOGO_DARK.replace('bastet-logo-horizontal-color', 'bastet-logo-horizontal-blanco');
   if (navLogo) { const pre = new Image(); pre.src = LOGO_LIGHT; }
   function updateNavbarScroll() {
     const scrolled = window.scrollY > 40;

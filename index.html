@@ -46,6 +46,8 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preload" as="image" type="image/avif" href="assets/img/hero-familia.avif" imagesrcset="assets/img/hero-familia-640.avif 640w, assets/img/hero-familia-800.avif 800w, assets/img/hero-familia-1000.avif 1000w, assets/img/hero-familia.avif 1672w" imagesizes="100vw" fetchpriority="high">
+<link rel="preconnect" href="https://rtkcfmtwxkykjgkmyikg.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" href="assets/fonts/Conso-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/CabinetGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <!-- critical:start -->
@@ -59,7 +61,7 @@
 <nav class="navbar">
   <div class="navbar-inner">
     <a href="#hero" class="navbar-logo" aria-label="Bastet · Propiedades e inmobiliarias — inicio">
-      <img class="navbar-logo-img" src="assets/img/bastet-logo-horizontal-color.webp" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298">
+      <img class="navbar-logo-img" src="assets/img/bastet-logo-horizontal-color-480.webp" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298">
     </a>
 
     <a href="app.html" data-install-app class="navbar-install" hidden aria-label="Instalar app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Instalar app</span></a>
@@ -145,7 +147,7 @@
       <a class="hm-btn hm-btn--line" href="estadias.html">Ver estadías publicadas</a>
     </div>
   </div>
-  <div class="hm-host-photo"><img src="assets/img/anfitriones.webp" alt="Dormitorio luminoso de una estadía publicada en Bastet, con ventanal y piso de madera" width="1400" height="933" loading="lazy"></div>
+  <div class="hm-host-photo"><img src="assets/img/anfitriones.webp" srcset="assets/img/anfitriones-700.webp 700w, assets/img/anfitriones.webp 1400w" sizes="(max-width: 900px) 92vw, 600px" alt="Dormitorio luminoso de una estadía publicada en Bastet, con ventanal y piso de madera" width="1400" height="933" loading="lazy"></div>
 </section>
 
 <section class="hm-why" aria-labelledby="hm-why-title">
@@ -380,7 +382,7 @@
 /* Los scripts se cargan DESPUÉS de dibujar la portada (evento load + momento libre): así no compiten con la foto principal.
    Siguen ejecutándose en este mismo orden. */
 (function () {
-  var list = ["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js", "assets/js/supabase-config.js?v=20261014b", "assets/js/bolivia-cities.js?v=20261014b", "assets/js/password-toggle.js?v=20261014b", "assets/js/property-fields.js?v=20261104a", "assets/js/prop-extras.js?v=20261030d", "assets/js/agent-profile.js?v=20261104a", "assets/js/contact-shield.js?v=20261103b", "assets/js/connections.js?v=20261103d", "assets/js/client-prefill.js?v=20261103j", "assets/js/estadias-extras.js?v=20261029b", "assets/js/host-signup.js?v=20261104b", "assets/js/img-thumb.js?v=20261114a", "assets/js/home.js?v=20261114c", "assets/js/main.js?v=20261115b", "assets/js/sell.js?v=20261104a", "assets/js/sell-steps.js?v=20261104b", "assets/js/request-property.js?v=20261104a", "assets/js/google-brand.js?v=20261104a"];
+  var list = ["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js", "assets/js/supabase-config.js?v=20261014b", "assets/js/bolivia-cities.js?v=20261014b", "assets/js/password-toggle.js?v=20261014b", "assets/js/property-fields.js?v=20261104a", "assets/js/prop-extras.js?v=20261030d", "assets/js/agent-profile.js?v=20261104a", "assets/js/contact-shield.js?v=20261103b", "assets/js/connections.js?v=20261103d", "assets/js/client-prefill.js?v=20261103j", "assets/js/estadias-extras.js?v=20261029b", "assets/js/host-signup.js?v=20261104b", "assets/js/img-thumb.js?v=20261115c", "assets/js/home.js?v=20261115d", "assets/js/main.js?v=20261115c", "assets/js/sell.js?v=20261104a", "assets/js/sell-steps.js?v=20261104b", "assets/js/request-property.js?v=20261104a", "assets/js/google-brand.js?v=20261104a"];
   function go() { list.forEach(function (src) { var e = document.createElement("script"); e.src = src; e.async = false; document.body.appendChild(e); }); }
   function later() { if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 1200 }); else setTimeout(go, 50); }
   if (document.readyState === "complete") later(); else window.addEventListener("load", later);
