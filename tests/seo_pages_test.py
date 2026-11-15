@@ -103,6 +103,13 @@ check('Disallow: /admin/' in rb, 'robots.txt: debe bloquear /admin/')
 for u in re.findall(r'\]\((https://bastet\.uno[^)]*)\)', (ROOT / 'llms.txt').read_text(encoding='utf-8')):
     check(exists(u.replace('https://bastet.uno', '') or '/'), f'llms.txt: enlace roto {u}')
 
+# IndexNow: debe existir exactamente un archivo de clave <32 hex>.txt en la raíz con la clave dentro, y no estar en el sitemap
+keys = [f for f in ROOT.glob('*.txt') if re.fullmatch(r'[0-9a-f]{32}', f.stem)]
+check(len(keys) == 1, f'IndexNow: debe haber exactamente un archivo de clave (hay {len(keys)})')
+for k in keys:
+    check(k.read_text(encoding='utf-8').strip() == k.stem, 'IndexNow: el archivo de clave debe contener su propio nombre')
+    check(k.name not in sm, 'IndexNow: el archivo de clave no debe estar en el sitemap')
+
 print(f'Páginas revisadas: {len(pages)} · URLs en sitemap: {len(locs)}')
 if fails:
     print(f'{len(fails)} FALLAS:')

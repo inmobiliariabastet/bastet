@@ -30,14 +30,22 @@ jobs:
       - name: Probar las páginas generadas
         run: python tests/seo_pages_test.py
       - name: Subir cambios si los hay
+        id: push
         run: |
           if [ -n "$(git status --porcelain)" ]; then
+            python tools/indexnow.py --diff-head "$RUNNER_TEMP/indexnow-urls.json"
             git config user.name "bastet-bot"
             git config user.email "actions@users.noreply.github.com"
             git add -A
             git commit -m "Inmuebles: páginas y sitemap actualizados automáticamente"
             git pull --rebase origin main
             git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "Sin cambios."
           fi
+      - name: Avisar a Bing (IndexNow)
+        if: steps.push.outputs.changed == 'true'
+        run: |
+          sleep 120   # espera a que Hostinger publique los cambios
+          python tools/indexnow.py --submit "$RUNNER_TEMP/indexnow-urls.json" || echo "IndexNow no respondió; no afecta al sitio."
