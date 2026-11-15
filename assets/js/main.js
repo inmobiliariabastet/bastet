@@ -564,7 +564,6 @@ function buildPropertyTile(property) {
   const featured = isFeatured(property);
   tile.className = 'prop-tile' + (featured ? ' prop-tile--featured' : '') + (property.operation === 'temporal' ? ' prop-tile--stay' : '');
   tile.tabIndex = 0;
-  tile.setAttribute('role', 'group');   // contiene botones y enlaces propios: no puede ser role="button"
   tile.setAttribute('aria-label', property.title);
   tile.__property = property;
 
