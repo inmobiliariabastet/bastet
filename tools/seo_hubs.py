@@ -14,13 +14,16 @@ from collections import Counter
 
 # Etiqueta de Google (se pega justo después de <head> en cada página pública; ver tools/google_tag.py)
 GTAG = """<!-- Google tag (GTM-TRGZLFP3) -->
-<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  (function(){var c='denied';try{if(localStorage.getItem('bastet-consent')==='granted')c='granted';}catch(e){}
+  gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:c,wait_for_update:500});})();
   gtag('js', new Date());
 </script>
-<!-- End Google tag -->"""
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3"></script>
+<!-- End Google tag -->
+<script defer src="/assets/js/consent.js?v=20261115a"></script>"""
 
 MIN_LISTINGS = 3
 OPS = ['venta', 'alquiler', 'anticretico']

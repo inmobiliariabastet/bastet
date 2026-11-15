@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
 <!-- Google tag (GTM-TRGZLFP3) -->
-<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  (function(){var c='denied';try{if(localStorage.getItem('bastet-consent')==='granted')c='granted';}catch(e){}
+  gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:c,wait_for_update:500});})();
   gtag('js', new Date());
 </script>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3"></script>
 <!-- End Google tag -->
+<script defer src="/assets/js/consent.js?v=20261115a"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Política de privacidad — Bastet</title>
@@ -119,9 +122,9 @@
 
   <h2>3. Base del tratamiento</h2>
   <ul>
-    <li><strong>Tu consentimiento</strong>, que das marcando la casilla antes de enviar un formulario o aceptar un contrato o acuerdo. Puedes retirarlo cuando quieras (sección 7).</li>
+    <li><strong>Tu consentimiento</strong>, que das marcando la casilla antes de enviar un formulario o aceptar un contrato o acuerdo, o con el botón «Aceptar» del aviso de cookies de medición. Puedes retirarlo cuando quieras (sección 7).</li>
     <li><strong>La ejecución del servicio que pides</strong>: crear tu cuenta, gestionar una reserva, registrar una conexión o una operación.</li>
-    <li><strong>Un interés legítimo</strong> de Bastet y de sus usuarios en la seguridad de la plataforma, la prevención de fraudes, el cumplimiento de las reglas de conexión y comisión, y la medición del uso del sitio para mejorarlo (sección 8).</li>
+    <li><strong>Un interés legítimo</strong> de Bastet y de sus usuarios en la seguridad de la plataforma, la prevención de fraudes, el cumplimiento de las reglas de conexión y comisión, y la mejora del sitio con datos de uso anónimos (sección 8).</li>
     <li><strong>El cumplimiento de obligaciones legales</strong> contables, tributarias o ante autoridades competentes.</li>
   </ul>
 
@@ -155,9 +158,10 @@
   <p><strong>Eliminar tu cuenta tú mismo.</strong> Si tienes una cuenta, puedes eliminarla desde el panel, en <em>Mi cuenta</em>, con el botón <em>Eliminar mi cuenta</em>. Solo es posible si no tienes <strong>pagos pendientes ni disputas abiertas</strong> (por ejemplo: tarifas o comisiones sin pagar, inmuebles con conexiones de Bastet sin cerrar la operación, reservas en curso o en disputa, investigaciones abiertas o penalizaciones sin resolver). El panel te muestra qué debes resolver antes.</p>
   <p>Al eliminar tu cuenta: tus inmuebles disponibles dejan de publicarse; se borran tu perfil, favoritos, búsquedas, datos legales y solicitudes de verificación con sus documentos; tu acceso se cierra y tu correo queda libre; y los contactos que recibiste de terceros pasan a la administración de Bastet. <strong>Bastet conserva</strong> los registros de conexiones, operaciones, actas, certificados, reservas, aceptaciones de contratos e investigaciones ya realizados, con los datos de las partes que ya contenían, porque son necesarios para cumplir obligaciones legales y contractuales y para atender reclamos de otras personas.</p>
 
-  <h2>8. Cookies, medición y almacenamiento en tu navegador</h2>
+  <h2 id="cookies">8. Cookies, medición y almacenamiento en tu navegador</h2>
   <p><strong>Medición del uso del sitio (Google).</strong> Usamos una etiqueta de Google (Google Tag Manager) para medir cómo se usa bastet.uno: por ejemplo, qué páginas se visitan, desde qué tipo de dispositivo y navegador, desde qué ciudad o país aproximado y desde qué sitio llegan los visitantes. Google puede usar cookies o identificadores del navegador para ello y procesa esos datos por cuenta nuestra, en servidores que pueden estar fuera de Bolivia. Usamos esta información solo para entender y mejorar el sitio; no la usamos para mostrarte publicidad. No medimos el panel de administración ni las páginas con enlaces privados, como las de confirmación o de descargos.</p>
-  <p><strong>Cómo evitarla.</strong> Puedes bloquear o borrar las cookies desde tu navegador, usar el modo privado o instalar el <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">complemento de inhabilitación de Google Analytics</a>. El sitio funciona igual.</p>
+  <p><strong>Tu elección.</strong> Cuando entras al sitio te preguntamos si aceptas las cookies de medición, con los botones «Aceptar» y «Rechazar». Si rechazas, no se guardan cookies de medición en tu navegador; Google puede seguir recibiendo señales técnicas sin identificadores (por ejemplo, que se visitó una página). Guardamos tu elección en este navegador y puedes cambiarla cuando quieras: <button type="button" onclick="window.bastetCookiePrefs && window.bastetCookiePrefs()" style="font:inherit;color:#3D4C3A;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer">cambiar mi elección de cookies</button>.</p>
+  <p><strong>Otras formas de evitarla.</strong> También puedes bloquear o borrar las cookies desde tu navegador, usar el modo privado o instalar el <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">complemento de inhabilitación de Google Analytics</a>. El sitio funciona igual.</p>
   <p><strong>Lo que no usamos.</strong> No usamos herramientas de grabación de sesiones ni cookies de publicidad. Cuando inicias sesión, tu navegador guarda la sesión para mantenerla abierta; los visitantes que solo navegan no necesitan ninguna cuenta ni sesión.</p>
 
   <h2>9. Menores de edad</h2>
