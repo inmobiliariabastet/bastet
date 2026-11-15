@@ -1,4 +1,4 @@
-# Bastet · abierto a buscadores y a asistentes de IA (resumen para IA en /llms.txt)
+# Bastet - abierto a buscadores y asistentes de IA (resumen para IA en /llms.txt)
 
 User-agent: GPTBot
 Allow: /
