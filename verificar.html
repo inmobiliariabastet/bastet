@@ -11,13 +11,14 @@
   gtag('js', new Date());
 </script>
 <script>
-  /* La etiqueta se carga cuando la página ya se dibujó (evento load + momento libre): así no compite con la portada. */
-  (function(){function l(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3';document.head.appendChild(s);}
-  function later(){if(window.requestIdleCallback)requestIdleCallback(l,{timeout:2000});else setTimeout(l,1000);}
-  if(document.readyState==='complete')later();else window.addEventListener('load',later);})();
+  /* La etiqueta se carga solo cuando la persona interactúa con la página (desplazarse, hacer clic, tocar o teclear): así no pesa en la carga inicial. */
+  (function(){var ev=['scroll','pointerdown','keydown','touchstart'],done=false;
+  function l(){if(done)return;done=true;ev.forEach(function(e){window.removeEventListener(e,l);});
+  var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3';document.head.appendChild(s);}
+  ev.forEach(function(e){window.addEventListener(e,l,{passive:true});});})();
 </script>
 <!-- End Google tag -->
-<script defer src="/assets/js/consent.js?v=20261115b"></script>
+<script defer src="/assets/js/consent.js?v=20261115c"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verificar contrato — Bastet</title>
 <meta name="description" content="Comprueba que un contrato generado en bastet.uno es auténtico con su código de verificación.">

@@ -11,13 +11,14 @@
   gtag('js', new Date());
 </script>
 <script>
-  /* La etiqueta se carga cuando la página ya se dibujó (evento load + momento libre): así no compite con la portada. */
-  (function(){function l(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3';document.head.appendChild(s);}
-  function later(){if(window.requestIdleCallback)requestIdleCallback(l,{timeout:2000});else setTimeout(l,1000);}
-  if(document.readyState==='complete')later();else window.addEventListener('load',later);})();
+  /* La etiqueta se carga solo cuando la persona interactúa con la página (desplazarse, hacer clic, tocar o teclear): así no pesa en la carga inicial. */
+  (function(){var ev=['scroll','pointerdown','keydown','touchstart'],done=false;
+  function l(){if(done)return;done=true;ev.forEach(function(e){window.removeEventListener(e,l);});
+  var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3';document.head.appendChild(s);}
+  ev.forEach(function(e){window.addEventListener(e,l,{passive:true});});})();
 </script>
 <!-- End Google tag -->
-<script defer src="/assets/js/consent.js?v=20261115b"></script>
+<script defer src="/assets/js/consent.js?v=20261115c"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Política de privacidad — Bastet</title>
 <meta name="description" content="Cómo Bastet Real State S.R.L. recoge, usa y protege tus datos personales cuando nos contactas desde bastet.uno.">
@@ -164,7 +165,7 @@
   <p>Al eliminar tu cuenta: tus inmuebles disponibles dejan de publicarse; se borran tu perfil, favoritos, búsquedas, datos legales y solicitudes de verificación con sus documentos; tu acceso se cierra y tu correo queda libre; y los contactos que recibiste de terceros pasan a la administración de Bastet. <strong>Bastet conserva</strong> los registros de conexiones, operaciones, actas, certificados, reservas, aceptaciones de contratos e investigaciones ya realizados, con los datos de las partes que ya contenían, porque son necesarios para cumplir obligaciones legales y contractuales y para atender reclamos de otras personas.</p>
 
   <h2 id="cookies">8. Cookies, medición y almacenamiento en tu navegador</h2>
-  <p><strong>Medición del uso del sitio (Google).</strong> Usamos una etiqueta de Google (Google Tag Manager) para medir cómo se usa bastet.uno: por ejemplo, qué páginas se visitan, desde qué tipo de dispositivo y navegador, desde qué ciudad o país aproximado y desde qué sitio llegan los visitantes. Google puede usar cookies o identificadores del navegador para ello y procesa esos datos por cuenta nuestra, en servidores que pueden estar fuera de Bolivia. Usamos esta información solo para entender y mejorar el sitio; no la usamos para mostrarte publicidad. No medimos el panel de administración ni las páginas con enlaces privados, como las de confirmación o de descargos.</p>
+  <p><strong>Medición del uso del sitio (Google).</strong> Usamos una etiqueta de Google (Google Tag Manager) para medir cómo se usa bastet.uno: por ejemplo, qué páginas se visitan, desde qué tipo de dispositivo y navegador, desde qué ciudad o país aproximado y desde qué sitio llegan los visitantes. Google puede usar cookies o identificadores del navegador para ello y procesa esos datos por cuenta nuestra, en servidores que pueden estar fuera de Bolivia. La etiqueta de Google se activa cuando interactúas con la página (por ejemplo, al desplazarte o hacer clic): si solo abres la página y la cierras sin tocarla, no se carga. Usamos esta información solo para entender y mejorar el sitio; no la usamos para mostrarte publicidad. No medimos el panel de administración ni las páginas con enlaces privados, como las de confirmación o de descargos.</p>
   <p><strong>Tu elección.</strong> Cuando entras al sitio te preguntamos si aceptas las cookies de medición, con los botones «Aceptar» y «Rechazar». Si rechazas, no se guardan cookies de medición en tu navegador; Google puede seguir recibiendo señales técnicas sin identificadores (por ejemplo, que se visitó una página). Guardamos tu elección en este navegador y puedes cambiarla cuando quieras: <button type="button" onclick="window.bastetCookiePrefs && window.bastetCookiePrefs()" style="font:inherit;color:#3D4C3A;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer">cambiar mi elección de cookies</button>.</p>
   <p><strong>Otras formas de evitarla.</strong> También puedes bloquear o borrar las cookies desde tu navegador, usar el modo privado o instalar el <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">complemento de inhabilitación de Google Analytics</a>. El sitio funciona igual.</p>
   <p><strong>Lo que no usamos.</strong> No usamos herramientas de grabación de sesiones ni cookies de publicidad. Cuando inicias sesión, tu navegador guarda la sesión para mantenerla abierta; los visitantes que solo navegan no necesitan ninguna cuenta ni sesión.</p>
