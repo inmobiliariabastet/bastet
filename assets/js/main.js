@@ -1362,7 +1362,23 @@ async function loadPartners() {
     if (!byUrl.has(url)) byUrl.set(url, []);
     byUrl.get(url).push(img);
   });
-  byUrl.forEach((imgs, url) => normalizeLogo(url, imgs));
+  // El recorte de logos pinta en un <canvas> y recorre píxeles: es lo más pesado del arranque. Se hace de uno en uno,
+  // en tiempos libres y solo cuando la cinta está por verse (queda debajo de la portada).
+  const runNormalize = () => {
+    const items = [...byUrl];
+    const next = () => {
+      const it = items.shift();
+      if (!it) return;
+      normalizeLogo(it[0], it[1]);
+      (window.requestIdleCallback || setTimeout)(next, { timeout: 400 });
+    };
+    next();
+  };
+  const strip = document.querySelector('.partners-strip');
+  if (strip && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) { io.disconnect(); runNormalize(); } }, { rootMargin: '600px 0px' });
+    io.observe(strip);
+  } else runNormalize();
 }
 
 // Los logos llegan con márgenes blancos o transparentes muy distintos (algunos ocupan menos de la
