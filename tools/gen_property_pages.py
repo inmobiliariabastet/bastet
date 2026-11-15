@@ -16,6 +16,7 @@ Qué hace
 
 Volver a correrlo cada vez que se publiquen o retiren inmuebles, y luego commit + push.
 """
+import hashlib
 import html
 import json
 import re
@@ -49,11 +50,32 @@ def slug(s):
 
 def fetch():
     cols = ('id,title,location,price,currency,area,rooms,baths,description,photos,verified,created_at,code_number,'
-            'property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at')
+            'property_type,operation,floors,has_garage,garage_spots,has_storage,pets_allowed,kids_allowed,expires_at,owner_id')
     url = f'{SB_URL}/rest/v1/properties?select={cols}&status=eq.available&order=sort_order'
     req = urllib.request.Request(url, headers={'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
+
+
+def fetch_profiles(ids):
+    """Datos públicos de quien publica (los mismos que muestra la ficha del sitio): nombre y distintivo de agente."""
+    ids = sorted({i for i in ids if i})
+    if not ids:
+        return {}
+    try:
+        url = f'{SB_URL}/rest/v1/profiles?select=id,display_name,agent_verified&id=in.({",".join(ids)})'
+        req = urllib.request.Request(url, headers={'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {x['id']: x for x in json.load(r)}
+    except Exception:
+        return {}
+
+
+def thumb(u, w):
+    """Miniatura redimensionada por Supabase (la foto original puede pesar varios MB)."""
+    if '/storage/v1/object/public/' not in u:
+        return u
+    return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + ('&' if '?' in u else '?') + f'width={w}&quality=72'
 
 
 def price_text(p):
@@ -111,7 +133,7 @@ def meta_desc(p, fl):
     return d
 
 
-def page(p, others):
+def page(p, others, hubs=None, prof=None):
     code = f"BST-{p['code_number']}"
     typ, op, city = TYPE[p['property_type']], p['operation'], city_of(p)
     pr = price_text(p)
@@ -121,6 +143,21 @@ def page(p, others):
     desc = meta_desc(p, fl)
     photos = p['photos'][:6]
     name = clean(p['title'])
+    import seo_hubs as H
+    hubs = hubs or []
+    op_hub = next((x for x in hubs if x['kind'] == 'op' and x.get('op') == op), None)
+    city_hub = next((x for x in hubs if x['kind'] == 'city' and x.get('city') == city), None)
+    near = [x for x in hubs if x['kind'] in ('type_op', 'city_op', 'city_type_op') and any(i['code_number'] == p['code_number'] for i in x['items'])]
+    pub = (prof or {}).get(p.get('owner_id'))
+    crumbs = [('Inicio', '/'), ('Inmuebles publicados', '/inmueble/')]
+    if op_hub:
+        crumbs.append((H.scope(op_hub)[0], f"/{op_hub['slug']}/"))
+    if city_hub:
+        crumbs.append((H.scope(city_hub)[0], f"/{city_hub['slug']}/"))
+    crumbs.append((name, None))
+    crumb_html = ' › '.join(f'<a href="{esc(u)}">{esc(t)}</a>' if u else esc(t) for t, u in crumbs)
+    more_html = ''.join(f'<a href="/{esc(x["slug"])}/">{esc(H.scope(x)[0])}</a>' for x in sorted(near, key=lambda x: (-x['prio'], x['slug']))[:4])
+    published = (p.get('created_at') or '')[:10]
     app = ('estadias.html' if op == 'temporal' else 'marketplace.html') + f"?p={code}"
     lead = f"{name}: {typ.lower()} {OP_TITLE[op]} en {city}, Bolivia, por {pr}."
     ld_type = TYPE_LD[p['property_type']]
@@ -129,24 +166,30 @@ def page(p, others):
     if p.get('area'): about['floorSize'] = {'@type': 'QuantitativeValue', 'value': p['area'], 'unitCode': 'MTK'}
     offer = {'@type': 'Offer', 'price': re.sub(r'[^0-9]', '', str(p['price'])), 'priceCurrency': 'BOB' if p.get('currency') == 'BOB' else 'USD',
              'availability': 'https://schema.org/InStock', 'url': url}
+    if pub and pub.get('display_name'):
+        offer['seller'] = {'@type': 'Person', 'name': pub['display_name']}
+    about['containedInPlace'] = {'@type': 'City', 'name': city, 'address': {'@type': 'PostalAddress', 'addressCountry': 'BO'}}
     if op == 'temporal':
         offer['priceSpecification'] = {'@type': 'UnitPriceSpecification', 'price': offer['price'], 'priceCurrency': offer['priceCurrency'], 'unitText': 'DAY'}
     ld = [
         {'@context': 'https://schema.org', '@type': 'RealEstateListing', 'name': name, 'description': clean(p['description']), 'url': url,
-         'image': photos, 'datePosted': (p.get('created_at') or '')[:10] or None, 'inLanguage': 'es', 'offers': offer, 'about': about,
+         'image': [thumb(u, 1200) for u in photos], 'datePosted': published or None, 'dateModified': '@@MOD@@', 'inLanguage': 'es', 'offers': offer, 'about': about,
          'provider': {'@id': SITE + '/#org'}},
         {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [
-            {'@type': 'ListItem', 'position': 1, 'name': 'Inicio', 'item': SITE + '/'},
-            {'@type': 'ListItem', 'position': 2, 'name': 'Inmuebles publicados', 'item': SITE + '/inmueble/'},
-            {'@type': 'ListItem', 'position': 3, 'name': name, 'item': url}]},
+            {'@type': 'ListItem', 'position': i + 1, 'name': t, 'item': SITE + (u if u else f'/inmueble/{fname(p)}')} for i, (t, u) in enumerate(crumbs)]},
     ]
     ld[0] = {k: v for k, v in ld[0].items() if v is not None}
     figs = ''.join(
-        f'<img src="{esc(u)}" alt="{esc(name)} · foto {i + 1} de {len(photos)}" loading="{"eager" if i == 0 else "lazy"}"'
+        f'<img src="{esc(thumb(u, 1200 if i == 0 else 640))}" alt="{esc(name)} · foto {i + 1} de {len(photos)}" loading="{"eager" if i == 0 else "lazy"}"'
         f'{" fetchpriority=\"high\"" if i == 0 else ""} decoding="async">' for i, u in enumerate(photos))
     dl = ''.join(f'<div><dt>{esc(k)}</dt><dd>{esc(v)}</dd></div>' for k, v in
                  [('Operación', OP_NAME[op]), ('Tipo', typ), ('Ciudad', city), ('Precio', pr), ('Código', code)] + fl)
     ver = '<p class="badge">Inmueble con verificación de Bastet</p>' if p.get('verified') else ''
+    pubdate = f'Publicado el {published}' if published else ''
+    pub_html = ''
+    if pub and pub.get('display_name'):
+        pub_html = f'Publicado por {esc(pub["display_name"])}' + (' · Agente verificado por Bastet' if pub.get('agent_verified') else '')
+    meta_line = ' · '.join(x for x in [pub_html, esc(pubdate) if pubdate else '', 'Actualizada el <time datetime="@@MOD@@">@@MOD@@</time>'] if x)
     desc_html = ''.join(f'<p>{esc(x)}</p>' for x in re.split(r'\n{2,}', (p['description'] or '').strip()) if x.strip())
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -188,6 +231,8 @@ def page(p, others):
   header.top nav a {{ text-decoration:none; font-size:15.5px; }}
   main {{ max-width:1080px; margin:0 auto; padding:clamp(18px,3vw,40px) clamp(16px,4vw,32px) 56px; }}
   .crumbs {{ font-size:14px; color:rgba(30,38,41,.66); margin-bottom:14px; }}
+  .pubmeta {{ margin-top:8px; font-size:14px; color:rgba(30,38,41,.66); }}
+  .morelinks {{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }} .morelinks a {{ padding:7px 14px; border:1px solid rgba(61,76,58,.35); border-radius:999px; text-decoration:none; font-size:14.5px; }} .morelinks a:hover {{ background:var(--green); color:#fff; }}
   h1 {{ font-family:'Conso',Georgia,serif; font-weight:400; color:var(--green); font-size:clamp(28px,4.4vw,46px); line-height:1.12; }}
   .lead {{ margin-top:12px; font-size:clamp(16px,1.6vw,18.5px); max-width:62ch; }}
   .badge {{ display:inline-block; margin-top:12px; padding:5px 14px; border-radius:999px; background:#EFF8E7; color:var(--green); font-size:14px; }}
@@ -217,9 +262,10 @@ def page(p, others):
   <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a></nav>
 </header>
 <main>
-  <p class="crumbs"><a href="/">Inicio</a> › <a href="/inmueble/">Inmuebles publicados</a> › {esc(code)}</p>
+  <p class="crumbs">{crumb_html}</p>
   <h1>{esc(name)}</h1>
   <p class="lead">{esc(lead)}</p>
+  <p class="pubmeta">{meta_line}</p>
   {ver}
   <div id="gone" role="status"><strong>Este inmueble ya no está disponible.</strong> Mira otros en <a href="/marketplace.html">Propiedades</a> o <a href="/estadias.html">Estadías</a>.</div>
   <div class="gallery">{figs}</div>
@@ -232,6 +278,7 @@ def page(p, others):
         <a class="btn line" href="/verificar.html">Verificar con el código {esc(code)}</a>
       </div>
       <p class="note">Los teléfonos no se publican: se entregan cuando tu solicitud o reserva se confirma.</p>
+      {('<h2>Más inmuebles como este</h2><p class="morelinks">' + more_html + '</p>') if more_html else ''}
     </section>
     <section aria-labelledby="f-t">
       <h2 id="f-t">Datos del inmueble</h2>
@@ -263,7 +310,8 @@ def page(p, others):
 '''
 
 
-def index_page(items):
+def index_page(items, hubs=None):
+    import seo_hubs as H
     groups = {}
     for p in items:
         groups.setdefault(p['operation'], []).append(p)
@@ -273,6 +321,10 @@ def index_page(items):
             continue
         lis = ''.join(f'<li><a href="/inmueble/{esc(fname(p))}">{esc(clean(p["title"]))}</a> — {esc(TYPE[p["property_type"]])} en {esc(city_of(p))}, {esc(price_text(p))}</li>' for p in groups[op])
         secs += f'<h2>{esc(OP_NAME[op])}</h2><ul>{lis}</ul>'
+    hub_html = ''
+    if hubs:
+        hub_html = '<h2>Explora por categoría</h2><ul>' + ''.join('<li><a href="/' + esc(x['slug']) + '/">' + esc(H.scope(x)[0]) + '</a> (' + str(len(x['items'])) + ')</li>' for x in sorted(hubs, key=lambda x: (x['prio'], x['slug']))) + '</ul>'
+    secs = hub_html + secs
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -305,7 +357,11 @@ def index_page(items):
 
 
 def main():
+    import seo_hubs as H
+    import shutil
+    me = sys.modules[__name__]
     rows = [p for p in fetch() if not expired(p)]
+    prof = fetch_profiles([p.get('owner_id') for p in rows])
     seen, keep, skipped = set(), [], []
     for p in rows:
         if not p.get('code_number'):
@@ -316,35 +372,102 @@ def main():
         if key in seen:
             skipped.append((p.get('title'), 'descripción repetida')); continue
         seen.add(key); keep.append(p)
+
+    # Inmuebles clasificables para las páginas de categoría (operación, tipo, ciudad, precio y foto reales)
+    classifiable = [p for p in rows if p.get('code_number') and p.get('operation') in H.OPS and p.get('property_type') in TYPE
+                    and city_of(p) and price_text(p) and p.get('photos')]
+    hubs = H.plan(classifiable, me)
+    statics = {p['code_number']: f'/inmueble/{fname(p)}' for p in keep}
+
+    state_path = ROOT / 'tools' / 'seo_state.json'
+    state = json.loads(state_path.read_text(encoding='utf-8')) if state_path.exists() else {}
+    old_hubs = set(state.get('_hubs', []))
+    today = date.today().isoformat()
+    new_state = {}
+    mods = {}
+
+    def write(path, text, loc):
+        """Escribe la página. La fecha de actualización (@@MOD@@) cambia solo si el contenido cambió de verdad."""
+        h = hashlib.sha1(text.encode('utf-8')).hexdigest()
+        old = state.get(loc, {})
+        mod = old.get('m', today) if old.get('h') == h else today
+        new_state[loc] = {'h': h, 'm': mod}
+        mods[loc] = mod
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text.replace('@@MOD@@', mod), encoding='utf-8', newline='\n')
+
     OUT.mkdir(exist_ok=True)
     want = {fname(p) for p in keep} | {'index.html'}
     for f in OUT.glob('*.html'):
         if f.name not in want:
             f.unlink(); print('borrada', f.name)
-    sm = (ROOT / 'sitemap.xml').read_text(encoding='utf-8')
-    old_mod = dict(re.findall(r'<loc>([^<]+)</loc><lastmod>([^<]+)</lastmod>', sm))
-    today = date.today().isoformat()
-    mods = {}
-
-    def write(path, text, loc):
-        # El lastmod del sitemap solo cambia si el contenido de la página cambió de verdad (así no hay commits diarios vacíos).
-        same = path.exists() and path.read_text(encoding='utf-8').replace('\r\n', '\n') == text
-        path.write_text(text, encoding='utf-8', newline='\n')
-        mods[loc] = old_mod.get(loc, today) if same else today
-
     for p in keep:
-        write(OUT / fname(p), page(p, keep), f'{SITE}/inmueble/{fname(p)}')
-    write(OUT / 'index.html', index_page(keep), f'{SITE}/inmueble/')
-    block = '<!-- inmuebles:start -->\n' + f'  <url><loc>{SITE}/inmueble/</loc><lastmod>{mods[SITE + "/inmueble/"]}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n' + ''.join(
-        f'  <url><loc>{SITE}/inmueble/{fname(p)}</loc><lastmod>{mods[SITE + "/inmueble/" + fname(p)]}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n' for p in keep) + '  <!-- inmuebles:end -->'
-    nl = '\r\n' if '\r\n' in sm else '\n'
-    sm = sm.replace('\r\n', '\n')
-    if '<!-- inmuebles:start -->' in sm:
-        sm = re.sub(r'<!-- inmuebles:start -->.*?<!-- inmuebles:end -->', lambda m: block, sm, flags=re.S)
+        write(OUT / fname(p), page(p, keep, hubs=hubs, prof=prof), f'{SITE}/inmueble/{fname(p)}')
+    write(OUT / 'index.html', index_page(keep, hubs), f'{SITE}/inmueble/')
+
+    # Página institucional
+    write(ROOT / 'sobre-bastet' / 'index.html', H.about_page(SITE), f'{SITE}/sobre-bastet/')
+
+    # Páginas de categoría
+    for h in hubs:
+        html_, _ = H.render(h, hubs, statics, me, SITE, '@@MOD@@', SB_URL)
+        write(ROOT / h['slug'] / 'index.html', html_, f"{SITE}/{h['slug']}/")
+    cur = {h['slug'] for h in hubs}
+    for stale in old_hubs - cur:
+        d = ROOT / stale
+        if d.is_dir() and (d / 'index.html').exists() and len(list(d.iterdir())) == 1:
+            shutil.rmtree(d); print('categoría retirada', stale)
+    new_state['_hubs'] = sorted(cur)
+    state_path.write_text(json.dumps(new_state, ensure_ascii=False, indent=1, sort_keys=True) + '\n', encoding='utf-8', newline='\n')
+
+    # sitemap: bloque de inmuebles + bloque de categorías
+    sm = (ROOT / 'sitemap.xml').read_text(encoding='utf-8').replace('\r\n', '\n')
+
+    def block(sm, name, lines):
+        b = f'<!-- {name}:start -->\n' + ''.join(lines) + f'  <!-- {name}:end -->'
+        if f'<!-- {name}:start -->' in sm:
+            return re.sub(rf'<!-- {name}:start -->.*?<!-- {name}:end -->', lambda m: b, sm, flags=re.S)
+        return sm.replace('</urlset>', '  ' + b + '\n</urlset>')
+
+    sm = block(sm, 'inmuebles', [f'  <url><loc>{SITE}/inmueble/</loc><lastmod>{mods[SITE + "/inmueble/"]}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n'] + [
+        f'  <url><loc>{SITE}/inmueble/{fname(p)}</loc><lastmod>{mods[SITE + "/inmueble/" + fname(p)]}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n' for p in keep])
+    sm = block(sm, 'categorias', [f'  <url><loc>{SITE}/sobre-bastet/</loc><lastmod>{mods[SITE + "/sobre-bastet/"]}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>'+chr(10)] + [f'  <url><loc>{SITE}/{h["slug"]}/</loc><lastmod>{mods[SITE + "/" + h["slug"] + "/"]}</lastmod><changefreq>daily</changefreq><priority>{"0.9" if h["kind"] == "op" else "0.8"}</priority></url>\n' for h in hubs])
+    (ROOT / 'sitemap.xml').write_text(sm, encoding='utf-8', newline='\n')
+
+    # Enlaces a las categorías desde Inicio y Propiedades (bloque entre marcas; solo enlaza páginas que existen)
+    nav = '<!-- hubs-nav:start -->\n'
+    if hubs:
+        nav += ('<nav class="hubs-nav" aria-label="Explora por ciudad y tipo" style="max-width:1320px;margin:0 auto;padding:28px 24px;border-top:1px solid rgba(30,38,41,.12)">'
+                '<h2 style="font-family:Conso,Georgia,serif;font-weight:400;font-size:24px;color:#3D4C3A;margin:0 0 12px">Explora por ciudad y tipo</h2>'
+                '<p style="display:flex;flex-wrap:wrap;gap:8px;margin:0">' + ''.join(
+                    f'<a href="/{h["slug"]}/" style="padding:7px 14px;border:1px solid rgba(61,76,58,.35);border-radius:999px;text-decoration:none;font-size:14.5px;color:#3D4C3A">{esc(H.scope(h)[0])}</a>'
+                    for h in sorted(hubs, key=lambda x: (x['prio'], x['slug']))) + '</p></nav>\n')
+    nav += '<!-- hubs-nav:end -->'
+    for fn in ('index.html', 'marketplace.html'):
+        path = ROOT / fn
+        t = path.read_text(encoding='utf-8')
+        if '<!-- hubs-nav:start -->' in t:
+            t = re.sub(r'<!-- hubs-nav:start -->.*?<!-- hubs-nav:end -->', lambda m: nav, t, 1, flags=re.S)
+        else:
+            m = re.search(r'<footer id="footer"', t)
+            if not m:
+                continue
+            t = t[:m.start()] + nav + '\n\n' + t[m.start():]
+        path.write_text(t, encoding='utf-8', newline='')
+
+    # llms.txt: lista de categorías
+    llms = (ROOT / 'llms.txt').read_text(encoding='utf-8')
+    sect = '<!-- categorias:start -->\n## Categorías de inmuebles\n\n' + ''.join(
+        f'- [{H.scope(h)[0]}]({SITE}/{h["slug"]}/): {len(h["items"])} inmuebles disponibles.\n' for h in sorted(hubs, key=lambda x: (x['prio'], x['slug']))) + '<!-- categorias:end -->'
+    if '<!-- categorias:start -->' in llms:
+        llms = re.sub(r'<!-- categorias:start -->.*?<!-- categorias:end -->', lambda m: sect, llms, flags=re.S)
     else:
-        sm = sm.replace('</urlset>', '  ' + block + '\n</urlset>')
-    (ROOT / 'sitemap.xml').write_text(sm.replace('\n', nl), encoding='utf-8', newline='')
-    print(f'Páginas generadas: {len(keep)} · omitidas: {len(skipped)}')
+        llms = llms.replace('## Datos clave', sect + '\n\n## Datos clave', 1)
+    (ROOT / 'llms.txt').write_text(llms, encoding='utf-8', newline='\n')
+
+    print(f'Fichas generadas: {len(keep)} · categorías: {len(hubs)} · omitidas: {len(skipped)}')
+    for h in hubs:
+        print(f"  categoría /{h['slug']}/ ({len(h['items'])})")
     for t, why in skipped:
         print('  omitida:', t, '→', why)
 

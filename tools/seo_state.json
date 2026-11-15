@@ -1,0 +1,59 @@
+{
+ "_hubs": [
+  "casas-en-alquiler",
+  "casas-en-venta",
+  "inmuebles-en-la-paz",
+  "propiedades-en-alquiler-en-bolivia",
+  "propiedades-en-anticretico-en-bolivia",
+  "propiedades-en-venta-en-bolivia",
+  "propiedades-en-venta-en-la-paz"
+ ],
+ "https://bastet.uno/casas-en-alquiler/": {
+  "h": "edf5be907ad894fd0cf8a666b88511b0172955a9",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/casas-en-venta/": {
+  "h": "8c0101a5c92547298f2b61468feeab43a37f10d6",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/inmueble/": {
+  "h": "bfd925283a9cc95cc1585323373eb781babfff4f",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/inmueble/casa-en-alquiler-la-paz-bst-1018.html": {
+  "h": "df28afb0c3f32603263644ca919f58b27c4f1e1e",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/inmueble/casa-en-venta-la-paz-bst-1020.html": {
+  "h": "27efebe430f54cc4cbe826256c47f25b4ba93308",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/inmueble/departamento-en-venta-la-paz-bst-1015.html": {
+  "h": "b937dae206eece1d0ef50b8f33256c141263e595",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/inmuebles-en-la-paz/": {
+  "h": "426611b11fef6e95f180bf7e6a26ceb01f3d79f9",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/propiedades-en-alquiler-en-bolivia/": {
+  "h": "699979f1bd84d6e0a031288e2b463ae1561b1537",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/propiedades-en-anticretico-en-bolivia/": {
+  "h": "166f7b790dd51c87b74b242e90f323ef181a77cf",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/propiedades-en-venta-en-bolivia/": {
+  "h": "030a035e5ac0f546127abb5d6d85023add0a94ba",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/propiedades-en-venta-en-la-paz/": {
+  "h": "6534a73105e6e859313feb190fc390968fc6127c",
+  "m": "2026-11-14"
+ },
+ "https://bastet.uno/sobre-bastet/": {
+  "h": "6da2f5c8b8bf931446cd27f3b52f45bbb32b090c",
+  "m": "2026-11-14"
+ }
+}

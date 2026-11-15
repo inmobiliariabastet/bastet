@@ -8,9 +8,22 @@
 - [Propiedades](https://bastet.uno/marketplace.html): inmuebles en venta, alquiler y anticrético, con filtros por ciudad y tipo.
 - [Estadías temporales](https://bastet.uno/estadias.html): casas, departamentos y habitaciones por noche. Se confirma con un pago del 10 % a Bastet y el resto se coordina directo con el anfitrión.
 - [Empresas](https://bastet.uno/empresas.html): alojamiento para los trabajadores de empresas afiliadas, alquiler de espacios para operar y compra de inmuebles, con cotización de Bastet.
+- [Sobre Bastet](https://bastet.uno/sobre-bastet/): quién es Bastet, qué ofrece, cómo funciona el contacto protegido y qué significa «verificado» (no todos los inmuebles lo están).
 - [Inmuebles publicados](https://bastet.uno/inmueble/): lista de los inmuebles y estadías con ficha completa; cada uno tiene su propia página con fotos, datos y precio.
 - [Verificar](https://bastet.uno/verificar.html): comprobar con su código una reserva, una solicitud, una propiedad o un agente.
 - [App](https://bastet.uno/app.html): instalar Bastet como aplicación en el celular.
+
+<!-- categorias:start -->
+## Categorías de inmuebles
+
+- [Propiedades en alquiler en Bolivia](https://bastet.uno/propiedades-en-alquiler-en-bolivia/): 4 inmuebles disponibles.
+- [Propiedades en anticrético en Bolivia](https://bastet.uno/propiedades-en-anticretico-en-bolivia/): 1 inmuebles disponibles.
+- [Propiedades en venta en Bolivia](https://bastet.uno/propiedades-en-venta-en-bolivia/): 6 inmuebles disponibles.
+- [Inmuebles en La Paz](https://bastet.uno/inmuebles-en-la-paz/): 5 inmuebles disponibles.
+- [Casas en alquiler en Bolivia](https://bastet.uno/casas-en-alquiler/): 3 inmuebles disponibles.
+- [Casas en venta en Bolivia](https://bastet.uno/casas-en-venta/): 3 inmuebles disponibles.
+- [Propiedades en venta en La Paz](https://bastet.uno/propiedades-en-venta-en-la-paz/): 3 inmuebles disponibles.
+<!-- categorias:end -->
 
 ## Datos clave
 

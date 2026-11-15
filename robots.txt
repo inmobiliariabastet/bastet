@@ -1,53 +1,32 @@
-# Bastet - abierto a buscadores y asistentes de IA (resumen para IA en /llms.txt)
+# Bastet - robots.txt
+# Politica: el sitio es publico y se quiere que lo encuentren y lo citen. Solo se bloquea el panel de administracion.
 
-User-agent: GPTBot
-Allow: /
-Disallow: /admin/
-
+# 1) Buscadores y asistentes de IA que buscan, citan y recomiendan paginas en vivo (permitidos)
+User-agent: Googlebot
+User-agent: Bingbot
 User-agent: OAI-SearchBot
-Allow: /
-Disallow: /admin/
-
 User-agent: ChatGPT-User
-Allow: /
-Disallow: /admin/
-
-User-agent: ClaudeBot
-Allow: /
-Disallow: /admin/
-
-User-agent: Claude-User
-Allow: /
-Disallow: /admin/
-
 User-agent: Claude-SearchBot
-Allow: /
-Disallow: /admin/
-
+User-agent: Claude-User
 User-agent: PerplexityBot
-Allow: /
-Disallow: /admin/
-
 User-agent: Perplexity-User
+User-agent: DuckDuckBot
+User-agent: Applebot
 Allow: /
 Disallow: /admin/
 
+# 2) Rastreadores que recogen contenido para ENTRENAR modelos. Decision de la duena: hoy se permiten
+#    (mas informacion verificable de Bastet disponible para los modelos). Para impedirlo, cambiar "Allow: /" por "Disallow: /".
+#    Google-Extended y Applebot-Extended no afectan a la busqueda de Google ni de Apple.
+User-agent: GPTBot
+User-agent: ClaudeBot
 User-agent: Google-Extended
-Allow: /
-Disallow: /admin/
-
 User-agent: Applebot-Extended
-Allow: /
-Disallow: /admin/
-
 User-agent: CCBot
 Allow: /
 Disallow: /admin/
 
-User-agent: Bingbot
-Allow: /
-Disallow: /admin/
-
+# 3) Todos los demas
 User-agent: *
 Allow: /
 Disallow: /admin/
