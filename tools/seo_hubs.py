@@ -333,7 +333,7 @@ def render(h, hubs, statics, g, SITE, today_mod, SB):
 <body>
 <header class="top">
   <a href="/" aria-label="Bastet, ir al inicio"><img src="/assets/img/bastet-logo-horizontal-color.webp" srcset="/assets/img/bastet-logo-horizontal-color-480.webp 480w, /assets/img/bastet-logo-horizontal-color.webp 800w" sizes="230px" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298"></a>
-  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a><a href="/sobre-bastet/">Sobre Bastet</a></nav>
+  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a><a href="/blog/">Blog</a><a href="/sobre-bastet/">Sobre Bastet</a></nav>
 </header>
 <main>
   <p class="crumbs">{crumb_html}</p>
@@ -419,7 +419,7 @@ def about_page(SITE):
 <body>
 <header class="top">
   <a href="/" aria-label="Bastet, ir al inicio"><img src="/assets/img/bastet-logo-horizontal-color.webp" srcset="/assets/img/bastet-logo-horizontal-color-480.webp 480w, /assets/img/bastet-logo-horizontal-color.webp 800w" sizes="230px" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298"></a>
-  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a><a href="/sobre-bastet/">Sobre Bastet</a></nav>
+  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a><a href="/blog/">Blog</a><a href="/sobre-bastet/">Sobre Bastet</a></nav>
 </header>
 <main>
   <p class="crumbs"><a href="/">Inicio</a> › Sobre Bastet</p>

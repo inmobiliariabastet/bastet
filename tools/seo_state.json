@@ -1,4 +1,9 @@
 {
+ "_blog": [
+  "como-comprar-una-casa-en-bolivia-de-forma-segura",
+  "como-verificar-el-titulo-de-propiedad-de-un-inmueble-en-bolivia",
+  "que-es-el-anticretico-en-bolivia-guia-para-inquilinos-y-propietarios"
+ ],
  "_hubs": [
   "casas-en-alquiler",
   "casas-en-venta",
@@ -8,12 +13,28 @@
   "propiedades-en-venta-en-bolivia",
   "propiedades-en-venta-en-la-paz"
  ],
+ "https://bastet.uno/blog/": {
+  "h": "350577a2145d1aefa7285d197df4175d23839baa",
+  "m": "2026-11-15"
+ },
+ "https://bastet.uno/blog/como-comprar-una-casa-en-bolivia-de-forma-segura/": {
+  "h": "728037584c09bc915672db7748873a622c6e4bde",
+  "m": "2026-11-15"
+ },
+ "https://bastet.uno/blog/como-verificar-el-titulo-de-propiedad-de-un-inmueble-en-bolivia/": {
+  "h": "70c004885e89b2f0b1669badf6ad411b5ce3164d",
+  "m": "2026-11-15"
+ },
+ "https://bastet.uno/blog/que-es-el-anticretico-en-bolivia-guia-para-inquilinos-y-propietarios/": {
+  "h": "46558cb7c47b54f272a7ab03f797617b2d1dea81",
+  "m": "2026-11-15"
+ },
  "https://bastet.uno/casas-en-alquiler/": {
-  "h": "2b60e44b2013de6032cc42a7296cce98a27532d7",
+  "h": "06b2a459dac548f58e44ccbc8620c3c780c43fea",
   "m": "2026-11-15"
  },
  "https://bastet.uno/casas-en-venta/": {
-  "h": "e66d9a66ee4c669f59d5a9cbde8fd8163d1c3f6f",
+  "h": "45aee0cc3b4a79cc9d715859dd20f1adb82c7fa3",
   "m": "2026-11-15"
  },
  "https://bastet.uno/inmueble/": {
@@ -21,39 +42,39 @@
   "m": "2026-11-15"
  },
  "https://bastet.uno/inmueble/casa-en-alquiler-la-paz-bst-1018.html": {
-  "h": "baec184397cb67e54cbdddaeae28173a746a4b78",
+  "h": "d3517a17476c4fe0b95f6f23cbffacec393daa3a",
   "m": "2026-11-15"
  },
  "https://bastet.uno/inmueble/casa-en-venta-la-paz-bst-1020.html": {
-  "h": "16c37a8fc41f39c4157ee334aa1c5080900cba45",
+  "h": "291da44a7e2a8e42dda883eaae5610cf851e0d13",
   "m": "2026-11-15"
  },
  "https://bastet.uno/inmueble/departamento-en-venta-la-paz-bst-1015.html": {
-  "h": "f05a5c7cc33f90c50c1b83665cee2c69f9b198c2",
+  "h": "1a81cd679ec5dc6ca0f3cd79441787497fa78935",
   "m": "2026-11-15"
  },
  "https://bastet.uno/inmuebles-en-la-paz/": {
-  "h": "c8809a3668c01772582cb9aaba088f6eb27ff964",
+  "h": "e61f4fab8a62b34c875cbd85d85c6ddfbe6931c6",
   "m": "2026-11-15"
  },
  "https://bastet.uno/propiedades-en-alquiler-en-bolivia/": {
-  "h": "1110365c36bf68d8c6933e5d04fd2f82761e7023",
+  "h": "06bff505f7ab79a6cdb75ca7a92fdc12647f0836",
   "m": "2026-11-15"
  },
  "https://bastet.uno/propiedades-en-anticretico-en-bolivia/": {
-  "h": "398bf4ae183eeaee1d26d83765211efbdf4b7284",
+  "h": "a48c71c739bac6ef120ddcc479e470391a658a6b",
   "m": "2026-11-15"
  },
  "https://bastet.uno/propiedades-en-venta-en-bolivia/": {
-  "h": "f6a8382993cb1aedbd9c4540c058000faaa95e9f",
+  "h": "741658d7995c4bcdb225ac5f74cdb2f86514d2ea",
   "m": "2026-11-15"
  },
  "https://bastet.uno/propiedades-en-venta-en-la-paz/": {
-  "h": "6e671e30f661b18921e308ff853646eb418e8d81",
+  "h": "241243397d39c082c16411191c8a838fe267f4da",
   "m": "2026-11-15"
  },
  "https://bastet.uno/sobre-bastet/": {
-  "h": "500371f507f4c755915764bed0bccbc5c3af0fdf",
+  "h": "d8c8a352f48f610fc02f3cb510d1010e7f0cbbd1",
   "m": "2026-11-15"
  }
 }

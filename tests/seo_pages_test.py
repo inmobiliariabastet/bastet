@@ -33,7 +33,9 @@ def exists(u):
 
 state = json.loads((ROOT / 'tools/seo_state.json').read_text(encoding='utf-8'))
 hubs = state.get('_hubs', [])
-pages = [f'{h}/index.html' for h in hubs] + ['sobre-bastet/index.html', 'inmueble/index.html'] + sorted(str(p.relative_to(ROOT)).replace('\\', '/') for p in (ROOT / 'inmueble').glob('*-bst-*.html'))
+blog_slugs = state.get('_blog', [])
+blog_pages = ['blog/index.html'] + [f'blog/{x}/index.html' for x in blog_slugs]
+pages = [f'{h}/index.html' for h in hubs] + ['sobre-bastet/index.html', 'inmueble/index.html'] + sorted(str(p.relative_to(ROOT)).replace('\\', '/') for p in (ROOT / 'inmueble').glob('*-bst-*.html')) + blog_pages
 titles, descs, item_sets = {}, {}, {}
 for f in pages:
     s = (ROOT / f).read_text(encoding='utf-8')
@@ -68,7 +70,7 @@ for f in pages:
         titles.setdefault(t.group(1), []).append(f)
     if d:
         descs.setdefault(d.group(1), []).append(f)
-        if f in [f'{h}/index.html' for h in hubs]:
+        if f in [f'{h}/index.html' for h in hubs] + blog_pages:
             check(140 <= len(d.group(1)) <= 160, f'{f}: description de {len(d.group(1))} caracteres (debe tener 140–160)')
     for u in re.findall(r'href="(/[^"#]*)"', s):
         check(exists(u), f'{f}: enlace roto {u}')
@@ -109,6 +111,24 @@ check(len(keys) == 1, f'IndexNow: debe haber exactamente un archivo de clave (ha
 for k in keys:
     check(k.read_text(encoding='utf-8').strip() == k.stem, 'IndexNow: el archivo de clave debe contener su propio nombre')
     check(k.name not in sm, 'IndexNow: el archivo de clave no debe estar en el sitemap')
+
+# Blog: cada entrada tiene BlogPosting + BreadcrumbList, portada y fechas; las que traen «Preguntas frecuentes» llevan FAQPage con las mismas preguntas
+check(len(blog_slugs) >= 1, 'Blog: no hay entradas generadas')
+LD = re.compile(r'ld\+json">(.*?)</script>', re.S)
+for x in blog_slugs:
+    f = f'blog/{x}/index.html'
+    s_ = (ROOT / f).read_text(encoding='utf-8')
+    lds = [json.loads(b) for b in LD.findall(s_)]
+    types = [d.get('@type') for d in lds]
+    check('BlogPosting' in types and 'BreadcrumbList' in types, f'{f}: faltan BlogPosting/BreadcrumbList ({types})')
+    check('property="og:image"' in s_ and 'article:published_time' in s_, f'{f}: falta og:image o article:published_time')
+    check(len(re.findall(r'<h2[ >]', s_)) >= 2, f'{f}: pocas secciones (H2)')
+    if 'Preguntas frecuentes</h2>' in s_:
+        check('FAQPage' in types, f'{f}: tiene preguntas frecuentes pero no FAQPage')
+        zona = s_.split('Preguntas frecuentes</h2>', 1)[1].split('<aside class="bl-cta">')[0]
+        n_vis = len(re.findall(r'<h3 id="[^"]+">', zona))
+        faq_ld = next((d for d in lds if d.get('@type') == 'FAQPage'), None)
+        check(faq_ld is not None and len(faq_ld['mainEntity']) == n_vis, f'{f}: las preguntas del JSON-LD no coinciden con las visibles ({n_vis})')
 
 print(f'Páginas revisadas: {len(pages)} · URLs en sitemap: {len(locs)}')
 if fails:

@@ -24,4 +24,10 @@
   <url><loc>https://bastet.uno/casas-en-alquiler/</loc><lastmod>2026-11-15</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://bastet.uno/propiedades-en-venta-en-la-paz/</loc><lastmod>2026-11-15</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <!-- categorias:end -->
+  <!-- blog:start -->
+  <url><loc>https://bastet.uno/blog/</loc><lastmod>2026-11-15</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://bastet.uno/blog/como-comprar-una-casa-en-bolivia-de-forma-segura/</loc><lastmod>2026-11-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://bastet.uno/blog/como-verificar-el-titulo-de-propiedad-de-un-inmueble-en-bolivia/</loc><lastmod>2026-11-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://bastet.uno/blog/que-es-el-anticretico-en-bolivia-guia-para-inquilinos-y-propietarios/</loc><lastmod>2026-11-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- blog:end -->
 </urlset>

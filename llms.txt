@@ -25,6 +25,15 @@
 - [Propiedades en venta en La Paz](https://bastet.uno/propiedades-en-venta-en-la-paz/): 3 inmuebles disponibles.
 <!-- categorias:end -->
 
+<!-- blog:start -->
+## Blog
+
+- [Blog de Bastet](https://bastet.uno/blog/): guías sobre compra segura, anticrético y verificación de títulos en Bolivia.
+- [Cómo comprar una casa en Bolivia de forma segura: guía paso a paso](https://bastet.uno/blog/como-comprar-una-casa-en-bolivia-de-forma-segura/): Los pasos para comprar un inmueble en Bolivia sin sorpresas: qué documentos pedir, qué revisar en Derechos Reales y cómo cerrar la compra con protección.
+- [Cómo verificar el título de propiedad de un inmueble en Bolivia](https://bastet.uno/blog/como-verificar-el-titulo-de-propiedad-de-un-inmueble-en-bolivia/): Qué es verificar un título, qué documentos revisar (Folio Real, testimonio, plano e impuestos) y qué señales indican que un inmueble no está limpio.
+- [Qué es el anticrético en Bolivia: guía para inquilinos y propietarios](https://bastet.uno/blog/que-es-el-anticretico-en-bolivia-guia-para-inquilinos-y-propietarios/): Cómo funciona el anticrético, en qué se diferencia del alquiler y qué cuidar antes de firmar: contrato, registro y devolución del dinero en Bolivia.
+<!-- blog:end -->
+
 ## Datos clave
 
 - Tipos de operación: venta, alquiler, anticrético y estadía temporal por noche.

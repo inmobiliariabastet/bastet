@@ -260,7 +260,7 @@ def page(p, others, hubs=None, prof=None):
 <body>
 <header class="top">
   <a href="/" aria-label="Bastet, ir al inicio"><img src="/assets/img/bastet-logo-horizontal-color.webp" srcset="/assets/img/bastet-logo-horizontal-color-480.webp 480w, /assets/img/bastet-logo-horizontal-color.webp 800w" sizes="230px" alt="Bastet · Propiedades · Inmobiliarias" width="1200" height="298"></a>
-  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a></nav>
+  <nav aria-label="Principal"><a href="/">Inicio</a><a href="/marketplace.html">Propiedades</a><a href="/estadias.html">Estadías</a><a href="/empresas.html">Empresas</a><a href="/blog/">Blog</a></nav>
 </header>
 <main>
   <p class="crumbs">{crumb_html}</p>
@@ -428,6 +428,19 @@ def main():
         if d.is_dir() and (d / 'index.html').exists() and len(list(d.iterdir())) == 1:
             shutil.rmtree(d); print('categoría retirada', stale)
     new_state['_hubs'] = sorted(cur)
+
+    # Blog (entradas de Supabase o, si aún no existe la tabla, las 3 iniciales de content/blog)
+    import blog_pages as BL
+    posts = [p for p in BL.load(me) if re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', p['slug'])]
+    write(ROOT / 'blog' / 'index.html', BL.render_index(me, H, SITE, posts), f'{SITE}/blog/')
+    for bp in posts:
+        write(ROOT / 'blog' / bp['slug'] / 'index.html', BL.render_post(me, H, SITE, bp, posts, hubs), f"{SITE}/blog/{bp['slug']}/")
+    cur_blog = {bp['slug'] for bp in posts}
+    for stale in set(state.get('_blog', [])) - cur_blog:
+        d = ROOT / 'blog' / stale
+        if d.is_dir() and (d / 'index.html').exists() and len(list(d.iterdir())) == 1:
+            shutil.rmtree(d); print('entrada de blog retirada', stale)
+    new_state['_blog'] = sorted(cur_blog)
     state_path.write_text(json.dumps(new_state, ensure_ascii=False, indent=1, sort_keys=True) + '\n', encoding='utf-8', newline='\n')
 
     # sitemap: bloque de inmuebles + bloque de categorías
@@ -442,6 +455,8 @@ def main():
     sm = block(sm, 'inmuebles', [f'  <url><loc>{SITE}/inmueble/</loc><lastmod>{mods[SITE + "/inmueble/"]}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n'] + [
         f'  <url><loc>{SITE}/inmueble/{fname(p)}</loc><lastmod>{mods[SITE + "/inmueble/" + fname(p)]}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n' for p in keep])
     sm = block(sm, 'categorias', [f'  <url><loc>{SITE}/sobre-bastet/</loc><lastmod>{mods[SITE + "/sobre-bastet/"]}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>'+chr(10)] + [f'  <url><loc>{SITE}/{h["slug"]}/</loc><lastmod>{mods[SITE + "/" + h["slug"] + "/"]}</lastmod><changefreq>daily</changefreq><priority>{"0.9" if h["kind"] == "op" else "0.8"}</priority></url>\n' for h in hubs])
+    sm = block(sm, 'blog', [f'  <url><loc>{SITE}/blog/</loc><lastmod>{mods[SITE + "/blog/"]}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>' + chr(10)] + [
+        f'  <url><loc>{SITE}/blog/{bp["slug"]}/</loc><lastmod>{mods[SITE + "/blog/" + bp["slug"] + "/"]}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>' + chr(10) for bp in posts])
     (ROOT / 'sitemap.xml').write_text(sm, encoding='utf-8', newline='\n')
 
     # Enlaces a las categorías desde Inicio y Propiedades (bloque entre marcas; solo enlaza páginas que existen)
@@ -452,6 +467,12 @@ def main():
                 '<p style="display:flex;flex-wrap:wrap;gap:8px;margin:0">' + ''.join(
                     f'<a href="/{h["slug"]}/" style="padding:7px 14px;border:1px solid rgba(61,76,58,.35);border-radius:999px;text-decoration:none;font-size:14.5px;color:#3D4C3A">{esc(H.scope(h)[0])}</a>'
                     for h in sorted(hubs, key=lambda x: (x['prio'], x['slug']))) + '</p></nav>\n')
+    if posts:
+        pill = 'padding:7px 14px;border:1px solid rgba(61,76,58,.35);border-radius:999px;text-decoration:none;font-size:14.5px;color:#3D4C3A'
+        nav += ('<nav class="blog-nav" aria-label="Guías del blog" style="max-width:1320px;margin:0 auto;padding:6px 24px 28px">'
+                '<h2 style="font-family:Conso,Georgia,serif;font-weight:400;font-size:24px;color:#3D4C3A;margin:0 0 12px">Guías para comprar y alquilar con seguridad</h2>'
+                '<p style="display:flex;flex-wrap:wrap;gap:8px;margin:0">' + ''.join(f'<a href="/blog/{bp["slug"]}/" style="{pill}">{esc(bp["title"])}</a>' for bp in posts[:6])
+                + f'<a href="/blog/" style="{pill};background:#3D4C3A;color:#fff">Ver el blog</a></p></nav>' + chr(10))
     nav += '<!-- hubs-nav:end -->'
     for fn in ('index.html', 'marketplace.html'):
         path = ROOT / fn
@@ -473,6 +494,12 @@ def main():
         llms = re.sub(r'<!-- categorias:start -->.*?<!-- categorias:end -->', lambda m: sect, llms, flags=re.S)
     else:
         llms = llms.replace('## Datos clave', sect + '\n\n## Datos clave', 1)
+    blog_sect = '<!-- blog:start -->\n## Blog\n\n- [Blog de Bastet](' + SITE + '/blog/): guías sobre compra segura, anticrético y verificación de títulos en Bolivia.\n' + ''.join(
+        f'- [{bp["title"]}]({SITE}/blog/{bp["slug"]}/): {" ".join(bp["excerpt"].split())}\n' for bp in posts) + '<!-- blog:end -->'
+    if '<!-- blog:start -->' in llms:
+        llms = re.sub(r'<!-- blog:start -->.*?<!-- blog:end -->', lambda m: blog_sect, llms, flags=re.S)
+    else:
+        llms = llms.replace('## Datos clave', blog_sect + '\n\n## Datos clave', 1)
     (ROOT / 'llms.txt').write_text(llms, encoding='utf-8', newline='\n')
 
     print(f'Fichas generadas: {len(keep)} · categorías: {len(hubs)} · omitidas: {len(skipped)}')

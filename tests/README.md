@@ -38,4 +38,6 @@ Estas carpetas se publican con el sitio (es un sitio estático) pero no son enla
 
 - `python tests/seo_pages_test.py` — páginas SEO generadas (fichas, categorías, institucional): title, description, un H1, canonical propio, Open Graph, JSON-LD válido, sin enlaces rotos, sitemap completo, categorías con inventario mínimo y sin duplicados, robots.txt y llms.txt (se corre solo en la tarea diaria de GitHub)
 
+- `python tests/blog_sql_test.py` — blog: el público solo ve lo publicado, solo administración escribe, validaciones, fechas automáticas, 3 entradas iniciales sin duplicar al volver a correr el SQL, bucket de fotos
+
 Herramientas de apoyo (en `tools/`): `python tools/sync_sql.py <archivo.sql>` agrega o reemplaza el bloque de un SQL de `supabase/` dentro de `supabase/schema.sql` (hacerlo siempre al crear o cambiar un SQL; varias pruebas exigen que coincidan). `python tools/make_pdf.py` regenera `docs/BASTET_flujos_modelo_de_negocio_y_textos_legales.pdf` (requiere `pip install reportlab`).
