@@ -8,4 +8,10 @@
   <url><loc>https://bastet.uno/privacidad.html</loc><lastmod>2026-11-03</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://bastet.uno/terminos.html</loc><lastmod>2026-11-03</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://bastet.uno/dmca.html</loc><lastmod>2026-10-30</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <!-- inmuebles:start -->
+  <url><loc>https://bastet.uno/inmueble/</loc><lastmod>2026-11-14</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://bastet.uno/inmueble/casa-en-venta-la-paz-bst-1020.html</loc><lastmod>2026-11-14</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://bastet.uno/inmueble/departamento-en-venta-la-paz-bst-1015.html</loc><lastmod>2026-11-14</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://bastet.uno/inmueble/casa-en-alquiler-la-paz-bst-1018.html</loc><lastmod>2026-11-14</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <!-- inmuebles:end -->
 </urlset>

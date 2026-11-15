@@ -8,6 +8,7 @@
 - [Propiedades](https://bastet.uno/marketplace.html): inmuebles en venta, alquiler y anticrético, con filtros por ciudad y tipo.
 - [Estadías temporales](https://bastet.uno/estadias.html): casas, departamentos y habitaciones por noche. Se confirma con un pago del 10 % a Bastet y el resto se coordina directo con el anfitrión.
 - [Empresas](https://bastet.uno/empresas.html): alojamiento para los trabajadores de empresas afiliadas, alquiler de espacios para operar y compra de inmuebles, con cotización de Bastet.
+- [Inmuebles publicados](https://bastet.uno/inmueble/): lista de los inmuebles y estadías con ficha completa; cada uno tiene su propia página con fotos, datos y precio.
 - [Verificar](https://bastet.uno/verificar.html): comprobar con su código una reserva, una solicitud, una propiedad o un agente.
 - [App](https://bastet.uno/app.html): instalar Bastet como aplicación en el celular.
 
