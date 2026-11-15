@@ -31,41 +31,35 @@
     if (!granted) clearGaCookies();
   }
 
-  function css() {
-    if (document.getElementById('bc-style')) return;
-    var s = document.createElement('style');
-    s.id = 'bc-style';
-    s.textContent =
-      '.bc{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483000;max-width:560px;margin:0 auto;background:#fff;color:#1E2629;' +
-      'border:1px solid rgba(30,38,41,.18);border-radius:18px;box-shadow:0 18px 44px -18px rgba(30,38,41,.45);padding:18px 20px;' +
-      'font:400 15px/1.5 "Cabinet Grotesk","Helvetica Neue",Arial,sans-serif}' +
-      '.bc p{margin:0 0 14px}.bc a{color:#3D4C3A;text-decoration:underline}' +
-      '.bc-row{display:flex;gap:10px;flex-wrap:wrap}' +
-      '.bc button{flex:1 1 140px;min-height:46px;padding:0 20px;border-radius:999px;border:1.5px solid #3D4C3A;font:500 16px/1 "Conso",Georgia,serif;cursor:pointer}' +
-      '.bc-ok{background:#3D4C3A;color:#fff}.bc-no{background:#fff;color:#3D4C3A}' +
-      '.bc button:hover{filter:brightness(.94)}' +
-      '.bc button:focus-visible,.bc a:focus-visible{outline:3px solid #F1BF46;outline-offset:3px}' +
-      '@media(min-width:700px){.bc{left:24px;right:auto;bottom:24px;margin:0}}';
-    document.head.appendChild(s);
-  }
+  var STYLE =
+    '.bc{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483000;max-width:560px;margin:0 auto;background:#fff;color:#1E2629;' +
+    'border:1px solid rgba(30,38,41,.18);border-radius:18px;box-shadow:0 18px 44px -18px rgba(30,38,41,.45);padding:18px 20px;' +
+    'font:400 15px/1.5 "Cabinet Grotesk","Helvetica Neue",Arial,sans-serif}' +
+    '.bc p{margin:0 0 14px}.bc a{color:#3D4C3A;text-decoration:underline}' +
+    '.bc-row{display:flex;gap:10px;flex-wrap:wrap}' +
+    '.bc button{flex:1 1 140px;min-height:46px;padding:0 20px;border-radius:999px;border:1.5px solid #3D4C3A;font:500 16px/1 "Conso",Georgia,serif;cursor:pointer}' +
+    '.bc-ok{background:#3D4C3A;color:#fff}.bc-no{background:#fff;color:#3D4C3A}' +
+    '.bc button:hover{filter:brightness(.94)}' +
+    '.bc button:focus-visible,.bc a:focus-visible{outline:3px solid #F1BF46;outline-offset:3px}' +
+    '@media(min-width:700px){.bc{left:24px;right:auto;bottom:24px;margin:0}}';
 
-  var box = null;
-  function hide() { if (box && box.parentNode) box.parentNode.removeChild(box); box = null; }
+  var host = null;
+  function hide() { if (host && host.parentNode) host.parentNode.removeChild(host); host = null; }
 
   function show() {
-    if (box) return;
-    css();
-    box = document.createElement('div');
-    box.className = 'bc';
-    box.setAttribute('role', 'region');
-    box.setAttribute('aria-label', 'Preferencias de cookies');
-    box.innerHTML =
+    if (host) return;
+    // El aviso vive en un Shadow DOM: sus estilos no obligan al navegador a recalcular los de toda la página.
+    host = document.createElement('div');
+    var root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
+    root.innerHTML =
+      '<style>' + STYLE + '</style>' +
+      '<div class="bc" role="region" aria-label="Preferencias de cookies">' +
       '<p>Usamos una etiqueta de Google para medir cómo se usa el sitio y mejorarlo. Si aceptas, permites las cookies de medición. ' +
       'Si rechazas, no las usamos. <a href="/privacidad.html#cookies">Lee la política de privacidad</a></p>' +
-      '<div class="bc-row"><button type="button" class="bc-no">Rechazar</button><button type="button" class="bc-ok">Aceptar</button></div>';
-    box.querySelector('.bc-ok').addEventListener('click', function () { save('granted'); apply(true); hide(); });
-    box.querySelector('.bc-no').addEventListener('click', function () { save('denied'); apply(false); hide(); });
-    document.body.appendChild(box);
+      '<div class="bc-row"><button type="button" class="bc-no">Rechazar</button><button type="button" class="bc-ok">Aceptar</button></div></div>';
+    root.querySelector('.bc-ok').addEventListener('click', function () { save('granted'); apply(true); hide(); });
+    root.querySelector('.bc-no').addEventListener('click', function () { save('denied'); apply(false); hide(); });
+    document.body.appendChild(host);
   }
 
   window.bastetCookiePrefs = show;

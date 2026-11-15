@@ -29,7 +29,7 @@ GTAG = """<!-- Google tag (GTM-TRGZLFP3) -->
   ev.forEach(function(e){window.addEventListener(e,l,{passive:true});});})();
 </script>
 <!-- End Google tag -->
-<script defer src="/assets/js/consent.js?v=20261115c"></script>"""
+<script defer src="/assets/js/consent.js?v=20261115d"></script>"""
 
 MIN_LISTINGS = 3
 OPS = ['venta', 'alquiler', 'anticretico']
