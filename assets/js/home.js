@@ -47,6 +47,9 @@
   /* ───────── Filas de inmuebles y estadías ───────── */
   const TYPE = { casa: 'Casa', departamento: 'Departamento', habitacion: 'Habitación', terreno: 'Terreno' };
   const cityOf = (p) => String(p.location || '').split(',')[0].trim();
+  const OP_ALT = { venta: 'en venta', alquiler: 'en alquiler', anticretico: 'en anticrético', temporal: 'para estadía por noche' };
+  // Texto alternativo de la foto: tipo, operación y ciudad (p. ej. «Casa en venta en La Paz»)
+  const altOf = (p) => [(TYPE[p.property_type] || 'Inmueble') + ' ' + (OP_ALT[p.operation || 'venta'] || ''), cityOf(p) ? 'en ' + cityOf(p) : ''].join(' ').replace(/\s+/g, ' ').trim();
   const codeOf = (p) => (p.code_number ? 'BST-' + p.code_number : p.id);
   const price = (p) => {
     const d = String(p.price || '').replace(/[^0-9]/g, '');
@@ -63,7 +66,7 @@
     const fav = window.PropFavs && window.PropFavs.has(p.id);
     const badge = p.featured ? 'Destacada' : (p.verified ? 'Verificada' : '');
     return '<article class="hm-card"><a class="hm-card-link" href="' + esc(url) + '">' +
-      '<div class="hm-card-photo">' + (photo ? '<img ' + window.imgThumbAttrs(photo, 480, 480) + ' alt="" loading="lazy" decoding="async">' : '') +
+      '<div class="hm-card-photo">' + (photo ? '<img ' + window.imgThumbAttrs(photo, 480, 480) + ' alt="' + esc(altOf(p)) + '" loading="lazy" decoding="async">' : '') +
       (badge ? '<span class="hm-badge">' + esc(badge) + '</span>' : '') + '</div>' +
       '<div class="hm-card-text"><div class="hm-card-row"><h3>' + esc(p.title) + '</h3>' + (r ? '<span class="hm-rate">★ ' + esc(String(r.avg.toFixed(1)).replace('.', ',')) + '</span>' : '') + '</div>' +
       '<p class="hm-card-meta">' + esc([TYPE[p.property_type], cityOf(p)].filter(Boolean).join(' en ')) + '</p>' +
