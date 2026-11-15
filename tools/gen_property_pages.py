@@ -194,6 +194,7 @@ def page(p, others, hubs=None, prof=None):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
+{H.GTAG}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
@@ -328,6 +329,7 @@ def index_page(items, hubs=None):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
+{H.GTAG}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inmuebles y estadías publicados en Bolivia · Bastet</title>

@@ -12,6 +12,16 @@ import json
 import re
 from collections import Counter
 
+# Etiqueta de Google (se pega justo después de <head> en cada página pública; ver tools/google_tag.py)
+GTAG = """<!-- Google tag (GTM-TRGZLFP3) -->
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-TRGZLFP3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
+<!-- End Google tag -->"""
+
 MIN_LISTINGS = 3
 OPS = ['venta', 'alquiler', 'anticretico']
 OP_PHRASE = {'venta': 'en venta', 'alquiler': 'en alquiler', 'anticretico': 'en anticrético'}
@@ -286,6 +296,7 @@ def render(h, hubs, statics, g, SITE, today_mod, SB):
     page = f'''<!DOCTYPE html>
 <html lang="es">
 <head>
+{GTAG}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
@@ -375,6 +386,7 @@ def about_page(SITE):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
+{GTAG}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} · Bastet</title>
