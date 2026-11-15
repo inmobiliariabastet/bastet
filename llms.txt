@@ -1,0 +1,30 @@
+# Bastet
+
+> Bastet (bastet.uno) es una plataforma inmobiliaria de Bolivia para comprar, alquilar o tomar en anticrético casas, departamentos, habitaciones y terrenos, y para reservar estadías por noche. Los inmuebles los revisa Bastet y los teléfonos de propietarios y agentes no son públicos: se entregan cuando la solicitud de contacto o la reserva se confirma. Operada por Bastet Real State S.R.L. Idioma del sitio: español.
+
+## Páginas principales
+
+- [Inicio](https://bastet.uno/): buscador de inmuebles y estadías, preguntas frecuentes y cómo funciona Bastet.
+- [Propiedades](https://bastet.uno/marketplace.html): inmuebles en venta, alquiler y anticrético, con filtros por ciudad y tipo.
+- [Estadías temporales](https://bastet.uno/estadias.html): casas, departamentos y habitaciones por noche. Se confirma con un pago del 10 % a Bastet y el resto se coordina directo con el anfitrión.
+- [Empresas](https://bastet.uno/empresas.html): alojamiento para los trabajadores de empresas afiliadas, alquiler de espacios para operar y compra de inmuebles, con cotización de Bastet.
+- [Verificar](https://bastet.uno/verificar.html): comprobar con su código una reserva, una solicitud, una propiedad o un agente.
+- [App](https://bastet.uno/app.html): instalar Bastet como aplicación en el celular.
+
+## Datos clave
+
+- Tipos de operación: venta, alquiler, anticrético y estadía temporal por noche.
+- Tipos de inmueble: casa, departamento, habitación y terreno.
+- Cuentas: cliente, propietario, agente y empresa. La cuenta de empresa es para quien contrata y no publica inmuebles.
+- Verificación: distintivos independientes para agentes, propietarios y propiedades, otorgados tras revisar documentos.
+- Publicar una estadía como anfitrión es gratis y no vence.
+- Contacto: inmobiliaria@bastet.uno
+
+## Legal
+
+- [Política de privacidad](https://bastet.uno/privacidad.html)
+- [Términos y condiciones](https://bastet.uno/terminos.html)
+
+## Opcional
+
+- [Mapa del sitio](https://bastet.uno/sitemap.xml)

@@ -19,6 +19,9 @@ Las 8 decisiones de negocio YA están tomadas (ver el documento; reemplaza a `PE
 | 5 | Investigaciones y sanciones (cláusula 2,25 % solo tras revisión jurídica) | ✅ en producción (SQL corrido, solo administración). Falta la revisión jurídica |
 | — | Historias/estados temporales: **NO se hacen** | decidido |
 
+### 🆕 2026-11-14 · SEO/AEO para la hackathon (commit `980e204` y siguiente)
+- Inicio: og/twitter, JSON-LD (Organization/RealEstateAgent, WebSite, FAQPage), respuesta directa bajo el H1, FAQ visible (7 preguntas, `.hm-faq`), H2 en pregunta. Marketplace/Estadías/Empresas: og/twitter, títulos 53–55 y descripciones 140–160 caracteres. `hero-familia.webp` recomprimida (253→120 KB, misma ruta y tamaño). `llms.txt` en la raíz. Si cambia el negocio (precios, ciudades, servicios), actualizar FAQ + JSON-LD + `llms.txt` a la vez. No medido aún: Lighthouse/PageSpeed.
+
 ### 🆕 2026-11-14 · Página 404 de marca
 - `404.html` (fondo `assets/img/404-fondo.webp`, rutas absolutas, `noindex`) + `ErrorDocument 404 /404.html` en `.htaccess`: reemplaza la 404 de Hostinger. Botones «Volver al sitio» y WhatsApp. Revisada en escritorio y celular con el servidor local; falta ver en vivo una URL inexistente (p. ej. bastet.uno/xyz) tras el despliegue.
 
