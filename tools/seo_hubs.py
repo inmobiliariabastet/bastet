@@ -197,7 +197,7 @@ def render(h, hubs, statics, g, SITE, today_mod, SB):
     k = h['kind']
     op = h.get('op')
     city = h.get('city')
-    title = f'{h1}: {n} disponibles · Bastet'
+    title = f"{h1}: {n} {'disponible' if n == 1 else 'disponibles'} · Bastet"
     noun = noun_phrase(h, n)
     opp = OP_PHRASE[op] if op else 'en venta, alquiler y anticrético'
     desc = f'{n} {noun} {opp} {where} en Bastet, con fotos y precios. Compara opciones y solicita contacto con el anunciante: los teléfonos se entregan al confirmar tu solicitud.'
