@@ -18,6 +18,13 @@ RewriteRule (^|/)\.(?!well-known) - [R=404,L]
 </IfModule>
 
 <IfModule mod_headers.c>
+# Páginas HTML: el navegador siempre revalida, pero la CDN de Hostinger puede servirlas desde su caché hasta 5 minutos (baja el tiempo de respuesta)
+<FilesMatch "\.html$">
+Header set Cache-Control "public, max-age=0, s-maxage=300, must-revalidate"
+</FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
 Header always set X-Content-Type-Options "nosniff"
 Header always set X-Frame-Options "SAMEORIGIN"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
