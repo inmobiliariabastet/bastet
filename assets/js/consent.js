@@ -61,7 +61,7 @@
     box.setAttribute('aria-label', 'Preferencias de cookies');
     box.innerHTML =
       '<p>Usamos una etiqueta de Google para medir cómo se usa el sitio y mejorarlo. Si aceptas, permites las cookies de medición. ' +
-      'Si rechazas, no las usamos. <a href="/privacidad.html#cookies">Más información</a></p>' +
+      'Si rechazas, no las usamos. <a href="/privacidad.html#cookies">Lee la política de privacidad</a></p>' +
       '<div class="bc-row"><button type="button" class="bc-no">Rechazar</button><button type="button" class="bc-ok">Aceptar</button></div>';
     box.querySelector('.bc-ok').addEventListener('click', function () { save('granted'); apply(true); hide(); });
     box.querySelector('.bc-no').addEventListener('click', function () { save('denied'); apply(false); hide(); });
