@@ -25,6 +25,8 @@ jobs:
           python-version: '3.12'
       - name: Generar páginas
         run: python tools/gen_property_pages.py
+      - name: Probar las páginas generadas
+        run: python tests/seo_pages_test.py
       - name: Subir cambios si los hay
         run: |
           if [ -n "$(git status --porcelain)" ]; then

@@ -71,6 +71,7 @@
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg>Propietarios <span class="tab-count hidden" id="sell-count"></span></button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="legal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-2 6a3 3 0 0 0 4 0zM19 7l-2 6a3 3 0 0 0 4 0zM8 21h8"/></svg>Asesoría legal</button>
       <button type="button" class="admin-tab admin-only-tab hidden" data-tab="companies"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.500"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/></svg>Empresas <span class="tab-count hidden" id="companies-count"></span></button>
+      <button type="button" class="admin-tab admin-only-tab hidden" data-tab="seo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11.5l2 2 3.5-4"/></svg>SEO</button>
     </nav>
     <div class="admin-side-foot">
       <a href="../index.html" target="_blank" rel="noopener" class="admin-landing-link">Volver al Inicio ↗</a>
@@ -189,6 +190,12 @@
       <div class="admin-toolbar"><div><h1>Empresas</h1>
         <p class="admin-toolbar-hint">Afiliación corporativa: activa empresas, fija su descuento y atiende primero sus solicitudes de alojamiento (cotización manual).</p></div></div>
       <div id="companies-root"></div>
+    </div>
+
+    <div id="tab-panel-seo" class="tab-panel hidden">
+      <div class="admin-toolbar"><div><h1>SEO</h1>
+        <p class="admin-toolbar-hint">Visibilidad en buscadores y asistentes de IA: calidad del inventario, páginas publicadas y rendimiento por ciudad y operación (solo datos verificables).</p></div></div>
+      <div id="seo-root"></div>
     </div>
 
     <div id="tab-panel-verification" class="tab-panel hidden">
@@ -620,6 +627,7 @@
 <script src="../assets/js/operations-admin.js?v=20261103e"></script>
 <script src="../assets/js/company-dashboard.js?v=20261106a"></script>
 <script src="../assets/js/company-admin.js?v=20261106a"></script>
+<script src="../assets/js/seo-admin.js?v=20261115a"></script>
 <script src="../assets/js/verification-admin.js?v=20261103f"></script>
 <script src="../assets/js/account-type.js?v=20261106a"></script>
   <script src="../assets/js/account-delete.js?v=20261103h"></script>

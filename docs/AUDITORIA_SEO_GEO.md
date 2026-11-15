@@ -50,3 +50,21 @@ Metodología: se consultó la web pública. **Solo se reporta lo observable.**
 5. **Medición**: GA4, Bing Webmaster, seguimiento de indexación → requiere cuentas de la dueña; se deja preparado y documentado.
 6. **Autoridad externa** (Google Business Profile, Bing Places, directorios, medios, alianzas) → plan en `docs/ESTRATEGIA_AUTORIDAD.md`; son acciones fuera del código.
 7. **Búsquedas guardadas y alertas** → requieren backend de envíos; no se construyen sin decidir proveedor de correo/WhatsApp.
+
+## 5. Estado tras la implementación (15-nov-2026)
+
+| Qué | Estado | Cómo se comprobó |
+|---|---|---|
+| Páginas de categoría (operación / ciudad / tipo / combinaciones) | ✅ En producción: 7 hoy (`propiedades-en-venta-en-bolivia`, `…-alquiler-…`, `…-anticretico-…`, `inmuebles-en-la-paz`, `casas-en-venta`, `casas-en-alquiler`, `propiedades-en-venta-en-la-paz`). Las demás ciudades y tipos aparecen solas cuando tengan 3+ inmuebles reales. | `python tests/seo_pages_test.py` (0 fallas) + URLs 200 en vivo; sin barra final redirige 301 a la versión con barra. |
+| Fichas por inmueble con migas, fecha de publicación y de actualización, anunciante y enlaces a categorías | ✅ | Prueba + lectura del JSON-LD. «Actualizada» es la fecha en que cambió el contenido de la página (la tabla `properties` no guarda `updated_at`). |
+| Anuncios retirados / vencidos / vendidos | ✅ La tarea diaria borra su página y la saca del sitemap; si ocurre antes, la página avisa y se marca `noindex`. | Revisión de código; no se probó con un retiro real. |
+| Página institucional `/sobre-bastet/` | ✅ Texto sin afirmar que todo esté verificado. Pendiente: revisión del abogado. | Prueba. |
+| `robots.txt` por tipo de rastreador | ✅ Buscadores/asistentes permitidos; entrenamiento de modelos permitido hoy y **decisión de la dueña** (comentario en el archivo). | Prueba + archivo en vivo. |
+| `llms.txt` con categorías | ✅ Se actualiza solo. | Prueba. |
+| Panel Admin → SEO | ✅ Calidad del inventario, páginas publicadas, vistas/clics por ciudad y operación, enlaces a herramientas. | Probado con datos reales en una página de prueba; **no** probado dentro del admin con sesión iniciada. |
+| Filtros funcionales en las categorías | ✅ Formulario que abre Propiedades con operación, tipo y ciudad. | Revisión; los parámetros ya los entiende `marketplace.html`. |
+| Google Analytics 4, Bing Webmaster, Google Business Profile | ❌ Requieren cuentas de la dueña (`docs/ESTRATEGIA_AUTORIDAD.md`). | — |
+| Búsquedas guardadas y alertas de nuevos inmuebles | ❌ No construido: requiere decidir proveedor de envíos (correo/WhatsApp) y una tabla nueva. | — |
+| Guías largas y contenido de mercado | ❌ Solo hay una guía corta por operación en las páginas nacionales. Más contenido necesita fuentes y revisión legal. | — |
+
+**Datos que condicionan el resultado:** solo 3 de 20 inmuebles tienen la ficha completa; 9 de 20 no tienen operación o tipo (listados antiguos) y por eso no entran en ninguna categoría. Completarlos en el panel es lo que más amplía el SEO.
