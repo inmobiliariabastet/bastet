@@ -6,7 +6,7 @@ La etiqueta de Google va UNA sola vez por página, justo después de <head> y de
 1024 bytes del documento). Lleva delante el consentimiento por defecto (Modo de consentimiento de Google) y detrás el script del aviso de
 cookies (assets/js/consent.js). Las páginas generadas (fichas, categorías, institucional) la traen desde sus plantillas en
 tools/seo_hubs.py y gen_property_pages.py (constante GTAG).
-NO se agrega a admin/, descargos.html ni confirmar.html: llevan datos privados o enlaces con un token secreto en la dirección (?t=...)
+NO se agrega a admin/, agente/ (solo redirige al panel), descargos.html ni confirmar.html: llevan datos privados o enlaces con un token secreto en la dirección (?t=...)
 y no deben enviarse a una herramienta de medición externa.
 """
 import re
@@ -18,7 +18,7 @@ from seo_hubs import GTAG  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 PAGES = ['index.html', 'marketplace.html', 'estadias.html', 'empresas.html', 'app.html', 'privacidad.html', 'terminos.html',
-         'dmca.html', 'verificar.html', '404.html', 'agente/index.html']
+         'dmca.html', 'verificar.html', '404.html']
 START = '<!-- Google tag (GTM-TRGZLFP3) -->'
 END = '<!-- End Google tag -->'
 CONSENT = '<script defer src="/assets/js/consent.js'
