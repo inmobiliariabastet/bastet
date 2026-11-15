@@ -304,8 +304,8 @@ def render(h, hubs, statics, g, SITE, today_mod, SB):
     page = f'''<!DOCTYPE html>
 <html lang="es">
 <head>
-{GTAG}
 <meta charset="utf-8">
+{GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
@@ -394,8 +394,8 @@ def about_page(SITE):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
-{GTAG}
 <meta charset="utf-8">
+{GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} · Bastet</title>
 <meta name="description" content="{esc(desc)}">

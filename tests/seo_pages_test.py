@@ -61,7 +61,8 @@ for f in pages:
     check('@@MOD@@' not in s, f'{f}: quedó el marcador @@MOD@@ sin reemplazar')
     check(s.count('GTM-TRGZLFP3') == 2 and s.count('googletagmanager.com/gtm.js') == 1, f'{f}: debe tener exactamente UNA etiqueta de Google')
     check('/assets/js/consent.js' in s and "gtag('consent','default'" in s, f'{f}: falta el aviso de cookies o el consentimiento por defecto')
-    check(re.search(r'<head>\s*<!-- Google tag \(GTM-TRGZLFP3\) -->', s) is not None, f'{f}: la etiqueta de Google debe ir justo después de <head>')
+    check(re.search(r'<head>\s*<meta charset="[^"]*">\s*<!-- Google tag \(GTM-TRGZLFP3\) -->', s) is not None, f'{f}: la etiqueta de Google debe ir justo después de <head> y del <meta charset>')
+    check(s.lower().find('<meta charset') < 1024, f'{f}: el <meta charset> debe estar en los primeros 1024 caracteres')
     check('<meta name="robots"' not in s, f'{f}: no debe llevar meta robots estática (el noindex solo lo agrega el script cuando el inmueble ya no está disponible)')
     if t:
         titles.setdefault(t.group(1), []).append(f)

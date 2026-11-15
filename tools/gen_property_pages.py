@@ -194,8 +194,8 @@ def page(p, others, hubs=None, prof=None):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
-{H.GTAG}
 <meta charset="utf-8">
+{H.GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
@@ -329,8 +329,8 @@ def index_page(items, hubs=None):
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
-{H.GTAG}
 <meta charset="utf-8">
+{H.GTAG}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inmuebles y estadías publicados en Bolivia · Bastet</title>
 <meta name="description" content="Lista de las casas, departamentos, habitaciones y terrenos publicados en Bastet para comprar, alquilar, tomar en anticrético o reservar por noche en Bolivia.">
