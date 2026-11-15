@@ -904,6 +904,8 @@ document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('clic
 if (window.PropFavs) window.PropFavs.onChange(syncViewBar);
 
 function renderPropertyGrid(resetPage = true) {
+  // En el Inicio la grilla está oculta (las filas las dibuja home.js): no se construyen tarjetas que nadie ve.
+  if (propGridEl.hasAttribute('hidden')) return;
   if (resetPage) propVisibleCount = PROP_PAGE_SIZE;
   syncFiltersToggle();
   clearFiltersBtn?.classList.toggle('hidden', !anyFilterActive());
